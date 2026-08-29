@@ -63,6 +63,16 @@ RUN core=$(go list -m -f '{{.Version}}' github.com/gerege-systems/open-gerege-ne
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
     -o /bin/migrate github.com/gerege-systems/open-gerege-nexus/backend/cmd/migrate
 
+# The console's first operator, for the deployments the wizard cannot reach.
+#
+# The wizard opens the console as its last step, but only while the deployment
+# has no organisation: its token dies the moment one exists. Every console
+# opened after that day — this deployment's own included, whose organisation was
+# made before the wizard could offer the step — is opened here, from a shell,
+# and an image without this binary has no way to open one at all.
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
+    -o /bin/operator-bootstrap github.com/gerege-systems/open-gerege-nexus/backend/cmd/operator-bootstrap
+
 # The platform's migration files, which are data in the module rather than code.
 # The path carries the version, so this reads it back rather than guessing.
 RUN core=$(go list -m -f '{{.Dir}}' github.com/gerege-systems/open-gerege-nexus/backend) \
@@ -117,6 +127,7 @@ WORKDIR /app
 
 COPY --from=build /bin/petronet /app/petronet
 COPY --from=build /bin/migrate  /app/migrate
+COPY --from=build /bin/operator-bootstrap /app/operator-bootstrap
 COPY --from=build /out/db       /app/db
 COPY --from=build /out/catalog  /app/catalog
 
