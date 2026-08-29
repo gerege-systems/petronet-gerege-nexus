@@ -1,0 +1,138 @@
+# Petronet, as a Gerege Nexus distribution.
+#
+# Four services: postgres, the platform's migrations, this product's binary, and
+# the platform's shell. There is no second migration history here — this
+# repository has no schema of its own yet — and no redis: the core runs without
+# one and nothing on this host needs a second thing to keep alive.
+#
+# Required environment (deploy/.env, copied there by deploy.sh):
+#   PETRONET_POSTGRES_PASSWORD  this stack's own database
+#   SSO_DEFAULT_CLIENT_SECRET   the platform refuses to start without it in
+#                               production — see config.ValidateProduction
+#   PUBLIC_ORIGIN               where this instance answers
+#   WEB_IMAGE                   the core's published shell, on the commit that
+#                               matches go.mod's core version
+#
+# THE PORTS ARE NOT FREE CHOICES AND ARE NOT THE CORE'S DEFAULTS. This stack
+# shares a host with fuelnet.gerege.mn, whose backend already holds
+# 127.0.0.1:8082 — the port the core's `snippets/nexus-oauth.conf` hardcodes —
+# and 3008 / 5434. So this deployment publishes 5440 / 8098 / 3018 and its vhost
+# writes the OIDC locations out itself instead of including that snippet.
+# Including it would have quietly served the neighbour's discovery document
+# from this product's domain.
+
+name: petronet
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gerege_petronet_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: platform_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${PETRONET_POSTGRES_PASSWORD:?PETRONET_POSTGRES_PASSWORD is required}
+    ports:
+      - "127.0.0.1:5440:5432"
+    volumes:
+      - gerege_petronet_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d platform_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrate:
+    image: ${IMAGE:-petronet:latest}
+    container_name: gerege_petronet_migrate
+    # The platform's migrations, from the core version this product's go.mod
+    # pins — the image carries both, so they cannot drift apart.
+    command: ["/app/migrate", "up"]
+    environment:
+      DATABASE_URL: postgres://postgres:${PETRONET_POSTGRES_PASSWORD}@postgres:5432/platform_db?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  backend:
+    image: ${IMAGE:-petronet:latest}
+    container_name: gerege_petronet_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://postgres:${PETRONET_POSTGRES_PASSWORD}@postgres:5432/platform_db?sslmode=disable
+      ENVIRONMENT: production
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-https://petronet.mn}
+      ALLOWED_ORIGINS: ${PUBLIC_ORIGIN:-https://petronet.mn}
+      # nginx terminates TLS in front of this, so the forwarded client address
+      # can be trusted — and the login rate limiter counts on it being real.
+      TRUST_PROXY_HEADERS: "true"
+
+      # The catalogue shipped in the image. File mode: an instance that pulled a
+      # catalogue from a registry would be offering whatever that registry says
+      # today rather than what this binary can actually run.
+      APP_CATALOG_PATH: /app/catalog/apps.json
+      APP_CATALOG_URL: ""
+
+      # Its own issuer, and its own sign-in. This deployment identifies people
+      # itself — no SSO_CLIENT_ISSUER — so every OAuth callback it mints points
+      # at itself and /login asks here.
+      SSO_DEFAULT_CLIENT_SECRET: ${SSO_DEFAULT_CLIENT_SECRET:?SSO_DEFAULT_CLIENT_SECRET is required}
+
+      # What this deployment calls itself. The browser app is given the same
+      # name and more below; these are halves of one setting, and a stack that
+      # renames only one of them has a sign-in screen and an eID prompt
+      # disagreeing about which product somebody is standing in front of.
+      BRAND_NAME: ${BRAND_NAME:-}
+
+      # No demo data in production. The seeded account has a published password.
+      SEED_DEMO_DATA: "false"
+      DEMO_MODE: "false"
+    ports:
+      - "127.0.0.1:8098:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # The platform's own shell, unmodified — the core's published image rather
+  # than a build of our own.
+  #
+  # A distribution does not fork the frontend: the sidebar and every module
+  # screen are catalogue-driven, so the generic shell already renders whatever
+  # this instance installs. WEB_IMAGE pins the core commit; keep it on the tag
+  # that matches go.mod's core version.
+  web:
+    image: ${WEB_IMAGE:?WEB_IMAGE is required}
+    container_name: gerege_petronet_web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # Where the shell asks, server-side, what this deployment is. The browser
+      # never uses it: it asks its own origin (lib/apiBase.ts). A server has no
+      # origin, which is the whole reason this exists.
+      API_INTERNAL_URL: http://backend:8080/api/v1
+      # Read per request — see frontend/lib/brand.ts — so brand is a setting
+      # rather than a build.
+      BRAND_NAME: ${BRAND_NAME:-}
+      BRAND_SHORT_NAME: ${BRAND_SHORT_NAME:-}
+      BRAND_DESCRIPTION: ${BRAND_DESCRIPTION:-}
+      BRAND_LOGO_URL: ${BRAND_LOGO_URL:-}
+      BRAND_THEME_COLOR: ${BRAND_THEME_COLOR:-}
+      BRAND_ICON_URL: ${BRAND_ICON_URL:-}
+      BRAND_MASKABLE_ICON_URL: ${BRAND_MASKABLE_ICON_URL:-}
+    ports:
+      - "127.0.0.1:3018:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  gerege_petronet_postgres_data:

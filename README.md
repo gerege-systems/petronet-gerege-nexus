@@ -1,0 +1,89 @@
+# Petronet — petronet.mn
+
+[Gerege Nexus](https://github.com/gerege-systems/open-gerege-nexus) платформын
+**Түвшин 2 distribution**: шатахууны нөөцийн хяналт, удирдлагын нэгдсэн систем.
+
+Цөмийн код энд нэг ч мөр байхгүй — `go.mod`-ын нэг мөр л байна
+(`open-gerege-nexus/backend v1.15.0`). Энэ репод цаашид орох Go код нь
+`modules/`: энэ бүтээгдэхүүний өөрийн аппууд.
+
+## Модулиуд
+
+Одоогоор нэг ч байхгүй. Нэвтрэлт, байгууллага, апп стор, рельсүүд бүгд
+цөмийнх тул суулгац бүрэн ажиллаж байна — платформ 0 бизнес апптай асч чаддаг
+байх нь экосистемийн суурийн шалгуур
+([`ECOSYSTEM_GIT_STRATEGY.md`](https://github.com/gerege-systems/open-gerege-nexus/blob/main/docs/ECOSYSTEM_GIT_STRATEGY.md)),
+орлуулагч төлөв биш.
+
+## Юу нь ялгаатай вэ
+
+| | |
+| --- | --- |
+| Нэвтрэлт | Бие даасан — өөрийн нууц үг, өөрийн OIDC issuer. `SSO_CLIENT_ISSUER` хоосон |
+| Домэйн | `petronet.mn`, `www.petronet.mn` |
+| Портууд | 5440 / 8098 / 3018, зөвхөн loopback — **цөмийн анхдагч биш** |
+| Сервер | 38.180.120.144, `fuelnet.gerege.mn`-тэй хамт |
+
+Портууд нь чөлөөт сонголт биш: энэ стек `fuelnet.gerege.mn`-тэй **ижил машин**
+дээр сууж байгаа бөгөөд тэр нь 3008/8082/5434-ийг эзэлсэн. Үүнээс мөрдөгдөх
+хоёр дахь дүрэм: `nginx/petronet.mn.conf` нь цөмийн `snippets/nexus-oauth.conf`-ыг
+include **хийхгүй** — тэр snippet `127.0.0.1:8082` гэж хатуу бичсэн тул include
+хийсэн бол энэ домэйн хөршийнхөө discovery баримтыг тарааж эхлэх байв.
+
+## Байрлуулалт
+
+Сервер дээр `/opt/petronet/` — `src/` энэ репо, `.env` (chmod 600), `brand/`.
+
+```bash
+cd /opt/petronet/src && git pull && ./deploy.sh
+```
+
+`deploy.sh` нь **backend образыг барина**, бүрхүүлийг цөмийн нийтэлсэн
+образаас авна (`WEB_IMAGE`). Хост дээр байхгүй бол `REGISTRY_USER` /
+`REGISTRY_TOKEN` (read:packages) өгнө.
+
+Цөмийг өргөх нь хоёр мөр: `go.mod`-ын хувилбар, `.env`-ийн `WEB_IMAGE` — хоёул
+нэг commit дээр байх ёстой, эс бөгөөс backend, frontend хоёр өөр API гэрээ
+дээр ажиллана.
+
+## Эхний байгууллага, эхний админ
+
+Цөмийн эхний ачааллын шидтэн (`/setup`). Байгууллагагүй үед л зэвсэглэдэг:
+токен нь ачаалах үед санах ойд үүсч, лог руу нэг удаа бичигдэж, байгууллага
+үүсмэгц устдаг.
+
+```bash
+docker logs gerege_petronet_backend 2>&1 | grep -i "setup token"
+```
+
+Дараа нь `https://petronet.mn/setup` дээр тэр токеноор орж байгууллага, админаа
+үүсгэнэ. Байгууллага үүссэний дараа энэ зам 404 болно.
+
+## Өөрийн модуль нэмэх
+
+`modules/` үүсгээд `main.go`-гийн `Options.Modules` callback дотор бүртгэнэ.
+Түвшин 2-ын бүтэц эхний commit-оос бэлэн байгаа нь яг үүний тулд: эхний модуль
+нэмэх нь нэг файлын өөрчлөлт, байрлуулалтын нүүлгэлт биш.
+
+Өөрийн хүснэгттэй бол `modules/<нэр>/migrations/00001_<нэр>.sql` гэж бичээд
+конструктораасаа бүртгэнэ:
+
+```go
+//go:embed migrations/*.sql
+var migrations embed.FS
+
+func New(p nexus.Platform) *Module {
+    m := &Module{...}
+    nexus.Register(m)
+    nexus.Migrations(m.ID(), schema()) // fs.Sub(migrations, "migrations")
+    return m
+}
+```
+
+Каталог: `catalog/apps.json`, `catalog/manifests/<slug>.json`, ба хувилбарын
+түүхээ `catalog/chronicle/<slug>.json`-д. Образ нь энэ репогийн каталогийг
+цөмийнхтэй нийлүүлдэг — бинарь дотор байгаа аппыг каталог нэрлээгүй бол
+суулгац асахаас татгалзана.
+
+Дэлгэрэнгүй заавар:
+[`MODULE_AUTHORING_GUIDE.md`](https://github.com/gerege-systems/open-gerege-nexus/blob/main/docs/MODULE_AUTHORING_GUIDE.md).

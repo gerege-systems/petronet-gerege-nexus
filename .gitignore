@@ -1,0 +1,5 @@
+/petronet-gerege-nexus
+*.env
+!.env.example
+brand/
+*.pdf

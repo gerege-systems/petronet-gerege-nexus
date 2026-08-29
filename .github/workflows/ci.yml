@@ -1,0 +1,47 @@
+# What has to be true before this repository's main moves.
+#
+# The core has its own CI; this one is about the half that lives here — the
+# modules this repository will carry and the image that ships them. It exists
+# from the first commit because the failure it catches is the one a distribution
+# is most exposed to: go.mod pointing at a working copy, or a catalogue that
+# disagrees with the binary. Neither is visible on the laptop that wrote it.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          # The toolchain comes from go.mod, so it cannot drift from what the
+          # code is written against.
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      - name: go vet
+        run: go vet ./...
+      - name: go test
+        run: go test -race -count=1 ./...
+
+  image:
+    name: Image
+    runs-on: ubuntu-latest
+    # The deployable artefact, built exactly as deploy.sh builds it. This is the
+    # job that catches an absolute `replace` in go.mod, and a catalogue merge
+    # that drops one of this repository's apps — the Dockerfile fails the build
+    # rather than letting an instance start with a binary carrying an app its
+    # catalogue does not name.
+    steps:
+      - uses: actions/checkout@v7
+      - name: docker build
+        run: docker build -t petronet:ci -f deploy/Dockerfile .
