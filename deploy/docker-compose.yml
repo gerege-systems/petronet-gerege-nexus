@@ -85,6 +85,13 @@ services:
       # disagreeing about which product somebody is standing in front of.
       BRAND_NAME: ${BRAND_NAME:-}
 
+      # The Gerege Core register, which the first-run wizard and the
+      # organisation screen search by registration number. Without it those
+      # screens are typed in by hand — which is how a deployment ends up
+      # calling itself something the invoices do not. The URL defaults to
+      # core.gerege.mn; only the token is a deployment's own.
+      GEREGE_CORE_TOKEN: ${GEREGE_CORE_TOKEN:-}
+
       # No demo data in production. The seeded account has a published password.
       SEED_DEMO_DATA: "false"
       DEMO_MODE: "false"
