@@ -1,4 +1,4 @@
-# Petronet's own image.
+# PetroNet's own image.
 #
 # Two binaries: this product's server — the platform plus whatever modules this
 # repository carries — and the platform's migration runner, built from the exact

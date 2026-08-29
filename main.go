@@ -1,10 +1,10 @@
 /*
- * Petronet
+ * PetroNet
  * Copyright (c) 2026 Gerege Systems Development Team, Gerege Nomadica Foundation.
  * Distributed under the Apache 2.0 License.
  */
 
-// Command petronet runs the Gerege Nexus platform as the Petronet
+// Command petronet runs the Gerege Nexus platform as the PetroNet
 // distribution: the national fuel reserve's monitoring and management system,
 // at petronet.mn.
 //

@@ -1,4 +1,4 @@
-# Petronet — petronet.mn
+# PetroNet System — petronet.mn
 
 [Gerege Nexus](https://github.com/gerege-systems/open-gerege-nexus) платформын
 **Түвшин 2 distribution**: шатахууны нөөцийн хяналт, удирдлагын нэгдсэн систем.

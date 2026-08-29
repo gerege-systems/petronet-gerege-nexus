@@ -1,4 +1,4 @@
-# Petronet, as a Gerege Nexus distribution.
+# PetroNet, as a Gerege Nexus distribution.
 #
 # Four services: postgres, the platform's migrations, this product's binary, and
 # the platform's shell. There is no second migration history here — this
@@ -90,6 +90,29 @@ services:
       # request that arrived on any other name, and the shell answers 404 to
       # /cp. Empty in production means this deployment has no console at all.
       CONTROL_PLANE_HOST: ${CONTROL_PLANE_HOST:-}
+
+      # eID Mongolia, as this deployment's relying party.
+      #
+      # The pair is what turns the sign-in screen's eID card from a button that
+      # answers "session could not be started" into a request on somebody's
+      # phone: without them the client is built and refuses at the first call.
+      # The name and the display text are not decoration — they are what the
+      # citizen reads in the app before approving, and their defaults in the
+      # core are the core's own product name, so a deployment that leaves them
+      # empty asks people to approve a sign-in to something they never opened.
+      #
+      # The callback registered with eID for this RP must be exactly
+      #   ${PUBLIC_ORIGIN}/auth/eid/callback
+      # The platform refuses any other host or path before it ever calls out.
+      EID_RP_UUID: ${EID_RP_UUID:-}
+      EID_RP_SECRET: ${EID_RP_SECRET:-}
+      EID_RP_NAME: ${EID_RP_NAME:-}
+      EID_DISPLAY_TEXT: ${EID_DISPLAY_TEXT:-}
+      EID_BASE_URL: ${EID_BASE_URL:-}
+      # Canned identities. Unset already means "off" in production; written
+      # here so that turning it on is a deliberate line in .env rather than a
+      # thing that could happen by accident.
+      EID_MOCK_MODE: ${EID_MOCK_MODE:-false}
 
       # The Gerege Core register, which the first-run wizard and the
       # organisation screen search by registration number. Without it those
