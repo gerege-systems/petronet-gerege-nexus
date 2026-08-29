@@ -35,8 +35,21 @@ COPY . .
 # default, and that image then refuses every manifest it ships with and never
 # comes up. Nothing in the build log says so. So the two candidates are probed
 # in order and a core with neither fails the build here, loudly.
+#
+# The `%%-*` strips a pseudo-version's suffix, and it is not cosmetic. go.mod
+# pins the core at a commit rather than a tag while main waits for v2.0.0, so
+# `go list` answers 1.15.1-0.20260829032520-77d79397382c — a semver PRERELEASE,
+# and Masterminds/semver excludes prereleases from every range that has none.
+# Reported as-is, this image fails `"platform": ">=1.0.0"` on every manifest it
+# ships with, cannot read its own catalogue, and never comes up. Verified, not
+# guessed: cs.Check(1.15.1-0.2026...) is false for both >=1.0.0 and >=1.10.0.
+#
+# ponytail: strips to the base version, which overstates by a prerelease.
+# Harmless while every manifest asks for >=1.0.0; the line becomes a no-op the
+# day go.mod goes back to a tag, which is the real fix.
 RUN core=$(go list -m -f '{{.Version}}' github.com/gerege-systems/open-gerege-nexus/backend) \
     && version=${core#v} \
+    && version=${version%%-*} \
     && base=github.com/gerege-systems/open-gerege-nexus/backend/internal \
     && for pkg in kernel/config platform; do \
          if go list "$base/$pkg" >/dev/null 2>&1; then sym="$base/$pkg.PlatformVersion"; break; fi; \
@@ -64,6 +77,11 @@ RUN core=$(go list -m -f '{{.Dir}}' github.com/gerege-systems/open-gerege-nexus/
 # the alternative is committing the platform's entries here, where they go
 # stale the day the core is bumped.
 #
+# A pseudo-version has no tag to ask for, so the archive is fetched by the
+# commit the pseudo-version ends in. Same file either way — GitHub serves
+# `archive/<ref>.tar.gz` for a tag or a sha — and the branch disappears the day
+# go.mod goes back to a tag.
+#
 # Ours first, so a duplicate id resolves to this repository's entry: jq's sort
 # is stable and `unique_by` keeps the first of each group. This repository's
 # half is empty today; the merge is here rather than later because an instance
@@ -71,7 +89,11 @@ RUN core=$(go list -m -f '{{.Dir}}' github.com/gerege-systems/open-gerege-nexus/
 # that is a failure to discover on the day a module is added, not on the day it
 # is deployed.
 RUN core=$(go list -m -f '{{.Version}}' github.com/gerege-systems/open-gerege-nexus/backend) \
-    && wget -qO- "https://github.com/gerege-systems/open-gerege-nexus/archive/refs/tags/backend/${core}.tar.gz" \
+    && case "$core" in \
+         *-*) ref="${core##*-}" ;; \
+         *)   ref="refs/tags/backend/${core}" ;; \
+       esac \
+    && wget -qO- "https://github.com/gerege-systems/open-gerege-nexus/archive/${ref}.tar.gz" \
     | tar -xz -C /tmp \
     && cp -r /tmp/open-gerege-nexus-*/catalog /out/catalog \
     && if [ -d catalog/manifests ]; then mkdir -p /out/catalog/manifests \

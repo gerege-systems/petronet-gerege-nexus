@@ -21,7 +21,7 @@ APP_DIR="$(dirname "$SRC_DIR")"
 # болон frontend хоёр өөр цөмийн хувилбар дээр байх нь API-гийн гэрээ
 # зөрчигдөх ганцхан зам. .env дэх WEB_IMAGE-ийг энэ хувилбарын tag дээр
 # байлгана — go.mod-ыг өргөх өдөр тэр мөр хамт өөрчлөгдөнө.
-core_version="$(grep -oE 'open-gerege-nexus/backend v[0-9]+\.[0-9]+\.[0-9]+' "$SRC_DIR/go.mod" | head -1 | awk '{print $2}')"
+core_version="$(grep -oE 'open-gerege-nexus/backend v[0-9]+\.[0-9]+\.[0-9]+[^ ]*' "$SRC_DIR/go.mod" | head -1 | awk '{print $2}')"
 [ -n "$core_version" ] || { echo "go.mod-оос цөмийн хувилбар уншигдсангүй" >&2; exit 1; }
 echo "цөм: $core_version"
 
