@@ -91,6 +91,11 @@ services:
       # /cp. Empty in production means this deployment has no console at all.
       CONTROL_PLANE_HOST: ${CONTROL_PLANE_HOST:-}
 
+      # Where the console reads this deployment's metrics. The service below,
+      # over the compose network — never the published port, which is bound to
+      # loopback for an operator with an SSH tunnel.
+      PROMETHEUS_URL: ${PROMETHEUS_URL:-}
+
       # eID Mongolia, as this deployment's relying party.
       #
       # The pair is what turns the sign-in screen's eID card from a button that
@@ -175,5 +180,31 @@ services:
       backend:
         condition: service_healthy
 
+  # The console's metrics, and nothing else.
+  #
+  # One target — this product's own API — because the console's queries carry
+  # no job filter: sharing the neighbour's Prometheus would have shown two
+  # products' traffic under this deployment's name. Small retention to match
+  # the job: 15 days is longer than any question this screen answers.
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    container_name: gerege_petronet_prometheus
+    restart: unless-stopped
+    user: "65534:65534"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=2GB
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - gerege_petronet_prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9092:9090"
+    depends_on:
+      backend:
+        condition: service_healthy
+
 volumes:
   gerege_petronet_postgres_data:
+  gerege_petronet_prometheus_data:
