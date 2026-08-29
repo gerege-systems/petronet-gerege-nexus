@@ -85,6 +85,12 @@ services:
       # disagreeing about which product somebody is standing in front of.
       BRAND_NAME: ${BRAND_NAME:-}
 
+      # The operator console's hostname. Both halves of the stack are told,
+      # because both gate on it: the API answers 404 to a /api/platform/v1
+      # request that arrived on any other name, and the shell answers 404 to
+      # /cp. Empty in production means this deployment has no console at all.
+      CONTROL_PLANE_HOST: ${CONTROL_PLANE_HOST:-}
+
       # The Gerege Core register, which the first-run wizard and the
       # organisation screen search by registration number. Without it those
       # screens are typed in by hand — which is how a deployment ends up
@@ -126,6 +132,11 @@ services:
       # never uses it: it asks its own origin (lib/apiBase.ts). A server has no
       # origin, which is the whole reason this exists.
       API_INTERNAL_URL: http://backend:8080/api/v1
+      # The console's hostname again, and it must be the same value the API was
+      # given: the shell decides from it whether a request is the console's or
+      # the platform's, and a stack whose two halves disagree serves the
+      # platform's pages on the console's address.
+      CONTROL_PLANE_HOST: ${CONTROL_PLANE_HOST:-}
       # Read per request — see frontend/lib/brand.ts — so brand is a setting
       # rather than a build.
       BRAND_NAME: ${BRAND_NAME:-}
