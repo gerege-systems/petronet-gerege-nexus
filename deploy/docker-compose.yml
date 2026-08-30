@@ -91,6 +91,20 @@ services:
       # /cp. Empty in production means this deployment has no console at all.
       CONTROL_PLANE_HOST: ${CONTROL_PLANE_HOST:-}
 
+      # Whether a stranger who proves an identity gets an account.
+      #
+      # public, and that is this product's design rather than a relaxation: a
+      # citizen arriving with eID is the point, and since migration 00085 a new
+      # account lands in that person's own home — not in anybody's
+      # organisation. Joining an organisation stays a separate act with its own
+      # answer.
+      #
+      # Written here rather than left to the console because a deployment that
+      # is public by design should not depend on somebody remembering to switch
+      # it after every fresh install; until they do, eID answers 403 to
+      # everybody. The console still wins over this value.
+      PLATFORM_ACCESS_MODE: ${PLATFORM_ACCESS_MODE:-}
+
       # Where the console reads this deployment's metrics. The service below,
       # over the compose network — never the published port, which is bound to
       # loopback for an operator with an SSH tunnel.
