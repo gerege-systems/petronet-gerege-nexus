@@ -2,7 +2,7 @@ module github.com/gerege-systems/petronet-gerege-nexus
 
 go 1.26
 
-require github.com/gerege-systems/open-gerege-nexus/backend v1.15.1-0.20260830081941-3eb38e3576d1
+require github.com/gerege-systems/open-gerege-nexus/backend v1.15.1-0.20260830133431-a8a551ac13ed
 
 require (
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
