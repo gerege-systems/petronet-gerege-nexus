@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 #
-# Gerege Nexus — өгөгдлийн сангийн нөөцлөлт.
+# PetroNet System — өгөгдлийн сангийн нөөцлөлт.
+#
+# Цөмийн `deploy/scripts/backup.sh`-ийн хуулбар (open-gerege-nexus, c6cc566).
+# Хуулсан шалтгаан нь: Go модуль ажиллах кодыг л зөөдөг, ажиллагааны скрипт
+# репотойгоо үлддэг. Distribution бүр өөрийн хуулбартай байх ёстой бөгөөд
+# ялгаа нь зөвхөн доорх анхдагч утгууд.
+#
+# ЭДГЭЭР АНХДАГЧ УТГА ЧУХАЛ. Энэ хост дээр хөрш суулгац (fuelnet) ажиллаж
+# байгаа бөгөөд түүний postgres контейнер нь яг цөмийн анхдагч нэртэй
+# (`gerege_nexus_postgres`). Анхдагчийг нь солихоо мартвал энэ скрипт хөршийн
+# сангаас dump авч, хөршийн `platform_backups`-д «амжилттай» гэж бичнэ —
+# нэг ч алдааны мөр гаргалгүйгээр. Нэг удаа яг тэр болсон.
 #
 # Энэ платформ дээр CP-4 хүртэл нөөцлөлт БАЙГААГҮЙ. Тиймээс энэ файл нь
 # "консол дээр харуулах статус" гэхээсээ илүү, эхлээд нөөцлөлт өөрөө юм.
@@ -12,7 +23,7 @@
 #
 # Cron дээр (жишээ нь өдөр бүр 03:15 цагт):
 #
-#   15 3 * * * /opt/gerege-nexus/deploy/scripts/backup.sh >> /var/log/nexus-backup.log 2>&1
+#   15 3 * * * /opt/petronet/src/deploy/scripts/backup.sh >> /var/log/petronet-backup.log 2>&1
 #
 # Тохируулга (env эсвэл дуудахын өмнө export):
 #
@@ -37,9 +48,9 @@
 
 set -euo pipefail
 
-BACKUP_DIR="${BACKUP_DIR:-/var/backups/gerege-nexus}"
+BACKUP_DIR="${BACKUP_DIR:-/var/backups/petronet}"
 BACKUP_KEEP_DAYS="${BACKUP_KEEP_DAYS:-14}"
-POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-gerege_nexus_postgres}"
+POSTGRES_CONTAINER="${POSTGRES_CONTAINER:-gerege_petronet_postgres}"
 POSTGRES_DB="${POSTGRES_DB:-platform_db}"
 POSTGRES_USER="${POSTGRES_USER:-postgres}"
 TEXTFILE_DIR="${TEXTFILE_DIR:-/var/lib/node_exporter}"
@@ -59,7 +70,7 @@ offsite_ok=0
 write_metrics() {
     local ok="$1" size="$2"
     [ -n "${TEXTFILE_DIR}" ] && [ -d "${TEXTFILE_DIR}" ] || return 0
-    local out="${TEXTFILE_DIR}/nexus_backup.prom" tmp
+    local out="${TEXTFILE_DIR}/petronet_backup.prom" tmp
     tmp="$(mktemp "${out}.XXXXXX")" || return 0
     {
         echo "# HELP nexus_backup_last_run_timestamp_seconds When the backup job last ran, successful or not"
@@ -93,7 +104,7 @@ write_metrics() {
 }
 
 stamp="$(date +%Y%m%d-%H%M%S)"
-target="${BACKUP_DIR}/nexus-${stamp}.sql.gz"
+target="${BACKUP_DIR}/petronet-${stamp}.sql.gz"
 started="$(date --iso-8601=seconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S%z)"
 
 mkdir -p "${BACKUP_DIR}"
@@ -111,8 +122,8 @@ record() {
 
 if ! docker exec -i "${POSTGRES_CONTAINER}" \
         pg_dump -U "${POSTGRES_USER}" -d "${POSTGRES_DB}" --no-owner --clean --if-exists \
-        2>/tmp/nexus-backup.err | gzip -9 > "${target}"; then
-    detail="$(tail -c 500 /tmp/nexus-backup.err || true)"
+        2>/tmp/petronet-backup.err | gzip -9 > "${target}"; then
+    detail="$(tail -c 500 /tmp/petronet-backup.err || true)"
     rm -f "${target}"
     record false NULL "pg_dump failed: ${detail}"
     write_metrics false 0
@@ -131,7 +142,7 @@ if [ "${size}" -lt 10240 ]; then
     exit 1
 fi
 
-find "${BACKUP_DIR}" -name 'nexus-*.sql.gz' -mtime "+${BACKUP_KEEP_DAYS}" -delete || true
+find "${BACKUP_DIR}" -name 'petronet-*.sql.gz' -mtime "+${BACKUP_KEEP_DAYS}" -delete || true
 
 # Өөр байршил руу.
 #
