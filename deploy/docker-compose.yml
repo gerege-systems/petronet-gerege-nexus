@@ -234,6 +234,81 @@ services:
       backend:
         condition: service_healthy
 
+  # Хостын диск, санах ой, CPU.
+  #
+  # Хөрш суулгац дээр node_exporter аль хэдийн ажилладаг ч түүний порт нь
+  # 127.0.0.1 дээр уягдсан: контейнерээс хостын loopback руу хүрэх зам байхгүй
+  # тул түүнийг хуваалцах боломжгүй. Өөрийнхөө нэгийг ажиллуулах нь ижил
+  # хостын ижил тоог хоёр удаа хэмжинэ — тэр давхардлын үнэ нь энэ стек
+  # хөршөөсөө хамааралгүй байх явдал.
+  node-exporter:
+    image: prom/node-exporter:v1.9.0
+    container_name: gerege_petronet_node_exporter
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      # Нөөцлөлтийн скрипт өөрийн хэмжигдэхүүнээ энд бичдэг (backup.sh-ийн
+      # TEXTFILE_DIR). Тэр хавтас хоосон байхад ч зам нь тодорхойлогдсон
+      # байх ёстой, эс бөгөөс эхний нөөцлөлт хэмжигдэхгүй өнгөрнө.
+      - --collector.textfile.directory=/var/lib/node_exporter
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+      - /var/lib/node_exporter:/var/lib/node_exporter:ro
+    ports:
+      - "127.0.0.1:9101:9100"
+
+  # Энэ суулгацын сан — хөршийнх биш.
+  #
+  # DATA_SOURCE_NAME нь compose-ийн дотоод сүлжээгээр өөрийн postgres руу
+  # заана. Хостын порт (5440) руу заасан бол хөршийн сан руу заах алдаа нэг
+  # тэмдэгтийн зайд байх байв.
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.17.1
+    container_name: gerege_petronet_postgres_exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgres://postgres:${PETRONET_POSTGRES_PASSWORD}@postgres:5432/platform_db?sslmode=disable
+    ports:
+      - "127.0.0.1:9188:9187"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Самбарууд. monitor.petronet.mn-ийн ард зогсох цорын ганц зүйл.
+  #
+  # Дэд зам биш, домэйны үндэс дээр: энэ хаяг дээр Grafana-гаас өөр юу ч
+  # байхгүй тул `GF_SERVER_SERVE_FROM_SUB_PATH` хэрэггүй — тэр нь холбоос
+  # бүрийг эвддэг тохиргоо бөгөөд шаардлагагүй үед асаах нь дэмий эрсдэл.
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: gerege_petronet_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      GF_SERVER_ROOT_URL: ${MONITORING_PUBLIC_URL:-https://monitor.petronet.mn}
+      # Ажиглалтын самбарт хэн ч бүртгүүлэхгүй.
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      # Grafana-гийн өөрийн сэрэмжлүүлэг унтраалттай: хоёр систем хоёр багц
+      # дүрэм бодох нь «ямар нэг зүйл буруу байна уу» гэсэн асуултад хоёр
+      # хариулт өгнө. Энэ суулгацад дүрмийн хөдөлгүүр нь Prometheus.
+      GF_UNIFIED_ALERTING_ENABLED: "false"
+      GF_ALERTING_ENABLED: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - gerege_petronet_grafana_data:/var/lib/grafana
+    ports:
+      # 3009 нь хөршийн Grafana-гийнх. Порт бүр нэг л эзэнтэй.
+      - "127.0.0.1:3019:3000"
+    depends_on:
+      - prometheus
+
 volumes:
   gerege_petronet_postgres_data:
   gerege_petronet_prometheus_data:
+  gerege_petronet_grafana_data:

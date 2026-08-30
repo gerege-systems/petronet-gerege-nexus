@@ -1,0 +1,22 @@
+# PetroNet System — Grafana-гийн өгөгдлийн эх сурвалж.
+#
+# Ганц: энэ стекийн өөрийн Prometheus. Цөмийн стек Loki, Tempo хоёрыг ч
+# зарладаг боловч энд тэдгээр байхгүй — лог, trace цуглуулах нь өөрийн
+# шийдвэр, өөрийн диск, өөрийн хадгалалтын хугацаа шаардана. Байхгүй эх
+# сурвалжийг зарлавал панель бүр «datasource not found» гэж хариулна.
+#
+# `uid` нь цөмийн самбаруудынхтай ижил (`nexus-prometheus`) байгаа нь
+# санаатай: самбаруудыг хуулж авахад тэдний доторх заалт өөрчлөхгүйгээр
+# ажиллана. Loki рүү заасан панелиудыг нь хуулах үедээ хассан.
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: nexus-prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST
+    editable: false
