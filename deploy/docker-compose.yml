@@ -188,6 +188,21 @@ services:
       BRAND_THEME_COLOR: ${BRAND_THEME_COLOR:-}
       BRAND_ICON_URL: ${BRAND_ICON_URL:-}
       BRAND_MASKABLE_ICON_URL: ${BRAND_MASKABLE_ICON_URL:-}
+
+      # Платформын хажууд өөрийн хаягтай зогсдог үйлчилгээнүүд. Нүүр хуудас
+      # эдгээрийг карт болгож зурна — зөвхөн хаяг нь тохируулагдсаныг.
+      #
+      # Хаяггүйг нь зурахгүй байх нь цөмийн санаатай анхдагч: суулгац болгонд
+      # зургаа нь байдаггүй бөгөөд шийдэгддэггүй хостыг заасан карт нь
+      # картгүй байхаас дор. Тиймээс энд зөвхөн энэ суулгацад ҮНЭХЭЭР байгаа
+      # хоёр нь дүүрнэ; үлдсэн дөрөв нь хоосон бөгөөд хуудсан дээр огт
+      # гарахгүй.
+      SERVICE_URL_EID: ${SERVICE_URL_EID:-}
+      SERVICE_URL_ADMIN: ${SERVICE_URL_ADMIN:-}
+      SERVICE_URL_DWH: ${SERVICE_URL_DWH:-}
+      SERVICE_URL_BACKUPS: ${SERVICE_URL_BACKUPS:-}
+      SERVICE_URL_MONITOR: ${SERVICE_URL_MONITOR:-}
+      SERVICE_URL_DOCS: ${SERVICE_URL_DOCS:-}
     ports:
       - "127.0.0.1:3018:3000"
     depends_on:
