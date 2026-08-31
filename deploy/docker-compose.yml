@@ -289,7 +289,12 @@ services:
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
-      GF_SERVER_ROOT_URL: ${MONITORING_PUBLIC_URL:-https://monitor.petronet.mn}
+      # Grafana нь дэд зам дээр сууна: домэйны үндэс дээр ажиглалтын landing
+      # хуудас үйлчилдэг (deploy/monitor-landing/index.html). Дагалдах
+      # SERVE_FROM_SUB_PATH байхгүй бол Grafana өөрийгөө үндэс дээр байгаа гэж
+      # үзэж, статик файлаа буруу замаар нэхнэ.
+      GF_SERVER_ROOT_URL: ${MONITORING_PUBLIC_URL:-https://monitor.petronet.mn}/grafana
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
       # Ажиглалтын самбарт хэн ч бүртгүүлэхгүй.
       GF_USERS_ALLOW_SIGN_UP: "false"
       # Загвар. 11.x-д зөвхөн dark/light байсан; 12-оос хойш desertbloom,
