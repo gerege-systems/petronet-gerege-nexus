@@ -89,3 +89,58 @@ function cacheHeaders(): Headers {
     "cache-control": "public, max-age=86400, stale-while-revalidate=604800",
   });
 }
+
+/**
+ * Растер дэвсгэрийн эх сурвалж.
+ *
+ * Анхдагч нь OpenStreetMap-ийн нийтийн тайл сервер. Тэр нь **туршилтын**
+ * анхдагч: OSM-ийн ашиглалтын журам их ачааллыг хориглодог бөгөөд улсын
+ * хэмжээний систем түүн дээр тогтвортой суурилах ёсгүй. Продакшнд
+ * `MAP_RASTER_UPSTREAM`-ыг өөрийн эсвэл гэрээт үйлчилгээ рүү заана —
+ * клиент талд юу ч өөрчлөгдөхгүй, style нь энэ origin-ы `/basemap/…`-ыг
+ * л асуудаг.
+ */
+const DEFAULT_RASTER = "https://tile.openstreetmap.org";
+
+export function rasterUpstream(): string {
+  return (process.env.MAP_RASTER_UPSTREAM || DEFAULT_RASTER).replace(/\/$/, "");
+}
+
+/**
+ * Нэг растер тайлыг татаж, өөрчлөхгүйгээр буцаана.
+ *
+ * `User-Agent` нь заавал: OSM нэргүй клиентийг хаадаг бөгөөд хаалт нь
+ * газрын зураг бүхэлдээ алга болох хэлбэрээр илэрдэг. Прокси нь серверийн
+ * талд байгаа тул энэ нэр биднийх — хэн ачаалж байгааг тэд харж чадна, тэр
+ * нь зөв.
+ */
+export async function proxyRasterTile(z: number, x: number, y: number): Promise<Response> {
+  // Тайлын индекс мужаасаа гарсан бол дээд урсгал руу огт явуулахгүй.
+  const max = 2 ** z;
+  if (!Number.isInteger(z) || z < 0 || z > 19 || x < 0 || x >= max || y < 0 || y >= max) {
+    return new Response("tile out of range", { status: 400 });
+  }
+
+  let upstreamResponse: Response;
+  try {
+    upstreamResponse = await fetch(`${rasterUpstream()}/${z}/${x}/${y}.png`, {
+      cache: "no-store",
+      headers: {
+        Accept: "image/png,image/*",
+        "User-Agent": "PetroNet System (petronet.mn; operations@petronet.mn)",
+      },
+    });
+  } catch {
+    return new Response("map upstream unreachable", { status: 502 });
+  }
+  if (!upstreamResponse.ok) {
+    return new Response(null, { status: upstreamResponse.status });
+  }
+  return new Response(upstreamResponse.body, {
+    status: 200,
+    headers: {
+      "Content-Type": upstreamResponse.headers.get("Content-Type") || "image/png",
+      ...cacheHeaders(),
+    },
+  });
+}

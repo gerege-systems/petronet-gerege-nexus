@@ -36,10 +36,23 @@
 import type { StyleSpecification } from "maplibre-gl";
 
 const DEFAULT_TILES = "/tiles/{z}/{x}/{y}";
+const DEFAULT_BASEMAP = "/basemap/{z}/{x}/{y}";
 const DEFAULT_GLYPHS = "/fonts/{fontstack}/{range}.pbf";
 
 export function tileURL(): string {
   return process.env.NEXT_PUBLIC_MAP_TILES_URL || DEFAULT_TILES;
+}
+
+/**
+ * Растер дэвсгэр.
+ *
+ * Манай вектор эх сурвалж Улаанбаатарын орчинд л нарийвчлалтай: Ховд,
+ * Чойбалсан дээр z13 нь хоосон хариулдаг. 1500 ШТС улс даяар байхад тэр нь
+ * ихэнх цэгийг дэвсгэргүй үлдээнэ. Растер нь бүрэн хамрана; вектор нь түүний
+ * дээр зурагдана.
+ */
+export function basemapURL(): string {
+  return process.env.NEXT_PUBLIC_MAP_BASEMAP_URL || DEFAULT_BASEMAP;
 }
 
 export function glyphsURL(): string {
@@ -75,11 +88,21 @@ export function fuelMapStyle(): StyleSpecification {
     version: 8,
     name: "Gerege Fuel",
     sources: {
+      // Дарааллыг санаатай: растер эхэлж зурагдаж, вектор түүний дээр гарна.
+      // Улаанбаатар өөрийн зурагласан загвараа хадгална, бусад газар жинхэнэ
+      // газрын зураг гарна — өмнө нь дэвсгэрийн өнгө гардаг байсан.
+      basemap: { type: "raster", tiles: [basemapURL()], tileSize: 256, minzoom: 0, maxzoom: 19,
+        attribution: "© OpenStreetMap" },
       base: { type: "vector", tiles: [tileURL()], minzoom: 0, maxzoom: 16 },
     },
     glyphs: glyphsURL(),
     layers: [
       { id: "bg", type: "background", paint: { "background-color": "#f5f3ef" } },
+      // Дэвсгэр. Бага зэрэг цайруулсан нь: вектор давхаргууд ба ШТС-ийн
+      // тэмдэглэгээ түүний дээр уншигдахуйц байх ёстой, растер нь өөрөө
+      // бүрэн ханалттай зурагтай.
+      { id: "basemap", type: "raster", source: "basemap",
+        paint: { "raster-opacity": 0.85, "raster-saturation": -0.25 } },
       { id: "water", type: "fill", source: "base", "source-layer": "water",
         paint: { "fill-color": "#b6d6f0" } },
       { id: "park", type: "fill", source: "base", "source-layer": "landuse",
