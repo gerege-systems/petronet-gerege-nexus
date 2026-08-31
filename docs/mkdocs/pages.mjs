@@ -19,6 +19,7 @@ export const PAGES = [
 
   {src: "docs/system-requirements.md", slug: "requirements", title: "Системийн шаардлага", group: "Төсөл"},
   {src: "docs/PLAN.md", slug: "plan", title: "Хөгжүүлэлтийн төлөвлөгөө", group: "Төсөл"},
+  {src: "docs/BENCHMARKS.md", slug: "benchmarks", title: "Дэлхийн жишиг", group: "Төсөл"},
 
   {src: "docs/README.md", slug: "documents", title: "Баримтын индекс", group: "Платформ"},
   {src: "docs/ARCHITECTURE.md", slug: "architecture", title: "Архитектур", group: "Платформ"},
