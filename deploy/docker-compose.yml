@@ -341,13 +341,22 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Баримт бичгийн сайт — MkDocs-ийн угсарсан мод.
+  #
+  # Гараар бичсэн нэг хуудас байсныг сольсон: захиалагч тал платформын бүх
+  # баримтыг нэг газраас уншиж чадах ёстой бөгөөд тэдгээр нь долоон хэлээр,
+  # хайлттай, навигацитай байх ёстой. Гараар бичсэн хуудас тэр гурвыг өгөхгүй.
+  #
+  # Агуулга нь `docs/*.md`, гаралт нь артефакт (.gitignore). Угсрах:
+  #   sh docs/mkdocs/build.sh
+  # Хостод Python суулгахгүй — MkDocs контейнерээр ажиллана.
   docs:
     <<: *static-site
     container_name: gerege_petronet_docs
     ports:
       - "127.0.0.1:3021:80"
     volumes:
-      - ./docs-landing:/usr/share/nginx/html:ro
+      - ../docs/mkdocs/build/site:/usr/share/nginx/html:ro
 
   backups:
     <<: *static-site

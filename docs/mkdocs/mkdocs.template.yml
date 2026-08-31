@@ -1,0 +1,282 @@
+# PetroNet System — баримт бичгийн сайт.
+#
+# docs.gerege.mn нь MkDocs + Material for MkDocs дээр байгуулагдсан. Энэ сайт нь
+# яг тэр хэрэгсэл, яг тэр брэндийг ашиглана: хоёулаа нэг экосистемийн баримт
+# байх ёстой болохоос, нэг компанийг хуваалцдаг хоёр өөр бүтээгдэхүүн шиг
+# уншигдах ёсгүй. Өнгө нь docs-gerege-mn-ийн stylesheets/brand.css-тэй нэг эх
+# сурвалжтай.
+#
+# nav-ыг stage.mjs бичнэ — ../site/pages.mjs дахь жагсаалтаас. Энэ файлыг гараар
+# засахдаа nav хэсгийг бүү нэм: тэр нь дараагийн build дээр дарагдана.
+
+site_name: PetroNet System
+site_description: >-
+  PetroNet System нээлттэй эхийн платформын техникийн баримт — архитектур,
+  модуль хөгжүүлэлт, ажиллагаа, native клиентүүд.
+site_url: https://docs.petronet.mn/
+repo_url: https://github.com/gerege-systems/petronet-gerege-nexus
+repo_name: gerege-systems/petronet-gerege-nexus
+copyright: © 2026 Gerege Systems ХХК · Apache 2.0
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+# `mkdocs build --strict` дээр эдгээр анхааруулга нь АЛДАА болно. Anchor
+# шалгалт нь default-аар унтраалттай ирдэг тул тусад нь асаана — эс тэгвэл
+# «#хэсэг» рүү заасан эвдэрсэн холбоос чимээгүйхэн production-д гарна.
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+theme:
+  name: material
+  language: en
+  logo: assets/logo.png
+  favicon: assets/logo.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Харанхуй горим
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Гэрэл горим
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+
+extra_css:
+  - stylesheets/brand.css
+
+plugins:
+  - search
+  # Монгол (үндсэн) + НҮБ-ын зургаан албан ёсны хэл. Локал бүр өөрийн nav
+  # орчуулгатай; орчуулагдаагүй хуудас байвал fallback-аар Монгол эхээ
+  # харуулна — тэр нь худал орчуулга үзүүлэхээс дээр.
+  #
+  # Араб хэлний RTL чиглэлийг Material өөрөө `ar` локалиас олж тохируулна.
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: mn
+          default: true
+          name: Монгол
+          build: true
+
+        - locale: en
+          name: English
+          build: true
+          site_description: "Technical documentation for PetroNet System, the open-source platform core — architecture, module development, operations, native clients."
+          nav_translations:
+            "Танилцуулга": "Introduction"
+            "Платформ": "Platform"
+            "Модуль": "Modules"
+            "Ажиллагаа": "Operations"
+            "Клиент": "Clients"
+            "Төслийн журам": "Project policy"
+            "Тойм": "Overview"
+            "Баримтын индекс": "Document index"
+            "Архитектур": "Architecture"
+            "Танилт ба эрх": "Identity and access"
+            "Модуль бичих": "Writing a module"
+            "Тайлан": "Reports"
+            "Баримт ба гарын үсэг": "Documents and signing"
+            "Гарын авлага": "Runbooks"
+            "Bridge гэрээ": "Bridge contract"
+            "Орчуулга": "Translation"
+            "Хувь нэмэр оруулах": "Contributing"
+            "Аюулгүй байдал": "Security"
+            "Ёс зүйн дүрэм": "Code of conduct"
+            "Өөрчлөлтийн түүх": "Changelog"
+
+        - locale: ar
+          name: العربية
+          build: true
+          site_description: "الوثائق التقنية لـ PetroNet System، نواة المنصّة مفتوحة المصدر — البنية والوحدات والتشغيل والتطبيقات الأصلية."
+          nav_translations:
+            "Танилцуулга": "مقدمة"
+            "Платформ": "المنصّة"
+            "Модуль": "الوحدات"
+            "Ажиллагаа": "التشغيل"
+            "Клиент": "التطبيقات"
+            "Төслийн журам": "سياسات المشروع"
+            "Тойм": "نظرة عامة"
+            "Баримтын индекс": "فهرس الوثائق"
+            "Архитектур": "البنية المعمارية"
+            "Танилт ба эрх": "الهوية والصلاحيات"
+            "Модуль бичих": "كتابة وحدة"
+            "Тайлан": "التقارير"
+            "Баримт ба гарын үсэг": "الوثائق والتوقيع"
+            "Гарын авлага": "أدلة التشغيل"
+            "Bridge гэрээ": "عقد الجسر"
+            "Орчуулга": "الترجمة"
+            "Хувь нэмэр оруулах": "المساهمة"
+            "Аюулгүй байдал": "الأمان"
+            "Ёс зүйн дүрэм": "قواعد السلوك"
+            "Өөрчлөлтийн түүх": "سجل التغييرات"
+
+        - locale: zh
+          name: 中文
+          build: true
+          site_description: "PetroNet System 开源平台内核的技术文档——架构、模块开发、运维与原生客户端。"
+          nav_translations:
+            "Танилцуулга": "简介"
+            "Платформ": "平台"
+            "Модуль": "模块"
+            "Ажиллагаа": "运维"
+            "Клиент": "客户端"
+            "Төслийн журам": "项目规范"
+            "Тойм": "概览"
+            "Баримтын индекс": "文档索引"
+            "Архитектур": "架构"
+            "Танилт ба эрх": "身份与权限"
+            "Модуль бичих": "编写模块"
+            "Тайлан": "报表"
+            "Баримт ба гарын үсэг": "文档与签名"
+            "Гарын авлага": "应急手册"
+            "Bridge гэрээ": "Bridge 契约"
+            "Орчуулга": "翻译"
+            "Хувь нэмэр оруулах": "参与贡献"
+            "Аюулгүй байдал": "安全"
+            "Ёс зүйн дүрэм": "行为准则"
+            "Өөрчлөлтийн түүх": "更新日志"
+
+        - locale: fr
+          name: Français
+          build: true
+          site_description: "Documentation technique de PetroNet System, le socle de plateforme open source — architecture, modules, exploitation, clients natifs."
+          nav_translations:
+            "Танилцуулга": "Présentation"
+            "Платформ": "Plateforme"
+            "Модуль": "Modules"
+            "Ажиллагаа": "Exploitation"
+            "Клиент": "Clients"
+            "Төслийн журам": "Règles du projet"
+            "Тойм": "Aperçu"
+            "Баримтын индекс": "Index des documents"
+            "Архитектур": "Architecture"
+            "Танилт ба эрх": "Identité et droits"
+            "Модуль бичих": "Écrire un module"
+            "Тайлан": "Rapports"
+            "Баримт ба гарын үсэг": "Documents et signature"
+            "Гарын авлага": "Runbooks"
+            "Bridge гэрээ": "Contrat du pont"
+            "Орчуулга": "Traduction"
+            "Хувь нэмэр оруулах": "Contribuer"
+            "Аюулгүй байдал": "Sécurité"
+            "Ёс зүйн дүрэм": "Code de conduite"
+            "Өөрчлөлтийн түүх": "Journal des modifications"
+
+        - locale: ru
+          name: Русский
+          build: true
+          site_description: "Техническая документация PetroNet System — открытого ядра платформы: архитектура, модули, эксплуатация, нативные клиенты."
+          nav_translations:
+            "Танилцуулга": "Введение"
+            "Платформ": "Платформа"
+            "Модуль": "Модули"
+            "Ажиллагаа": "Эксплуатация"
+            "Клиент": "Клиенты"
+            "Төслийн журам": "Правила проекта"
+            "Тойм": "Обзор"
+            "Баримтын индекс": "Указатель документов"
+            "Архитектур": "Архитектура"
+            "Танилт ба эрх": "Аутентификация и права"
+            "Модуль бичих": "Как написать модуль"
+            "Тайлан": "Отчёты"
+            "Баримт ба гарын үсэг": "Документы и подпись"
+            "Гарын авлага": "Runbook-и"
+            "Bridge гэрээ": "Контракт моста"
+            "Орчуулга": "Перевод"
+            "Хувь нэмэр оруулах": "Участие"
+            "Аюулгүй байдал": "Безопасность"
+            "Ёс зүйн дүрэм": "Кодекс поведения"
+            "Өөрчлөлтийн түүх": "История изменений"
+
+        - locale: es
+          name: Español
+          build: true
+          site_description: "Documentación técnica de PetroNet System, el núcleo de plataforma de código abierto — arquitectura, módulos, operación, clientes nativos."
+          nav_translations:
+            "Танилцуулга": "Introducción"
+            "Платформ": "Plataforma"
+            "Модуль": "Módulos"
+            "Ажиллагаа": "Operación"
+            "Клиент": "Clientes"
+            "Төслийн журам": "Normas del proyecto"
+            "Тойм": "Resumen"
+            "Баримтын индекс": "Índice de documentos"
+            "Архитектур": "Arquitectura"
+            "Танилт ба эрх": "Identidad y permisos"
+            "Модуль бичих": "Escribir un módulo"
+            "Тайлан": "Informes"
+            "Баримт ба гарын үсэг": "Documentos y firma"
+            "Гарын авлага": "Runbooks"
+            "Bridge гэрээ": "Contrato del puente"
+            "Орчуулга": "Traducción"
+            "Хувь нэмэр оруулах": "Contribuir"
+            "Аюулгүй байдал": "Seguridad"
+            "Ёс зүйн дүрэм": "Código de conducta"
+            "Өөрчлөлтийн түүх": "Registro de cambios"
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  # Кирилл гарчгийн anchor ажиллахын тулд unicode-ийг хадгалдаг slugify хэрэгтэй.
+  # Python-Markdown-ийн стандарт slugify нь ASCII бус тэмдэгтийг хаядаг тул
+  # «## Танилт» → хоосон id болж, хуудас доторх холбоос унадаг.
+  - toc:
+      permalink: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/gerege-systems/petronet-gerege-nexus
+    - icon: material/book-open-variant
+      link: https://docs.gerege.mn
+    - icon: material/web
+      link: https://nexus.gerege.mn
+
+# {{NAV}}

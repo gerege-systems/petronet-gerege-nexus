@@ -4,3 +4,6 @@
 brand/
 *.pdf
 .DS_Store
+
+# MkDocs-ийн угсралт: гаралт нь артефакт, эх сурвалж нь docs/*.md
+docs/mkdocs/build/
