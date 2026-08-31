@@ -252,6 +252,41 @@ deploy/scripts/setup_monitor_branding.sh
 сууна — энэ домэйны ард түүнээс өөр юу ч байхгүй — тул landing хуудас
 хуулагдаагүй: үйлчилгээний картууд petronet.mn-ийн нүүр хуудсан дээр байна.
 
+### Платформын бүртгэлээр Grafana руу нэвтрэх
+
+Grafana нь энэ суулгацын өөрийн OIDC provider-оос хэн болохыг асууна:
+операторууд аль хэдийн байгаа бүртгэлээрээ ордог, платформын админ нь
+Grafana-ийн сервер админ болно (`platform_admin && 'GrafanaAdmin' || 'Viewer'`).
+Бусад нь уншиж чадах ч юуг ч өөрчилж чадахгүй.
+
+Дотоод админы нэвтрэлт (`GRAFANA_ADMIN_PASSWORD`) хэвээр байна. Унасан танигч
+нь нээгдэхгүй ажиглалтын стек болох ёсгүй — тэр нь яг түүнийг хэрэгтэй
+болгодог цаг.
+
+Клиентийг платформ дээр бүртгэнэ (Хөгжүүлэгч → Аппликейшн, эсвэл SQL-ээр):
+
+| Талбар | Утга |
+| --- | --- |
+| `redirect_uris` | `https://monitor.petronet.mn/grafana/login/generic_oauth` |
+| `post_logout_redirect_uris` | `https://monitor.petronet.mn/grafana/login` |
+| `grant_types` | `authorization_code`, `refresh_token` |
+| `scopes` | `openid`, `profile`, `email`, `roles` |
+| `client_type` | `confidential` |
+
+`client_secret_hash` нь нууц үгийн SHA-256, hex-ээр (64 тэмдэгт) — бааз нь
+нууцыг өөрийг нь хадгалдаггүй.
+
+Хоёр урхи:
+
+- **`OAUTH_REDIRECT_HOSTS`.** Redirect URI-ийн хост энэ жагсаалтад байх ёстой
+  бөгөөд жагсаалт нь дэд домэйныг **өвлүүлдэггүй**: `petronet.mn` бичсэн нь
+  `monitor.petronet.mn`-ыг зөвшөөрөхгүй. Хоосон орхивол цөмийн анхдагч
+  (`nexus.gerege.mn`) хүчинтэй болж, redirect бүр татгалзагдана.
+- **Гарах.** `GF_AUTH_SIGNOUT_REDIRECT_URL` дахь `client_id` нь заавал: logout
+  цэг буцах хаягийг тэр клиентийн бүртгэлтэй жагсаалттай тулгадаг. Параметргүй
+  бол «post_logout_redirect_uri is not registered» гэж унана — дутуу биш,
+  буруу URI мэт уншигдана.
+
 ## Нөөцлөлт
 
 `deploy/scripts/backup.sh`, cron дээр өдөр бүр.

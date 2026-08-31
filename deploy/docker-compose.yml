@@ -89,6 +89,14 @@ services:
       # /cp. Empty in production means this deployment has no console at all.
       CONTROL_PLANE_HOST: ${CONTROL_PLANE_HOST:-}
 
+      # OIDC-ээр нэвтэрсэн хүнийг эргүүлж явуулж болох хостууд.
+      #
+      # Яг таарах нэрсийн жагсаалт: дэд домэйн ӨВЛӨГДӨХГҮЙ. `petronet.mn`
+      # бичсэн нь `monitor.petronet.mn`-ыг зөвшөөрөхгүй — тус бүрийг нэрлэнэ.
+      # Хоосон орхивол цөмийн анхдагч (nexus.gerege.mn) хүчинтэй болж, энэ
+      # суулгацын redirect бүр «redirect URI host is not allowed» гэж унана.
+      OAUTH_REDIRECT_HOSTS: ${OAUTH_REDIRECT_HOSTS:-monitor.petronet.mn}
+
       # Whether a stranger who proves an identity gets an account.
       #
       # public, and that is this product's design rather than a relaxation: a
@@ -306,6 +314,55 @@ services:
       # орчуулгаар nginx дээр орлуулдаг. Скриптийг ажиллуулаагүй хостод
       # энэ утгыг битгий sv-SE болго — швед хэл гарч ирнэ.
       GF_USERS_DEFAULT_LANGUAGE: ${GRAFANA_DEFAULT_LANGUAGE:-en-US}
+      # ---------------------------------------------- платформоор нэвтрэх
+      #
+      # Grafana энэ суулгацын өөрийн OIDC provider-оос хэн болохыг асууна:
+      # операторууд аль хэдийн байгаа бүртгэлээрээ ордог, платформын админ нь
+      # Grafana-ийн сервер админ болно.
+      #
+      # Дээрх GF_SECURITY_ADMIN_PASSWORD хэвээр байна — энэ нь буцаж орох зам.
+      # Унасан танигч нь нээгдэхгүй ажиглалтын стек болох ёсгүй: тэр нь яг
+      # түүнийг хэрэгтэй болгодог цаг.
+      #
+      # GRAFANA_OAUTH_ENABLED тавигдаагүй бол унтраалттай: клиент бүртгээгүй
+      # суулгац алдааны хуудас руу хөтөлдөг товч харуулах учиргүй.
+      GF_AUTH_GENERIC_OAUTH_ENABLED: ${GRAFANA_OAUTH_ENABLED:-false}
+      GF_AUTH_GENERIC_OAUTH_NAME: ${GRAFANA_OAUTH_NAME:-PetroNet}
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: ${GRAFANA_OAUTH_CLIENT_ID:-}
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: ${GRAFANA_OAUTH_CLIENT_SECRET:-}
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid profile email roles"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: ${PUBLIC_ORIGIN:-https://petronet.mn}/oauth2/auth
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: ${PUBLIC_ORIGIN:-https://petronet.mn}/oauth2/token
+      GF_AUTH_GENERIC_OAUTH_API_URL: ${PUBLIC_ORIGIN:-https://petronet.mn}/oauth2/userinfo
+      GF_AUTH_GENERIC_OAUTH_EMAIL_ATTRIBUTE_PATH: email
+      GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH: email
+      GF_AUTH_GENERIC_OAUTH_NAME_ATTRIBUTE_PATH: name
+      # Claim дээрх JMESPath. Платформын админ биш хэн ч самбарыг уншиж
+      # чадах ч юуг ч өөрчилж чадахгүй.
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "platform_admin && 'GrafanaAdmin' || 'Viewer'"
+      # Дээрх зам сервер админы эрх өгөхийн өмнө заавал хэрэгтэй; үүнгүйгээр
+      # GrafanaAdmin нь чимээгүйхэн зүгээр Admin болно.
+      GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN: "true"
+      # Юу ч олдохгүй зам нь хүнийг гаднаа үлдээх ёсгүй — тэр нь эрхгүй
+      # бүртгэлийн байх ёстой зүйл болох Viewer болно.
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_STRICT: "false"
+      # Provider нь PKCE дэмждэг бөгөөд энэ нь браузараас эхэлдэг урсгал:
+      # PKCE-гүй ажиллуулах шалтгаан алга.
+      GF_AUTH_GENERIC_OAUTH_USE_PKCE: "true"
+      # Provider батлан даасан бүртгэл Grafana-ийн бүртгэлтэй болно. Өөр
+      # хувилбар нь хэн болохыг нь дөнгөж хэлж өгсөн системд оператор бүрийг
+      # гараар урих явдал.
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+      # Grafana-аас гарахад браузар платформоос ч гарна. Үүнгүйгээр «гарах»
+      # нь provider-ийн session-ийг зогсоолгүй үлдээж, дараагийн товшилт
+      # шууд буцаж нэвтрүүлнэ — тэр нь эвдэрсэн товч мэт уншигдана.
+      #
+      # `client_id` нь заавал: logout цэг клиентийг түүгээр (эсвэл
+      # id_token_hint-ээр) тодорхойлж, буцах хаягийг ТЭР клиентийн
+      # бүртгэлтэй жагсаалттай тулгадаг. Параметргүй бол тулгах клиент
+      # байхгүй тул браузар «post_logout_redirect_uri is not registered»
+      # дээр бууна — тэр нь дутуу биш, буруу URI мэт уншигдана.
+      GF_AUTH_SIGNOUT_REDIRECT_URL: ${PUBLIC_ORIGIN:-https://petronet.mn}/oauth2/logout?client_id=${GRAFANA_OAUTH_CLIENT_ID:-}&post_logout_redirect_uri=${MONITORING_PUBLIC_URL:-https://monitor.petronet.mn}/grafana/login
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_ANALYTICS_REPORTING_ENABLED: "false"
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
