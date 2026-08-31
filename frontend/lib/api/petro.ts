@@ -270,7 +270,7 @@ export const petroApi = {
       is_voucher_enabled: boolean;
     }>,
   ) =>
-    request<FuelStation>(`/fuel/stations/${stationId}`, {
+    request<FuelStation>(`/petro/stations/${stationId}`, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
@@ -283,7 +283,7 @@ export const petroApi = {
    * service is to close it.
    */
   deleteFuelStation: (stationId: string) =>
-    request<void>(`/fuel/stations/${stationId}`, { method: "DELETE" }),
+    request<void>(`/petro/stations/${stationId}`, { method: "DELETE" }),
 
   /** Add a grade to a forecourt, or change its price, vessel size or availability. */
   setStationGrade: (
@@ -296,14 +296,14 @@ export const petroApi = {
       status?: string;
     },
   ) =>
-    request<StationGrade>(`/fuel/stations/${stationId}/grades`, {
+    request<StationGrade>(`/petro/stations/${stationId}/grades`, {
       method: "PUT",
       body: JSON.stringify(body),
     }),
 
   /** Stop selling a grade. Different from being out of it — that is `status`. */
   deleteStationGrade: (stationId: string, fuelType: string) =>
-    request<void>(`/fuel/stations/${stationId}/grades/${encodeURIComponent(fuelType)}`, {
+    request<void>(`/petro/stations/${stationId}/grades/${encodeURIComponent(fuelType)}`, {
       method: "DELETE",
     }),
 
@@ -343,7 +343,7 @@ export const petroApi = {
     },
   ) =>
     request<{ id: string; status: string; batch_code: string }>(
-      `/fuel/shipments/${id}/status`,
+      `/petro/shipments/${id}/status`,
       { method: "POST", body: JSON.stringify(body) },
     ),
 
@@ -374,7 +374,7 @@ export const petroApi = {
     depotId: string,
     body: { tank_no: string; tank_type?: string; fuel_type: string; capacity_liters: number },
   ) =>
-    request<Tank>(`/fuel/depots/${depotId}/tanks`, {
+    request<Tank>(`/petro/depots/${depotId}/tanks`, {
       method: "POST",
       body: JSON.stringify(body),
     }),
@@ -385,7 +385,7 @@ export const petroApi = {
     tankId: string,
     body: { temperature_c?: number | null; density_kg_m3?: number | null; safety_status?: string },
   ) =>
-    request<Tank>(`/fuel/depots/${depotId}/tanks/${tankId}`, {
+    request<Tank>(`/petro/depots/${depotId}/tanks/${tankId}`, {
       method: "PATCH",
       body: JSON.stringify(body),
     }),
@@ -395,14 +395,14 @@ export const petroApi = {
     depotId: string,
     body: { tank_id: string; shipment_id?: string; liters: number; manifest_liters?: number | null; note?: string },
   ) =>
-    request<DepotReceipt>(`/fuel/depots/${depotId}/receipts`, {
+    request<DepotReceipt>(`/petro/depots/${depotId}/receipts`, {
       method: "POST",
       body: JSON.stringify(body),
     }),
 
   /** A base's intake history. */
   listFuelDepotReceipts: (depotId: string) =>
-    request<{ receipts: DepotReceipt[]; count: number }>(`/fuel/depots/${depotId}/receipts`),
+    request<{ receipts: DepotReceipt[]; count: number }>(`/petro/depots/${depotId}/receipts`),
 
   /**
    * The stations inside a map viewport, across every operator.
@@ -413,7 +413,7 @@ export const petroApi = {
    */
   publicFuelStations: (box: BBox) =>
     request<PublicStationList>(
-      `/fuel/public/stations?bbox=${box.minLon},${box.minLat},${box.maxLon},${box.maxLat}`,
+      `/petro/public/stations?bbox=${box.minLon},${box.minLat},${box.maxLon},${box.maxLat}`,
     ),
 
   /**
