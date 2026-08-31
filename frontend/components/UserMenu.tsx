@@ -21,6 +21,11 @@ function initialsOf(name: string): string {
   return (words[0] || "?").slice(0, 2).toUpperCase();
 }
 
+/** Breathing room between the menu's last row and the bottom of the screen. */
+const MENU_GUTTER_PX = 12;
+/** Below this the menu is uselessly short; scroll the page instead. */
+const MENU_MIN_PX = 200;
+
 const MODES: { value: ColorMode; icon: typeof Sun; labelKey: TranslationKey }[] = [
   { value: "light", icon: Sun, labelKey: "appearance.mode.light" },
   { value: "dark", icon: Moon, labelKey: "appearance.mode.dark" },
@@ -60,6 +65,7 @@ export default function UserMenu({
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   // The brand mark in the header offers the same list, but the mobile shell
   // hides the brand — this is the only way to change organisation on a phone.
   const { tenants, activeIDs, switching, failed, switchTo, toggleActive } = useTenants(open && showTenants);
@@ -80,6 +86,40 @@ export default function UserMenu({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  /**
+   * The panel hangs off the button, so the room it has is what is left *below*
+   * that point — not the height of the screen. Capping it at `100dvh` minus a
+   * guess measured from the top of the viewport instead, which is what this
+   * did, put the last rows (sign out among them) past the bottom edge on a
+   * phone: the list scrolled, the rows appeared while the finger dragged, and
+   * the page rubber-banded them back out of reach before they could be tapped.
+   *
+   * `visualViewport` rather than `innerHeight` because iOS shrinks the former
+   * when its toolbars are on screen and leaves the latter alone — the missing
+   * rows are exactly that band.
+   */
+  useEffect(() => {
+    if (!open) return;
+    const fit = () => {
+      const panel = panelRef.current;
+      if (!panel) return;
+      const view = window.visualViewport;
+      const bottom = view ? view.height + view.offsetTop : window.innerHeight;
+      const room = bottom - panel.getBoundingClientRect().top - MENU_GUTTER_PX;
+      panel.style.maxHeight = `${Math.max(MENU_MIN_PX, room)}px`;
+    };
+    fit();
+    const view = window.visualViewport;
+    window.addEventListener("resize", fit);
+    view?.addEventListener("resize", fit);
+    view?.addEventListener("scroll", fit);
+    return () => {
+      window.removeEventListener("resize", fit);
+      view?.removeEventListener("resize", fit);
+      view?.removeEventListener("scroll", fit);
+    };
+  }, [open, tenants]);
 
   const initials = initialsOf(user?.name || user?.email || "G");
   const rows = links ?? [
@@ -112,12 +152,31 @@ export default function UserMenu({
       {open && (
         <div
           role="menu"
-          className="gerege-topbar-onlight absolute right-0 mt-2 w-[320px] rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden z-50"
+          ref={panelRef}
+          /* The class is only what the first paint uses; the effect above
+             replaces it with the room actually below the button. */
+          className="gerege-topbar-onlight absolute right-0 mt-2 w-[320px] rounded-2xl border border-slate-200 bg-white shadow-xl overflow-y-auto overscroll-contain max-h-[calc(100dvh-5rem)] z-50"
         >
-          <div className="px-4 py-3.5 border-b border-slate-100">
-            <p className="text-sm font-semibold text-slate-900 truncate">{user?.name}</p>
-            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-            {subtitle && <p className="mt-0.5 text-xs text-[var(--gerege-blue)] truncate">{subtitle}</p>}
+          <div className="px-4 py-3.5 border-b border-slate-100 flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-slate-900 truncate">{user?.name}</p>
+              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+              {subtitle && <p className="mt-0.5 text-xs text-[var(--gerege-blue)] truncate">{subtitle}</p>}
+            </div>
+            {/* Signing out is also the last row of this menu, and on a phone
+                with several organisations that row is a whole scroll away.
+                The header is the one part of the menu that never moves, and
+                the space beside a truncated name was empty. */}
+            <button
+              type="button"
+              onClick={onLogout}
+              role="menuitem"
+              aria-label={t("web.action.logout")}
+              title={t("web.action.logout")}
+              className="shrink-0 grid place-items-center w-8 h-8 rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Only when there is a choice to make. A list of one would be a

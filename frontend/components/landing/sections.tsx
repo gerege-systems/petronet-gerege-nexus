@@ -6,6 +6,7 @@ import Capabilities from "@/components/landing/Capabilities";
 import Hero from "@/components/landing/Hero";
 import PlatformDepth from "@/components/landing/PlatformDepth";
 import Services from "@/components/landing/Services";
+import StationMap from "@/components/landing/StationMap";
 import Technology from "@/components/landing/Technology";
 import Trust from "@/components/landing/Trust";
 import { firstLinkedSection, type LandingSection } from "@/lib/landing";
@@ -33,6 +34,7 @@ export function sectionNodes(
 ): Record<LandingSection, ReactNode> {
   return {
     hero: <Hero seeMoreAnchor={firstLinkedSection(sections)} localSignIn={localSignIn} />,
+    map: <StationMap />,
     architecture: <Architecture />,
     applications: <Applications />,
     // Хаягуудыг энд уншина: энэ функц сервер дээр ажилладаг бөгөөд браузерын

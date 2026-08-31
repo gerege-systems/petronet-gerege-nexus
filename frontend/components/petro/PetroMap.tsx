@@ -84,7 +84,21 @@ function toFeatureCollection(stations: PublicStation[]): GeoJSON.FeatureCollecti
   };
 }
 
-export default function PetroMap() {
+/**
+ * Хоёр газар зурагдана: `/map` дээр бүтэн дэлгэцээр, нүүр хуудсан дээр нэг
+ * хэсэг болж. Ялгаа нь хоёрхон зүйл, тиймээс prop нь хоёрхон.
+ *
+ * `locate` — байршил асуух эсэх. Бүтэн дэлгэцийн зураг руу орсон хүн ойролцоох
+ * ШТС-ээ хайж байгаа тул асуух нь зөв; нүүр хуудас руу зүгээр орсон хүнээс
+ * зөвшөөрөл гуйх нь тэдний асуугаагүй зүйл.
+ *
+ * `initialZoom` — нүүр хуудсан дээр улс бүтнээрээ багтах ёстой; `/map` дээр
+ * хот руугаа ойртсон байна.
+ */
+export default function PetroMap({
+  locate = true,
+  initialZoom = 12,
+}: { locate?: boolean; initialZoom?: number } = {}) {
   const { t } = useI18n();
   const container = useRef<HTMLDivElement | null>(null);
   const map = useRef<InstanceType<typeof MapLibreMap> | null>(null);
@@ -149,7 +163,7 @@ export default function PetroMap() {
       container: container.current,
       style: fuelMapStyle(),
       center: [ULAANBAATAR.lon, ULAANBAATAR.lat],
-      zoom: 12,
+      zoom: initialZoom,
       // Шулуун дээрээс, эргүүлэлгүй. Налуу нь өргөгдсөн барилга байхад
       // утгатай байсан; растер дэвсгэр налуу үед зөвхөн бүдгэрдэг тул
       // `maxPitch: 0` — хазайлт нь боломж биш, эвдрэл болно.
@@ -248,7 +262,7 @@ export default function PetroMap() {
     // Centre on the visitor only where we have tiles. A position abroad — a
     // traveller, or a browser guessing badly — would open onto the background
     // colour and read as a broken page.
-    if (typeof navigator !== "undefined" && navigator.geolocation) {
+    if (locate && typeof navigator !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
@@ -265,7 +279,7 @@ export default function PetroMap() {
       m.remove();
       map.current = null;
     };
-  }, [refresh, t]);
+  }, [refresh, t, locate, initialZoom]);
 
   return (
     // The height is an inline style rather than a utility class on purpose.

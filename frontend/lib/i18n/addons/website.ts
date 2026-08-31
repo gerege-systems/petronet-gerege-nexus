@@ -203,6 +203,14 @@ export const website = {
   "website.action.my_contracts": { mn: "Надад ирсэн гэрээ", en: "My incoming contracts" },
   "website.action.open_platform": { mn: "Платформ руу", en: "Open the platform" },
   "website.view.hero_inbox_title": { mn: "Танд ирсэн гэрээ", en: "Contracts sent to you" },
+  "website.map.eyebrow": { mn: "ЯГ ОДОО", en: "RIGHT NOW" },
+  "website.map.title": { mn: "Улсын шатахуун түгээх станцууд", en: "The country's filling stations" },
+  "website.map.lede": {
+    mn: "Бүртгэгдсэн ШТС бүр, тэдгээрийн түлшний төрөл, нөөцийн түвшин. Тэмдэглэгээн дээр дарж дэлгэрэнгүйг харна.",
+    en: "Every registered station, the grades it carries and how full its tanks are. Tap a pin for the rest.",
+  },
+  "website.map.full": { mn: "Бүтэн дэлгэцээр нээх", en: "Open the full map" },
+
   "website.service.eyebrow": { mn: "ЭНЭ СУУЛГАЦ", en: "THIS DEPLOYMENT" },
   "website.service.title": { mn: "Платформын хажууд юу ажиллаж байна вэ", en: "What runs beside the platform" },
   "website.service.lede": {
