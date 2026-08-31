@@ -132,7 +132,7 @@ func main() {
 		os.Exit(2)
 	}
 	if err := run(*tenantSlug, *count, *clear, *nearLat, *nearLon, *radiusKm); err != nil {
-		fmt.Fprintln(os.Stderr, "fuel-demo-trips:", err)
+		fmt.Fprintln(os.Stderr, "petro-demo-trips:", err)
 		os.Exit(1)
 	}
 }
@@ -217,7 +217,7 @@ func run(tenantSlug string, count int, clear bool, nearLat, nearLon, radiusKm fl
 	rows.Close()
 	if len(dests) == 0 {
 		return fmt.Errorf("organisation %s has no stations within %.0f km of %.4f,%.4f; "+
-			"widen -radius-km or run fuel-import first", tenantSlug, radiusKm, nearLat, nearLon)
+			"widen -radius-km or run petro-import first", tenantSlug, radiusKm, nearLat, nearLon)
 	}
 
 	if clear {

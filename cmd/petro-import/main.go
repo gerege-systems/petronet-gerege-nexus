@@ -107,7 +107,7 @@ func main() {
 	}
 
 	if err := run(*tenantSlug, *file, *brand, *dryRun, *demoStock); err != nil {
-		fmt.Fprintln(os.Stderr, "fuel-import:", err)
+		fmt.Fprintln(os.Stderr, "petro-import:", err)
 		os.Exit(1)
 	}
 }
