@@ -21,9 +21,9 @@ export default function FuelLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
 
   const tabs = [
-    { href: "/fuel/shipments", label: t("petro.tab.shipments") },
-    { href: "/fuel/depots", label: t("petro.tab.depots") },
-    { href: "/fuel", label: t("petro.tab.stations") },
+    { href: "/petro/shipments", label: t("petro.tab.shipments") },
+    { href: "/petro/depots", label: t("petro.tab.depots") },
+    { href: "/petro", label: t("petro.tab.stations") },
   ];
 
   return (

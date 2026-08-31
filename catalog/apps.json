@@ -1,8 +1,8 @@
 [
   {
     "id": "io.gerege.nexus.petro",
-    "slug": "fuel",
-    "name": "Fuel Network",
+    "slug": "petro",
+    "name": "Petro Network",
     "description": "The fuel distribution network: stations, stock, daily entitlements and vouchers.",
     "icon_url": "/icons/fuel.png",
     "category": "Operations",

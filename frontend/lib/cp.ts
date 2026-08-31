@@ -287,7 +287,7 @@ export const cp = {
   tenant: (id: string) => request<TenantDetail>(`/tenants/${encodeURIComponent(id)}`),
 
   /** Every operator's fuel records, added up for the control plane. */
-  fuelOverview: () => request<FuelOverview>("/fuel/overview"),
+  fuelOverview: () => request<FuelOverview>("/petro/overview"),
 
   // Across every organisation at once: which limits are set where, and which
   // app is installed where.

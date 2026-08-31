@@ -231,7 +231,7 @@ export type DepotReceipt = {
 
 export const petroApi = {
   /** The stations this organisation operates. Requires a session. */
-  listFuelStations: () => request<FuelStationList>("/fuel/stations"),
+  listFuelStations: () => request<FuelStationList>("/petro/stations"),
 
   /** Register a forecourt. Coordinates are required: the map has to draw it. */
   createFuelStation: (body: {
@@ -248,7 +248,7 @@ export const petroApi = {
     total_pumps?: number;
     active_pumps?: number;
     is_voucher_enabled?: boolean;
-  }) => request<FuelStation>("/fuel/stations", { method: "POST", body: JSON.stringify(body) }),
+  }) => request<FuelStation>("/petro/stations", { method: "POST", body: JSON.stringify(body) }),
 
   /** Correct a row. Only what is sent changes; the rest is written back to itself. */
   updateFuelStation: (
@@ -308,7 +308,7 @@ export const petroApi = {
     }),
 
   /** Consignments this organisation has declared, newest first. */
-  listFuelShipments: () => request<{ shipments: Shipment[]; count: number }>("/fuel/shipments"),
+  listFuelShipments: () => request<{ shipments: Shipment[]; count: number }>("/petro/shipments"),
 
   /** Declare a consignment arriving at a port. */
   createFuelShipment: (body: {
@@ -323,7 +323,7 @@ export const petroApi = {
     convoy_code?: string;
     note?: string;
   }) =>
-    request<Shipment>("/fuel/shipments", { method: "POST", body: JSON.stringify(body) }),
+    request<Shipment>("/petro/shipments", { method: "POST", body: JSON.stringify(body) }),
 
   /**
    * Move a consignment along.
@@ -348,7 +348,7 @@ export const petroApi = {
     ),
 
   /** This organisation's bases, each with its tanks. */
-  listFuelDepots: () => request<{ depots: Depot[]; count: number }>("/fuel/depots"),
+  listFuelDepots: () => request<{ depots: Depot[]; count: number }>("/petro/depots"),
 
   /** Register a base. */
   createFuelDepot: (body: {
@@ -361,7 +361,7 @@ export const petroApi = {
     lon?: number | null;
     has_rail_siding?: boolean;
     rail_station_code?: string;
-  }) => request<Depot>("/fuel/depots", { method: "POST", body: JSON.stringify(body) }),
+  }) => request<Depot>("/petro/depots", { method: "POST", body: JSON.stringify(body) }),
 
   /**
    * Add a vessel to a base.
@@ -423,13 +423,13 @@ export const petroApi = {
    * somebody waiting at a forecourt wants to know one is coming whether the
    * lorry is on the ring road or still in Darkhan.
    */
-  publicFuelTrips: () => request<PublicTripList>("/fuel/public/trips"),
+  publicFuelTrips: () => request<PublicTripList>("/petro/public/trips"),
 
   /** Today's ration. Needs a session; a citizen signs in with eID. */
-  myFuelEntitlement: () => request<Entitlement>("/fuel/me/entitlement"),
+  myFuelEntitlement: () => request<Entitlement>("/petro/me/entitlement"),
 
   /** Today's vouchers, newest first. */
-  myFuelVouchers: () => request<{ vouchers: Voucher[]; count: number }>("/fuel/me/vouchers"),
+  myFuelVouchers: () => request<{ vouchers: Voucher[]; count: number }>("/petro/me/vouchers"),
 
   /**
    * Draw an amount out of today's ration.
@@ -442,7 +442,7 @@ export const petroApi = {
     fuel_type: string;
     intended_station_id?: string;
   }) =>
-    request<{ voucher: Voucher; entitlement: Entitlement }>("/fuel/me/vouchers", {
+    request<{ voucher: Voucher; entitlement: Entitlement }>("/petro/me/vouchers", {
       method: "POST",
       body: JSON.stringify(body),
     }),

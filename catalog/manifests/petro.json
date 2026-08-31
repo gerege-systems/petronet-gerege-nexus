@@ -37,7 +37,7 @@
     {
       "id": "petro_stations",
       "label": "Fuel network",
-      "path": "/fuel",
+      "path": "/petro",
       "icon": "fuel",
       "order": 10
     }

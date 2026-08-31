@@ -35,7 +35,7 @@ func TestOperatorSessionStatusDelegatesToTheConsole(t *testing.T) {
 		}, nil
 	})}
 
-	req := httptest.NewRequest(http.MethodGet, "https://admin.petronet.mn/api/platform/v1/fuel/overview", nil)
+	req := httptest.NewRequest(http.MethodGet, "https://admin.petronet.mn/api/platform/v1/petro/overview", nil)
 	req.AddCookie(&http.Cookie{Name: "nexus_cp_session", Value: "signed"})
 	if got := operatorSessionStatus(req); got != http.StatusOK {
 		t.Fatalf("session status = %d", got)

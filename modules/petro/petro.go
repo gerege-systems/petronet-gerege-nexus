@@ -140,7 +140,7 @@ func (m *Module) Menus() []nexus.MenuDefinition {
 		{
 			ID:    "petro_stations",
 			Label: "Fuel network",
-			Path:  "/fuel",
+			Path:  "/petro",
 			Icon:  "fuel",
 			Order: 10,
 			Labels: map[string]string{
@@ -164,9 +164,9 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 	// The deployment console lives outside workspace authentication. Its
 	// handler validates the console's own session before reading across fuel
 	// operators; see overview.go.
-	r.Get("/api/platform/v1/fuel/overview", m.handleOperatorOverview)
+	r.Get("/api/platform/v1/petro/overview", m.handleOperatorOverview)
 
-	r.Route("/api/v1/fuel", func(fr chi.Router) {
+	r.Route("/api/v1/petro", func(fr chi.Router) {
 		fr.Use(tenantAuthMiddleware)
 
 		// The operator's half. Each route names the permission it needs.
@@ -254,7 +254,7 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 	// this platform either costs an attacker a credential or is a health check;
 	// this one is a database query anybody can ask for, so the budget is
 	// stated here rather than left to nginx, which does not know what this is.
-	r.Route("/api/v1/fuel/public", func(pr chi.Router) {
+	r.Route("/api/v1/petro/public", func(pr chi.Router) {
 		pr.Use(nexus.RateLimit(60, 20))
 		pr.Get("/stations", m.handlePublicStations)
 		// Deliveries in flight. See dispatch.go for what this withholds and why.
