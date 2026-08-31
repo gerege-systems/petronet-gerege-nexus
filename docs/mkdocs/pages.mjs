@@ -17,6 +17,9 @@ export const PAGES = [
 
   {src: "docs/DEPLOYMENT.md", slug: "deployment", title: "Энэ суулгац", group: "Танилцуулга"},
 
+  {src: "docs/system-requirements.md", slug: "requirements", title: "Системийн шаардлага", group: "Төсөл"},
+  {src: "docs/PLAN.md", slug: "plan", title: "Хөгжүүлэлтийн төлөвлөгөө", group: "Төсөл"},
+
   {src: "docs/README.md", slug: "documents", title: "Баримтын индекс", group: "Платформ"},
   {src: "docs/ARCHITECTURE.md", slug: "architecture", title: "Архитектур", group: "Платформ"},
   {src: "docs/IDENTITY.md", slug: "identity", title: "Танилт ба эрх", group: "Платформ"},
