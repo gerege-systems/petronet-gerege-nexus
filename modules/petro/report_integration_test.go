@@ -44,7 +44,7 @@ func (c *company) appoint(t *testing.T, pool *pgxpool.Pool) {
 	t.Helper()
 	if _, err := pool.Exec(context.Background(), `
 		INSERT INTO petro_oversight_bodies (tenant_id, name, scope)
-		VALUES ($1::uuid, 'АМГТГ (тест)', 'national')`, c.tenantID); err != nil {
+		VALUES ($1::uuid, 'Зохицуулагч (тест)', 'national')`, c.tenantID); err != nil {
 		t.Fatalf("appoint oversight body: %v", err)
 	}
 }

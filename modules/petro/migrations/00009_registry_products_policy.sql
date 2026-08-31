@@ -14,7 +14,7 @@
 -- # Зохицуулагч гэж хэн бэ — кодод биш, хүснэгтэд
 --
 -- Мөрийн түвшний тусгаарлалт нь компанийг бие биенээсээ хардаггүй болгодог.
--- Гэтэл АМГТГ нь бүгдийг харах ёстой. Үүнийг хоёр аргаар хийж болно: код дотор
+-- Гэтэл зохицуулагч нь бүгдийг харах ёстой. Үүнийг хоёр аргаар хийж болно: код дотор
 -- «энэ бол зохицуулагч» гэж шийдэх, эсвэл өгөгдлийн санд бичих. Эхнийх нь
 -- бодлогыг тойрч гардаг — SQL бичсэн хэн ч мартаж болно. Тиймээс энд
 -- `petro_oversight_bodies` хүснэгт ба түүнийг уншдаг STABLE функц байна:
@@ -63,7 +63,7 @@ GRANT SELECT ON petro_products TO gerege_nexus_tenant;
 CREATE TABLE petro_oversight_bodies (
     tenant_id   UUID PRIMARY KEY REFERENCES registry.tenants (id) ON DELETE CASCADE,
     name        TEXT NOT NULL,
-    -- Хандалтын түвшин: national (АМГТГ), tax (ТЕГ), customs (ГЕГ),
+    -- Хандалтын түвшин: national (яам), tax (ТЕГ), customs (ГЕГ),
     -- aimag (орон нутаг), audit (зөвхөн унших).
     scope       TEXT NOT NULL DEFAULT 'national',
     aimag       TEXT NOT NULL DEFAULT '',

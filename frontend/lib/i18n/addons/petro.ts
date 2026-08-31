@@ -142,7 +142,7 @@ export const petro = {
   "petro.report.send": { mn: "Тайлан илгээх", en: "Send report" },
   "petro.report.template": { mn: "Excel загвар татах", en: "Excel template" },
   "petro.report.accepted": {
-    mn: "Тайлан хүлээн авлаа. Одоо АМГТГ-ын хяналтад байна.",
+    mn: "Тайлан хүлээн авлаа. Одоо зохицуулагчийн хяналтад байна.",
     en: "Received. It is now in the regulator's queue.",
   },
   "petro.report.returned": {
