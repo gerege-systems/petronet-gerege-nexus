@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 
 import { isPublicPath } from "../lib/publicPath.mjs";
 
-test("FuelNet product pages do not require a tenant session", () => {
+test("PetroNet product pages do not require a tenant session", () => {
   for (const path of [
     "/",
     "/supply",

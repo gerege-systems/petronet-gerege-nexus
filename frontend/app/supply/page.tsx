@@ -4,7 +4,7 @@ import {BadgeCheck, FileText, TestTube2, Thermometer, Truck, Warehouse} from "lu
 import PetroNetShell from "../../components/petronet/PetroNetShell";
 import {FeatureGrid, FlowRail, PageCTA, PageHero, SectionHeading} from "../../components/petronet/ui";
 
-export const metadata: Metadata = {title: "Нийлүүлэлтийн урсгал · FuelNet"};
+export const metadata: Metadata = {title: "Нийлүүлэлтийн урсгал · PetroNet"};
 
 const tracePoints = [
   ["01", "Гэрээ ба захиалга", "Импортлогч, нийлүүлэгч, төрөл, тонн, үнэ, валют, хүлээгдэж буй огноо"],
@@ -62,7 +62,7 @@ export default function SupplyPage() {
             <div>
               <span className="pn-section-label">Reconciliation engine</span>
               <h2>Зөрүү бол тайлангийн төгсгөл биш, ажлын эхлэл.</h2>
-              <p>FuelNet импорт, терминал, тээвэр, ШТС, хошууны бүх хэмжилтийг автоматаар тулгаж, хүлцлээс давсан зөрүүнд шалгах кейс нээнэ.</p>
+              <p>PetroNet импорт, терминал, тээвэр, ШТС, хошууны бүх хэмжилтийг автоматаар тулгаж, хүлцлээс давсан зөрүүнд шалгах кейс нээнэ.</p>
             </div>
             <div className="pn-reconcile-table">
               <div><span>Ачилтын баримт</span><b>32,000 л</b></div>

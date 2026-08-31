@@ -4,11 +4,11 @@ import {Activity, Boxes, Cable, CheckCircle2, CloudCog, Database, Gauge, Map, Ra
 import PetroNetShell from "../../components/petronet/PetroNetShell";
 import {FeatureGrid, PageHero, SectionHeading} from "../../components/petronet/ui";
 
-export const metadata: Metadata = {title: "Нэвтрүүлэх төлөвлөгөө · FuelNet"};
+export const metadata: Metadata = {title: "Нэвтрүүлэх төлөвлөгөө · PetroNet"};
 
 const phases = [
   {phase: "ФАЗ 0", time: "0–3 долоо хоног", title: "Суурь ба бодит аудит", body: "ШТС, controller, ATG, протокол, сүлжээ, эрх зүйн шаардлагаа батална.", items: ["20–30 ШТС-ын тоног төхөөрөмжийн аудит", "Өгөгдлийн стандарт ба RBAC", "Туршилтын бүс, оператор, KPI сонгох"]},
-  {phase: "ФАЗ 1", time: "3–10 долоо хоног", title: "POS ба харагдац", body: "FuelNet-ийн эхний бодит үнэ цэнэ — хошуу, сав, ээлжийн бодит өгөгдөл.", items: ["FuelNet Edge + POS MVP", "IFSF ба pulse/manual драйвер", "Нөөц, гүйлгээ, ээлжийн самбар"]},
+  {phase: "ФАЗ 1", time: "3–10 долоо хоног", title: "POS ба харагдац", body: "PetroNet-ийн эхний бодит үнэ цэнэ — хошуу, сав, ээлжийн бодит өгөгдөл.", items: ["PetroNet Edge + POS MVP", "IFSF ба pulse/manual драйвер", "Нөөц, гүйлгээ, ээлжийн самбар"]},
   {phase: "ФАЗ 2", time: "10–18 долоо хоног", title: "Ваучер ба туршилтын бүс", body: "Бодит нөөцөөс эрх үүсгэх, хэрэглэгчид санал болгох, QR-аар олгох урсгал.", items: ["ХУР / e-Mongolia шалгалт", "Allocation ба policy engine", "Офлайн QR, SMS, USSD"]},
   {phase: "ФАЗ 3", time: "18–32 долоо хоног", title: "Улс даяар тэлэх", body: "Аймаг, дүүрэг, сүлжээгээр үе шаттай өргөжүүлж 90%-ийн хамралтад хүрнэ.", items: ["Брэндийн драйверуудын өргөтгөл", "24/7 ажиллагаа ба field support", "Төрийн бүх түвшний хяналтын самбар"]},
   {phase: "ФАЗ 4", time: "32+ долоо хоног", title: "Прогноз ба боловсронгуй хяналт", body: "Тайван үеийн байнгын дэд бүтэц болгон хөгжүүлж, эрсдэлийг урьдчилан харна.", items: ["Эрэлт ба дуусах хугацааны прогноз", "Залилангийн risk scoring", "Нийтийн ил тод байдал ба open data"]},
@@ -102,7 +102,7 @@ export default function RolloutPage() {
           <div className="pn-container">
             <span>ЭХНИЙ АЛХАМ</span>
             <h2>20–30 ШТС. 3 долоо хоног.<br />Нэг бодит аудит.</h2>
-            <p>Төлөвлөгөөг тоног төхөөрөмж, өгөгдөл, эрх зүйн бодит нөхцөлтэй тулгаж FuelNet-ийн туршилтын хүрээг батална.</p>
+            <p>Төлөвлөгөөг тоног төхөөрөмж, өгөгдөл, эрх зүйн бодит нөхцөлтэй тулгаж PetroNet-ийн туршилтын хүрээг батална.</p>
             <div className="pn-final-cta__meta"><span><CheckCircle2 /> Төхөөрөмжийн матриц</span><span><CheckCircle2 /> Өгөгдлийн гэрээ</span><span><CheckCircle2 /> Туршилтын KPI</span></div>
           </div>
         </section>

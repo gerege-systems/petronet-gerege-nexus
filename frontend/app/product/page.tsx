@@ -25,7 +25,7 @@ import {FlowRail, SectionHeading} from "@/components/petronet/ui";
 // түүний зургаан холбоос нь тус бүрдээ хуудастай, энэ нь тэдгээрийг
 // нэгтгэн харуулах хураангуй.
 export const metadata: Metadata = {
-  title: "FuelNet · Монгол Улсын шатахууны нэгдсэн сүлжээ",
+  title: "PetroNet · Монгол Улсын шатахууны нэгдсэн сүлжээ",
   description: "Импортын гэрээнээс түгээгүүрийн хошуу хүртэлх шатахууны урсгал, нөөц, эрэлт, түгээлтийг нэгтгэх платформ.",
 };
 
@@ -42,7 +42,7 @@ const capabilityPages = [
     href: "/stations",
     index: "02",
     icon: Fuel,
-    title: "ШТС ба FuelNet POS",
+    title: "ШТС ба PetroNet POS",
     body: "Сав, түгээгүүр, хошуу, ээлж, төлбөрийг үйлдвэрлэгчээс үл хамааран бодит цагт нэгтгэнэ.",
     meta: "Онлайн + офлайн",
   },
@@ -72,7 +72,7 @@ const capabilityPages = [
   },
 ];
 
-export default function FuelNetHome() {
+export default function PetroNetHome() {
   return (
     <PetroNetShell>
       <main>
@@ -82,7 +82,7 @@ export default function FuelNetHome() {
               <div className="pn-kicker"><span /> Монгол Улсын шатахууны нэгдсэн сүлжээ</div>
               <h1>Литр бүрийн замыг <em>нэг урсгалаар.</em></h1>
               <p>
-                FuelNet импортын гэрээнээс түгээгүүрийн хошуу хүртэлх хөдөлгөөнийг холбож,
+                PetroNet импортын гэрээнээс түгээгүүрийн хошуу хүртэлх хөдөлгөөнийг холбож,
                 нөөц, эрэлт, түгээлтийг бодит мэдээллээр удирдана.
               </p>
               <div className="pn-actions">
@@ -93,7 +93,7 @@ export default function FuelNetHome() {
                   Нэвтрүүлэх төлөвлөгөө
                 </Link>
               </div>
-              <div className="pn-hero__proof" aria-label="FuelNet-ийн үндсэн зарчим">
+              <div className="pn-hero__proof" aria-label="PetroNet-ийн үндсэн зарчим">
                 <span><Check /> Бодит нөөц</span>
                 <span><Check /> Офлайн ажиллагаа</span>
                 <span><Check /> Үйлдвэрлэгчээс үл хамаарна</span>
@@ -206,7 +206,7 @@ export default function FuelNetHome() {
             <div>
               <span className="pn-section-label">Нэгдсэн экосистем</span>
               <h2>Өгөгдөл тусдаа системд түгжигдэхгүй.</h2>
-              <p>FuelNet төрийн болон бизнесийн одоо байгаа системүүдийг сольж устгахгүй — баталгаатай өгөгдлийн нэг урсгалд холбоно.</p>
+              <p>PetroNet төрийн болон бизнесийн одоо байгаа системүүдийг сольж устгахгүй — баталгаатай өгөгдлийн нэг урсгалд холбоно.</p>
             </div>
             <div className="pn-integration-grid">
               {[

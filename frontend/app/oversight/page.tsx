@@ -4,7 +4,7 @@ import {AlertTriangle, BarChart3, DatabaseZap, Eye, FileClock, Landmark, LockKey
 import PetroNetShell from "../../components/petronet/PetroNetShell";
 import {CheckList, FeatureGrid, PageCTA, PageHero, SectionHeading} from "../../components/petronet/ui";
 
-export const metadata: Metadata = {title: "Төрийн хяналт · FuelNet"};
+export const metadata: Metadata = {title: "Төрийн хяналт · PetroNet"};
 
 export default function OversightPage() {
   return (

@@ -30,7 +30,7 @@ import { SECTION_PATHS } from "./landing";
  */
 export const PUBLIC_ROUTES = [
   "/",
-  // FuelNet's product surface and citizen map are part of the public front
+  // PetroNet's product surface and citizen map are part of the public front
   // door. A driver looking for a station has no workspace session to present.
   "/map",
   "/supply",

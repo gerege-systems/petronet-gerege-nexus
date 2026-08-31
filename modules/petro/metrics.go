@@ -19,7 +19,7 @@
  * accident and then kept for two months. The national figure carries what an
  * operations dashboard is for, and carries nothing a rival could act on.
  *
- * The same rule as FUELNET_OVERSIGHT_PLAN.md sets for the regulator's queries:
+ * The same rule as PETRONET_OVERSIGHT_PLAN.md sets for the regulator's queries:
  * COUNT and SUM, never a row. `petro_vouchers.citizen_id` appears nowhere below,
  * not even inside a COUNT DISTINCT that could later be relaxed into a GROUP BY.
  *

@@ -4,17 +4,17 @@ import {Activity, Cable, CreditCard, Fuel, Gauge, MonitorSmartphone, ReceiptText
 import PetroNetShell from "../../components/petronet/PetroNetShell";
 import {CheckList, FeatureGrid, PageCTA, PageHero, SectionHeading} from "../../components/petronet/ui";
 
-export const metadata: Metadata = {title: "ШТС ба FuelNet POS"};
+export const metadata: Metadata = {title: "ШТС ба PetroNet POS"};
 
 export default function StationsPage() {
   return (
     <PetroNetShell>
       <main>
         <PageHero
-          eyebrow="ШТС ба FuelNet POS"
+          eyebrow="ШТС ба PetroNet POS"
           title="Хошууны бодит заалт бол"
           accent="платформын суурь."
-          body="FuelNet POS нь орчин үеийн controller-оос механик тоолуур хүртэлх ШТС-ыг нэг дотоод интерфейст холбож, интернэт тасарсан ч борлуулалтыг зогсоохгүй."
+          body="PetroNet POS нь орчин үеийн controller-оос механик тоолуур хүртэлх ШТС-ыг нэг дотоод интерфейст холбож, интернэт тасарсан ч борлуулалтыг зогсоохгүй."
         >
           <div className="pn-pos-mock">
             <div className="pn-pos-mock__head"><span><i /> Ээлж нээлттэй</span><b>ШТС #042</b></div>
@@ -45,11 +45,11 @@ export default function StationsPage() {
             <div>
               <span className="pn-section-label">Universal pump adapter</span>
               <h2>Брэнд бүрт шинэ систем биш. Драйвер бүрт нэг гэрээ.</h2>
-              <p>FuelNet-ийн цөм нэг pump.Driver интерфейстэй. Шинэ үйлдвэрлэгч нэмэхэд POS, ваучер, тайлангийн цөм өөрчлөгдөхгүй.</p>
+              <p>PetroNet-ийн цөм нэг pump.Driver интерфейстэй. Шинэ үйлдвэрлэгч нэмэхэд POS, ваучер, тайлангийн цөм өөрчлөгдөхгүй.</p>
               <CheckList items={["IFSF LON ба TCP/IP", "RS-485 / RS-422 / RS-232", "Current loop ба Two-Wire", "Импульс тоолуур ба гар оруулалт"]} />
             </div>
             <div className="pn-adapter-stack">
-              <div className="pn-adapter-core"><MonitorSmartphone /><span><b>FuelNet POS</b><small>Нэг дотоод интерфейс</small></span></div>
+              <div className="pn-adapter-core"><MonitorSmartphone /><span><b>PetroNet POS</b><small>Нэг дотоод интерфейс</small></span></div>
               <div className="pn-adapter-bus"><span /><Cable /><span /></div>
               <div className="pn-brand-chips">
                 {["IFSF", "Gilbarco", "Wayne", "Tokheim", "Tatsuno", "Censtar", "Sanki", "Adast", "Petrotec", "Pulse"].map((brand) => <span key={brand}>{brand}</span>)}

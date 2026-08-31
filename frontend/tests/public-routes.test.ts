@@ -48,7 +48,7 @@ test("the front door and its menu are public", () => {
   }
 });
 
-test("FuelNet's citizen and product pages are public", () => {
+test("PetroNet's citizen and product pages are public", () => {
   for (const path of ["/map", "/supply", "/stations", "/vouchers", "/oversight", "/rollout"]) {
     expect(isPublicPath(path), path).toBe(true);
   }

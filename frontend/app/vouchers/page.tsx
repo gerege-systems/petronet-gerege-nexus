@@ -4,7 +4,7 @@ import {BellRing, CarFront, Clock3, Fingerprint, Gauge, MapPin, QrCode, ShieldCh
 import PetroNetShell from "../../components/petronet/PetroNetShell";
 import {FeatureGrid, PageCTA, PageHero, SectionHeading} from "../../components/petronet/ui";
 
-export const metadata: Metadata = {title: "Ваучер ба хуваарилалт · FuelNet"};
+export const metadata: Metadata = {title: "Ваучер ба хуваарилалт · PetroNet"};
 
 const allocationSteps = [
   ["01", "Хангалт баталгаажна", "ATG савны бодит өсөлтийг мэдээлж, ачсан хэмжээтэй тулгана."],
@@ -22,10 +22,10 @@ export default function VouchersPage() {
           eyebrow="Ваучер ба хуваарилалт"
           title="Дараалал биш,"
           accent="баталгаатай цагийн цонх."
-          body="FuelNet бодитоор орж ирсэн түлшийг нөөцлөгдсөн литрийн эрх болгон, ойр байршил ба хэрэгцээгээр шударга хуваарилна."
+          body="PetroNet бодитоор орж ирсэн түлшийг нөөцлөгдсөн литрийн эрх болгон, ойр байршил ба хэрэгцээгээр шударга хуваарилна."
         >
           <div className="pn-voucher-card">
-            <div className="pn-voucher-card__top"><span>FUELNET VOUCHER</span><strong>RESERVED</strong></div>
+            <div className="pn-voucher-card__top"><span>PETRONET VOUCHER</span><strong>RESERVED</strong></div>
             <div className="pn-voucher-card__main"><div className="pn-fake-qr"><QrCode /></div><div><small>АИ-92 · ШТС #042</small><b>20.9 литр</b><span>Өнөөдөр 18:00–18:30</span></div></div>
             <div className="pn-voucher-card__foot"><span>УБ • Баянзүрх</span><b>₮50,000 хүртэл</b></div>
           </div>

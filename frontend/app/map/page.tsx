@@ -23,7 +23,7 @@ import PetroNetHeader from "@/components/petronet/PetroNetHeader";
  */
 
 export const metadata: Metadata = {
-  title: "Газрын зураг · FuelNet",
+  title: "Газрын зураг · PetroNet",
   description:
     "Ойролцоох шатахуун түгээх станцууд, тэдгээрийн үнэ, нөөцийн түвшин, замд яваа цистернүүд.",
 };
