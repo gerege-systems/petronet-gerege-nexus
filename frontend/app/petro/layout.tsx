@@ -1,13 +1,18 @@
 "use client";
 
 /**
- * The fuel network's three screens, under one heading.
+ * The fuel network's five screens, under one heading.
  *
- * Tabs rather than three sidebar entries. The module declares one menu entry
- * and the platform's menu test asserts every entry has a page; three entries
- * would mean three sets of seven locale labels for what is one job — a company
- * looking at its own half of the chain. The order is the chain's own: what
- * crossed the border, where it was stored, where it is sold.
+ * The order is the chain's own: what crossed the border, where it was stored,
+ * where it is sold — then what is told to the state, and what the state does
+ * with it.
+ *
+ * Tabs carry all five; the sidebar carries three. The three operational screens
+ * are one job seen at three points and share a menu entry, because three
+ * entries would be three sets of seven locale labels for one task. Reporting
+ * and oversight are separate entries because they are separate people: the
+ * clerk who sends the daily figures never opens the depot screen, and the
+ * official who supervises belongs to a different organisation entirely.
  */
 
 import Link from "next/link";
@@ -24,6 +29,8 @@ export default function FuelLayout({ children }: { children: React.ReactNode }) 
     { href: "/petro/shipments", label: t("petro.tab.shipments") },
     { href: "/petro/depots", label: t("petro.tab.depots") },
     { href: "/petro", label: t("petro.tab.stations") },
+    { href: "/petro/report", label: t("petro.tab.report") },
+    { href: "/petro/oversight", label: t("petro.tab.oversight") },
   ];
 
   return (
