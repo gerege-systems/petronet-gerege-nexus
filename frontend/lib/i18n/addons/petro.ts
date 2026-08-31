@@ -1,0 +1,186 @@
+/**
+ * fuel — the fuel distribution network: the stations an organisation operates,
+ * and (from Ү2) the citizen-facing map, entitlement and voucher.
+ *
+ * Mongolian and English only at this commit. The other five fall back to
+ * English, which is the documented behaviour for a term nobody has translated
+ * yet; they arrive with the screens that need them rather than as empty
+ * columns nobody can review. The *menu* labels are a different matter and are
+ * complete in all seven — see internal/apps/petro/fuel.go.
+ */
+export const petro = {
+  "petro.view.title": { mn: "Шатахууны сүлжээ", en: "Fuel network" },
+  "petro.view.subtitle": {
+    mn: "Энэ байгууллагын ШТС, нөөц, дараалал",
+    en: "The stations this organisation operates, their stock and their queues",
+  },
+  "petro.view.empty_title": { mn: "Бүртгэлтэй ШТС алга", en: "No stations yet" },
+  "petro.view.empty_body": {
+    mn: "«ШТС нэмэх» товчоор эхний станцаа бүртгэнэ үү.",
+    en: "Register the first forecourt with “Add a station”.",
+  },
+  "petro.view.count": { mn: "Бүртгэлтэй ШТС", en: "Stations registered" },
+
+
+  // The station register: the screen an operator keeps their forecourts on.
+  "petro.station.subtitle": {
+    mn: "Энэ байгууллагын ШТС-ууд. Түлш нэмэх, үнэ засах, дууссаныг мэдэгдэх нь энд.",
+    en: "The forecourts this organisation runs — add a grade, correct a price, say when one runs dry.",
+  },
+  "petro.station.add": { mn: "ШТС нэмэх", en: "Add a station" },
+  "petro.station.edit": { mn: "Засах", en: "Edit" },
+  "petro.station.delete": { mn: "Устгах", en: "Delete" },
+  "petro.station.delete_confirm": {
+    mn: "Энэ ШТС-ыг устгах уу? Ачаа хүлээж авсан ШТС-ыг устгах боломжгүй — оронд нь төлөвийг нь өөрчилнө.",
+    en: "Delete this station? One that has received a delivery cannot be deleted — change its status instead.",
+  },
+  "petro.station.grade": { mn: "Түлш", en: "Grade" },
+  "petro.station.grades": { mn: "Түлш, үнэ", en: "Grades & prices" },
+  "petro.station.add_grade": { mn: "Түлш нэмэх", en: "Add a grade" },
+  "petro.station.no_grades": { mn: "Түлш бүртгэгдээгүй", en: "No grades registered" },
+  "petro.station.name": { mn: "Нэр", en: "Name" },
+  "petro.station.brand": { mn: "Брэнд", en: "Brand" },
+  "petro.station.aimag": { mn: "Аймаг, хот", en: "Province or city" },
+  "petro.station.district": { mn: "Сум, дүүрэг", en: "District" },
+  "petro.station.address": { mn: "Хаяг", en: "Address" },
+  "petro.station.phone": { mn: "Утас", en: "Telephone" },
+  "petro.station.hours": { mn: "Ажиллах цаг", en: "Opening hours" },
+  "petro.station.lat": { mn: "Өргөрөг", en: "Latitude" },
+  "petro.station.lon": { mn: "Уртраг", en: "Longitude" },
+  "petro.station.coords_hint": {
+    mn: "Газрын зураг дээр байрлуулахад хэрэгтэй — жишээ нь 47.9187, 106.9177",
+    en: "Needed to place it on the map — for example 47.9187, 106.9177",
+  },
+  "petro.station.pumps": { mn: "Түгээгүүр", en: "Pumps" },
+  "petro.station.active_pumps": { mn: "Ажиллаж буй", en: "In service" },
+  "petro.station.voucher": { mn: "Ваучер хүлээж авна", en: "Accepts vouchers" },
+  "petro.station.status": { mn: "Төлөв", en: "Status" },
+  "petro.station.price": { mn: "Үнэ (₮)", en: "Price (₮)" },
+  "petro.station.capacity": { mn: "Савны багтаамж (л)", en: "Tank capacity (l)" },
+  "petro.station.stock_note": {
+    mn: "Үлдэгдэл литрийг гараар бичихгүй — цистерн буулгах бүрт өөрөө нэмэгдэнэ. Дууссан бол төлөвөөр нь мэдэгдэнэ.",
+    en: "Litres are not typed in: they rise as tankers are unloaded. Running dry is said with the status.",
+  },
+  "petro.station.grade_status.available": { mn: "Байгаа", en: "Available" },
+  "petro.station.grade_status.low": { mn: "Дуусаж байна", en: "Running low" },
+  "petro.station.grade_status.out": { mn: "Дууссан", en: "Out" },
+  "petro.station.status.available": { mn: "Ажиллаж байна", en: "Open" },
+  "petro.station.status.closed": { mn: "Хаалттай", en: "Closed" },
+  "petro.station.reported": { mn: "Мэдээлсэн", en: "Reported" },
+  "petro.station.never_reported": { mn: "Хэзээ ч мэдээлээгүй", en: "Never reported" },
+  "petro.station.search": { mn: "ШТС хайх", en: "Search stations" },
+  "petro.station.save": { mn: "Хадгалах", en: "Save" },
+  "petro.station.cancel": { mn: "Болих", en: "Cancel" },
+
+  "petro.map.title": { mn: "Шатахуун хаана байна", en: "Where to buy fuel" },
+  "petro.map.no_prices": { mn: "Үнэ мэдэгдээгүй", en: "No price reported" },
+
+  "petro.sheet.stock_title": { mn: "Шатахууны үлдэгдэл", en: "What is in the tanks" },
+  "petro.sheet.today_remaining": { mn: "Өнөөдрийн үлдэгдэл эрх", en: "Left of today's entitlement" },
+  "petro.sheet.take_voucher": { mn: "Ваучер авах", en: "Take a voucher" },
+  "petro.sheet.voucher_ready": { mn: "Ваучер бэлэн", en: "Your voucher" },
+  "petro.sheet.any_pump": {
+    mn: "Дурын шатахуун түгээх станц дээр хүчинтэй",
+    en: "Good at any filling station",
+  },
+  "petro.sheet.valid_until": { mn: "Хүчинтэй:", en: "Valid until" },
+  "petro.sheet.sign_in_to_take": { mn: "eID-ээр нэвтэрч ваучер авах", en: "Sign in with eID to take one" },
+  "petro.sheet.spent": {
+    mn: "Өнөөдрийн эрхээ бүрэн ашигласан байна. Маргааш шинэчлэгдэнэ.",
+    en: "Today's entitlement is spent. It resets tomorrow.",
+  },
+  "petro.rail.sign_in": { mn: "eID-ээр нэвтрэх", en: "Sign in with eID" },
+  "petro.rail.why_sign_in": {
+    mn: "Өдрийн 50,000₮-ийн эрхээ авахын тулд eID-ээр нэвтэрнэ үү.",
+    en: "Sign in with eID to draw your 50,000₮ daily entitlement.",
+  },
+  "petro.rail.eid_note": {
+    mn: "eID Mongolia апп эсвэл регистрийн дугаараар.",
+    en: "With the eID Mongolia app, or your registry number.",
+  },
+  "petro.rail.my_vouchers": { mn: "Миний ваучер", en: "My vouchers" },
+  "petro.rail.no_vouchers": {
+    mn: "Идэвхтэй ваучер алга. Газрын зураг дээрх ШТС дээр дарж авна уу.",
+    en: "No active voucher. Tap a station on the map to take one.",
+  },
+  "petro.rail.how_to": {
+    mn: "Ваучерыг дурын шатахуун түгээх станц дээр QR-аар уншуулна.",
+    en: "Show the QR at any filling station.",
+  },
+  "petro.rail.refresh": { mn: "Шинэчлэх", en: "Refresh" },
+  "petro.rail.tap_to_close": { mn: "Хаахын тулд дарна уу", en: "Tap to close" },
+
+  // The company's own half of the chain: what crossed the border, and the
+  // bases it was unloaded into.
+  "petro.tab.stations": { mn: "ШТС", en: "Stations" },
+  "petro.tab.shipments": { mn: "Гаалийн мэдүүлэг", en: "Customs" },
+  "petro.tab.depots": { mn: "Нефть бааз", en: "Depots" },
+
+  "petro.ship.title": { mn: "Гаалийн мэдүүлэг", en: "Customs declarations" },
+  "petro.ship.subtitle": {
+    mn: "Хилээр орж ирсэн ачаа. Гаалиар цэвэрлэгдэхэд партийн дугаар үүсэж, тэр дугаар хошуу хүртэл дагана.",
+    en: "What crossed the border. Clearing a consignment mints the batch number that travels with it to the pump.",
+  },
+  "petro.ship.empty": {
+    mn: "Бүртгэсэн мэдүүлэг алга.",
+    en: "No declarations recorded yet.",
+  },
+  "petro.ship.declare": { mn: "Мэдүүлэг бүртгэх", en: "Declare a consignment" },
+  "petro.ship.declaration_no": { mn: "Мэдүүлгийн дугаар", en: "Declaration number" },
+  "petro.ship.border_port": { mn: "Боомт", en: "Border port" },
+  "petro.ship.origin": { mn: "Гарал үүсэл", en: "Origin" },
+  "petro.ship.exporter": { mn: "Экспортлогч", en: "Exporter" },
+  "petro.ship.fuel_type": { mn: "Түлшний төрөл", en: "Grade" },
+  "petro.ship.liters": { mn: "Мэдүүлсэн литр", en: "Declared litres" },
+  "petro.ship.tons": { mn: "Мэдүүлсэн тонн", en: "Declared tonnes" },
+  "petro.ship.tons_note": {
+    mn: "Литр нь тооцооны үндэс. Тонн нь мэдүүлэгт бичигдсэн зүйл — нягт температураас хамаарч хөвдөг тул хоёр нь яг таарахгүй, тулгагдахгүй.",
+    en: "Litres are what everything downstream works in. Tonnes are what the document says; density moves with temperature, so the two never agree exactly and are not reconciled.",
+  },
+  "petro.ship.wagons": { mn: "Вагон", en: "Wagons" },
+  "petro.ship.convoy": { mn: "Цувааны дугаар", en: "Convoy" },
+  "petro.ship.batch": { mn: "Партийн дугаар", en: "Batch" },
+  "petro.ship.clear": { mn: "Гаалиар цэвэрлэх", en: "Clear customs" },
+  "petro.ship.inspect": { mn: "Шалгалтад авах", en: "Send to inspection" },
+  "petro.ship.cert_no": { mn: "Чанарын гэрчилгээ", en: "Quality certificate" },
+  "petro.ship.octane": { mn: "Октан", en: "Octane" },
+  "petro.ship.sulfur": { mn: "Хүхэр (ppm)", en: "Sulfur (ppm)" },
+  "petro.ship.status.border_arrived": { mn: "Хилд ирсэн", en: "At the border" },
+  "petro.ship.status.inspecting": { mn: "Шалгалтад", en: "Under inspection" },
+  "petro.ship.status.cleared": { mn: "Цэвэрлэгдсэн", en: "Cleared" },
+  "petro.ship.status.in_transit": { mn: "Замд", en: "In transit" },
+  "petro.ship.status.at_depot": { mn: "Баазад", en: "At a depot" },
+
+  "petro.depot.title": { mn: "Нефть бааз", en: "Depots" },
+  "petro.depot.subtitle": {
+    mn: "Сав бүрийн үлдэгдэл. Түвшинг гараар тавьж болохгүй — орсон ба гарсан баримтын нийлбэр.",
+    en: "What is in each tank. The level cannot be typed in: it is the sum of what went in and what came out.",
+  },
+  "petro.depot.empty": { mn: "Бүртгэсэн бааз алга.", en: "No depots registered yet." },
+  "petro.depot.add": { mn: "Бааз бүртгэх", en: "Register a depot" },
+  "petro.depot.name": { mn: "Баазын нэр", en: "Depot name" },
+  "petro.depot.aimag": { mn: "Аймаг / хот", en: "Province or city" },
+  "petro.depot.rail": { mn: "Төмөр замын татах замтай", en: "Has a rail siding" },
+  "petro.depot.rail_code": { mn: "Өртөөний код", en: "Rail station code" },
+  "petro.depot.no_tanks": { mn: "Сав бүртгэгдээгүй", en: "No tanks registered" },
+  "petro.depot.add_tank": { mn: "Сав нэмэх", en: "Add a tank" },
+  "petro.depot.tank_no": { mn: "Савны дугаар", en: "Tank number" },
+  "petro.depot.capacity": { mn: "Багтаамж (литр)", en: "Capacity (litres)" },
+  "petro.depot.receive": { mn: "Ачаа хүлээж авах", en: "Receive a consignment" },
+  "petro.depot.receive_into": { mn: "Аль сав руу", en: "Into which tank" },
+  "petro.depot.which_shipment": { mn: "Аль мэдүүлэг", en: "Which consignment" },
+  "petro.depot.no_cleared": {
+    mn: "Гаалиар цэвэрлэгдсэн, хүлээж аваагүй ачаа алга.",
+    en: "No cleared consignment is waiting to be unloaded.",
+  },
+  "petro.depot.measured": { mn: "Хэмжсэн литр", en: "Measured litres" },
+  "petro.depot.manifest": { mn: "Дагалдах бичгийн литр", en: "Manifest litres" },
+  "petro.depot.manifest_note": {
+    mn: "Хоёр нь зөрвөл зөрүү нь үлдэнэ. Систем зөрүүг тайлбарлахгүй — алдагдал, хулгай, хэмжлийн алдааны аль нь болохыг хэлж чадахгүй, гэхдээ зөрүү байгааг хэлнэ.",
+    en: "A gap between them survives as a gap. Nothing here can tell loss from theft from a badly calibrated gauge — but a system storing only one figure could not say a gap existed.",
+  },
+  "petro.depot.of_capacity": { mn: "багтаамжийн", en: "of capacity" },
+  "petro.depot.saving": { mn: "Хадгалж байна…", en: "Saving…" },
+  "petro.common.cancel": { mn: "Болих", en: "Cancel" },
+  "petro.common.save": { mn: "Хадгалах", en: "Save" },
+} as const;

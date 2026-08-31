@@ -4,12 +4,8 @@
 #
 #   cd /opt/petronet/src && git pull && ./deploy.sh
 #
-# Юу хийдэг вэ: энэ бүтээгдэхүүний backend образыг барина, бүрхүүлийг цөмийн
-# нийтэлсэн образаас авна, стекийг солиод эрүүл эсэхийг асууна.
-#
-# Бүрхүүлийг барьдаггүй нь distribution-ы дүрэм: цөмийн frontend нь каталогоор
-# ажилладаг тул fork хийх шаардлагагүй. Хост дээр байхгүй бол ghcr.io-оос
-# татна — тэр үед REGISTRY_USER/REGISTRY_TOKEN (read:packages) хэрэгтэй.
+# Юу хийдэг вэ: энэ бүтээгдэхүүний backend болон Fuel UI-тай web образыг
+# барина, стекийг солиод эрүүл эсэхийг асууна.
 set -euo pipefail
 
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -17,26 +13,8 @@ APP_DIR="$(dirname "$SRC_DIR")"
 
 [ -f "$APP_DIR/.env" ] || { echo "$APP_DIR/.env алга. .env.example-ээс хуулж, нууцуудыг нь бөглө." >&2; exit 1; }
 
-# Бүрхүүлийн хувилбар нь go.mod-оос ирнэ, салбарын толгойгоос биш: backend
-# болон frontend хоёр өөр цөмийн хувилбар дээр байх нь API-гийн гэрээ
-# зөрчигдөх ганцхан зам. .env дэх WEB_IMAGE-ийг энэ хувилбарын tag дээр
-# байлгана — go.mod-ыг өргөх өдөр тэр мөр хамт өөрчлөгдөнө.
-core_version="$(grep -oE 'open-gerege-nexus/backend v[0-9]+\.[0-9]+\.[0-9]+[^ ]*' "$SRC_DIR/go.mod" | head -1 | awk '{print $2}')"
-[ -n "$core_version" ] || { echo "go.mod-оос цөмийн хувилбар уншигдсангүй" >&2; exit 1; }
-echo "цөм: $core_version"
-
-web_image="$(grep -E '^WEB_IMAGE=' "$APP_DIR/.env" | cut -d= -f2-)"
-[ -n "$web_image" ] || { echo ".env дотор WEB_IMAGE алга" >&2; exit 1; }
-
-if ! docker image inspect "$web_image" >/dev/null 2>&1; then
-  : "${REGISTRY_USER:?$web_image хост дээр алга — REGISTRY_USER шаардлагатай}"
-  : "${REGISTRY_TOKEN:?$web_image хост дээр алга — REGISTRY_TOKEN (read:packages) шаардлагатай}"
-  echo "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin
-  docker pull "$web_image"
-  docker logout ghcr.io >/dev/null
-fi
-
 docker build -q -t petronet:latest -f "$SRC_DIR/deploy/Dockerfile" "$SRC_DIR"
+docker build -q -t petronet-web:latest "$SRC_DIR/frontend"
 
 # Бүрхүүл ./brand-ийг nginx-ээр өгдөг тул байхгүй бол лого 404. chmod нь сайн
 # дурын биш: www-data 0700 хавтас дотор орж чадахгүй.

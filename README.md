@@ -3,25 +3,24 @@
 [Gerege Nexus](https://github.com/gerege-systems/open-gerege-nexus) платформын
 **Түвшин 2 distribution**: шатахууны нөөцийн хяналт, удирдлагын нэгдсэн систем.
 
-Цөмийн код энд нэг ч мөр байхгүй — `go.mod`-ын нэг мөр л байна
-(`open-gerege-nexus/backend`). Энэ репод цаашид орох Go код нь `modules/`:
-энэ бүтээгдэхүүний өөрийн аппууд.
+Платформын цөм нь `go.mod`-оор `open-gerege-nexus/backend` dependency хэвээр.
+Энэ бүтээгдэхүүний шатахууны бизнес логик `modules/fuel/`-д, түүнд таарсан
+газрын зураг, операторын дэлгэц ба нийтийн мэдээллийн UI `frontend/`-д байна.
 
 Цөмийн пин нь **түр зуур tag биш, commit** (`v1.15.1-0.…-16a6aad8`):
 `main` нь `v1.15.0`-оос 44 commit түрүүлсэн бөгөөд дотор нь `pkg/nexus`-ийн
 `tenant → workspace` эвдэх өөрчлөлт байгаа тул дараагийн tag нь v2.0.0
-(цөмийн `RELEASING.md`). Тэр tag гармагц `go.mod` болон `.env`-ийн `WEB_IMAGE`
-хоёул түүн рүү шилжинэ. Pseudo-version нь semver-ийн prerelease тул
+(цөмийн `RELEASING.md`). Тэр tag гармагц `go.mod` түүн рүү шилжинэ.
+Pseudo-version нь semver-ийн prerelease тул
 `deploy/Dockerfile` түүнийг PlatformVersion болгохын өмнө таслах ёстой болсон —
 шалтгааныг тэнд бичсэн.
 
 ## Модулиуд
 
-Одоогоор нэг ч байхгүй. Нэвтрэлт, байгууллага, апп стор, рельсүүд бүгд
-цөмийнх тул суулгац бүрэн ажиллаж байна — платформ 0 бизнес апптай асч чаддаг
-байх нь экосистемийн суурийн шалгуур
-([`ECOSYSTEM_GIT_STRATEGY.md`](https://github.com/gerege-systems/open-gerege-nexus/blob/main/docs/ECOSYSTEM_GIT_STRATEGY.md)),
-орлуулагч төлөв биш.
+`io.gerege.nexus.fuel` нь бүх байгууллагад default сууна. ШТС-ын бүртгэл,
+түлшний төрөл ба нөөц, хил–бааз–цистерн–ШТС-ын гинжин мөрдлөг, иргэний өдрийн
+эрх ба ваучер, demo/import хэрэгслүүдийг нэг module migration history-тэй авч
+явна. Каталог, manifest, chronicle нь `catalog/`-д байна.
 
 ## Юу нь ялгаатай вэ
 
@@ -46,13 +45,9 @@ include **хийхгүй** — тэр snippet `127.0.0.1:8082` гэж хатуу
 cd /opt/petronet/src && git pull && ./deploy.sh
 ```
 
-`deploy.sh` нь **backend образыг барина**, бүрхүүлийг цөмийн нийтэлсэн
-образаас авна (`WEB_IMAGE`). Хост дээр байхгүй бол `REGISTRY_USER` /
-`REGISTRY_TOKEN` (read:packages) өгнө.
-
-Цөмийг өргөх нь хоёр мөр: `go.mod`-ын хувилбар, `.env`-ийн `WEB_IMAGE` — хоёул
-нэг commit дээр байх ёстой, эс бөгөөс backend, frontend хоёр өөр API гэрээ
-дээр ажиллана.
+`deploy.sh` нь **backend болон web хоёр образыг энэ repository-оос хамт
+барина**. Ингэснээр Fuel module-ийн API, газрын зураг, операторын дэлгэц нэг
+revision-оор гарна; тусдаа `WEB_IMAGE` эсвэл registry login шаардлагагүй.
 
 ## Зургаан нэр
 
@@ -188,9 +183,9 @@ docker logs gerege_petronet_backend 2>&1 | grep -i "setup token"
 
 ## Өөрийн модуль нэмэх
 
-`modules/` үүсгээд `main.go`-гийн `Options.Modules` callback дотор бүртгэнэ.
-Түвшин 2-ын бүтэц эхний commit-оос бэлэн байгаа нь яг үүний тулд: эхний модуль
-нэмэх нь нэг файлын өөрчлөлт, байрлуулалтын нүүлгэлт биш.
+`modules/<нэр>/` үүсгээд `main.go`-гийн `Options.Modules` callback дотор Fuel
+module-ийн хажууд бүртгэнэ. Түвшин 2-ын бүтэцтэй тул дараагийн module нэмэхэд
+platform core-ийг fork хийх шаардлагагүй.
 
 Өөрийн хүснэгттэй бол `modules/<нэр>/migrations/00001_<нэр>.sql` гэж бичээд
 конструктораасаа бүртгэнэ:

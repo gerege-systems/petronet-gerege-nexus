@@ -31,13 +31,22 @@ import (
 	"os"
 
 	"github.com/gerege-systems/open-gerege-nexus/backend/pkg/host"
+	"github.com/gerege-systems/open-gerege-nexus/backend/pkg/nexus"
+	"github.com/gerege-systems/petronet-gerege-nexus/modules/petro"
 )
 
 func main() {
 	// The error is checked and the exit code is the point: a distribution that
 	// cannot start must not exit 0 and read as a clean shutdown to whatever is
 	// supervising it.
-	if err := host.Run(host.Options{}); err != nil {
+	if err := host.Run(host.Options{
+		Modules: func(p nexus.Platform) {
+			petro.New(p)
+		},
+		// PetroNet is the fuel-sector distribution, so the fuel network is part
+		// of every organisation rather than an optional store install.
+		DefaultApps: []string{petro.ID},
+	}); err != nil {
 		slog.Error("petronet stopped", "error", err)
 		os.Exit(1)
 	}

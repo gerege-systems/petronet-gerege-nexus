@@ -73,6 +73,13 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
     -o /bin/operator-bootstrap github.com/gerege-systems/open-gerege-nexus/backend/cmd/operator-bootstrap
 
+# Fuel operator onboarding and deterministic demo dispatch tools. They are
+# explicit commands only; merely shipping them never creates demo records.
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
+    -o /bin/fuel-import ./cmd/fuel-import
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
+    -o /bin/fuel-demo-trips ./cmd/fuel-demo-trips
+
 # The platform's migration files, which are data in the module rather than code.
 # The path carries the version, so this reads it back rather than guessing.
 RUN core=$(go list -m -f '{{.Dir}}' github.com/gerege-systems/open-gerege-nexus/backend) \
@@ -128,6 +135,8 @@ WORKDIR /app
 COPY --from=build /bin/petronet /app/petronet
 COPY --from=build /bin/migrate  /app/migrate
 COPY --from=build /bin/operator-bootstrap /app/operator-bootstrap
+COPY --from=build /bin/fuel-import /app/fuel-import
+COPY --from=build /bin/fuel-demo-trips /app/fuel-demo-trips
 COPY --from=build /out/db       /app/db
 COPY --from=build /out/catalog  /app/catalog
 

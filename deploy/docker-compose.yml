@@ -10,8 +10,6 @@
 #   SSO_DEFAULT_CLIENT_SECRET   the platform refuses to start without it in
 #                               production — see config.ValidateProduction
 #   PUBLIC_ORIGIN               where this instance answers
-#   WEB_IMAGE                   the core's published shell, on the commit that
-#                               matches go.mod's core version
 #
 # THE PORTS ARE NOT FREE CHOICES AND ARE NOT THE CORE'S DEFAULTS. This stack
 # shares a host with fuelnet.gerege.mn, whose backend already holds
@@ -140,6 +138,12 @@ services:
       # core.gerege.mn; only the token is a deployment's own.
       GEREGE_CORE_TOKEN: ${GEREGE_CORE_TOKEN:-}
 
+      # Fuel network policy and optional demo routing. Demo movement is off in
+      # production unless an operator deliberately enables it.
+      FUEL_DEMO_DISPATCH: ${FUEL_DEMO_DISPATCH:-false}
+      FUEL_DAILY_GRANT_MNT: ${FUEL_DAILY_GRANT_MNT:-}
+      OSRM_URL: ${OSRM_URL:-}
+
       # No demo data in production. The seeded account has a published password.
       SEED_DEMO_DATA: "false"
       DEMO_MODE: "false"
@@ -157,15 +161,11 @@ services:
       retries: 5
       start_period: 20s
 
-  # The platform's own shell, unmodified — the core's published image rather
-  # than a build of our own.
-  #
-  # A distribution does not fork the frontend: the sidebar and every module
-  # screen are catalogue-driven, so the generic shell already renders whatever
-  # this instance installs. WEB_IMAGE pins the core commit; keep it on the tag
-  # that matches go.mod's core version.
+  # PetroNet's shell with the Fuel module's map, operator screens and public
+  # information pages. deploy.sh builds this image from frontend/ together with
+  # the backend so the two halves are rolled out as one revision.
   web:
-    image: ${WEB_IMAGE:?WEB_IMAGE is required}
+    image: petronet-web:latest
     container_name: gerege_petronet_web
     restart: unless-stopped
     environment:
@@ -203,6 +203,7 @@ services:
       SERVICE_URL_BACKUPS: ${SERVICE_URL_BACKUPS:-}
       SERVICE_URL_MONITOR: ${SERVICE_URL_MONITOR:-}
       SERVICE_URL_DOCS: ${SERVICE_URL_DOCS:-}
+      MAP_TILES_UPSTREAM: ${MAP_TILES_UPSTREAM:-}
     ports:
       - "127.0.0.1:3018:3000"
     depends_on:

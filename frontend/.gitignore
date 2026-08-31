@@ -1,0 +1,6 @@
+
+# Copied from node_modules by scripts/copy-maplibre-worker.mjs
+/public/maplibre/
+/node_modules/
+/.next/
+*.tsbuildinfo

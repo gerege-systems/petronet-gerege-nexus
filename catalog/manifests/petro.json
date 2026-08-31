@@ -1,0 +1,45 @@
+{
+  "id": "io.gerege.nexus.petro",
+  "name": "Fuel Network",
+  "version": "0.1.0",
+  "platform": ">=0.1.0 <2.0.0",
+  "order": 10,
+  "publisher": "gerege",
+  "authors": [
+    {
+      "name": "Gerege Systems Development Team"
+    }
+  ],
+  "maintainers": [
+    {
+      "name": "Gerege Systems Development Team"
+    }
+  ],
+  "repository": "https://github.com/gerege-systems/petronet-gerege-nexus",
+  "homepage": "https://petronet.mn",
+  "license": "Apache-2.0",
+  "dependencies": [],
+  "permissions": [
+    {
+      "code": "petro.read",
+      "name": "Read the fuel network",
+      "description": "View stations, stock levels and queues",
+      "default_roles": ["manager", "user"]
+    },
+    {
+      "code": "petro.manage",
+      "name": "Manage the fuel network",
+      "description": "Register stations, adjust stock and configure vouchers",
+      "default_roles": ["manager"]
+    }
+  ],
+  "menus": [
+    {
+      "id": "petro_stations",
+      "label": "Fuel network",
+      "path": "/fuel",
+      "icon": "fuel",
+      "order": 10
+    }
+  ]
+}
