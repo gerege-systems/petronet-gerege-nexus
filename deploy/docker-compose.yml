@@ -308,6 +308,55 @@ services:
     depends_on:
       - prometheus
 
+  # Гурван статик хуудас, гурван нэр.
+  #
+  # Хостын nginx-ээс шууд файл өгч ч болох байсан. Контейнерт байгаа шалтгаан
+  # нь цөмийн dwh стекийнхтэй ижил: агуулга нь репод, зам нь compose-д, тиймээс
+  # шинэчлэх нь `git pull && docker compose restart` — хостын файлын систем рүү
+  # гараар хуулах алхам байхгүй. Гурвуулаа read-only, эрх нэмэгдэхгүй, зөвхөн
+  # loopback: TLS ба толгойнууд хостын nginx дээр.
+  dwh: &static-site
+    image: nginx:1.29-alpine
+    container_name: gerege_petronet_dwh
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3020:80"
+    volumes:
+      - ./dwh-landing:/usr/share/nginx/html:ro
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  docs:
+    <<: *static-site
+    container_name: gerege_petronet_docs
+    ports:
+      - "127.0.0.1:3021:80"
+    volumes:
+      - ./docs-landing:/usr/share/nginx/html:ro
+
+  backups:
+    <<: *static-site
+    container_name: gerege_petronet_backups
+    ports:
+      - "127.0.0.1:3022:80"
+    volumes:
+      - ./backups-landing:/usr/share/nginx/html:ro
+
 volumes:
   gerege_petronet_postgres_data:
   gerege_petronet_prometheus_data:
