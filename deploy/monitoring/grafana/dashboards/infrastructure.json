@@ -1,6 +1,6 @@
 {
   "uid": "nexus-infrastructure",
-  "title": "Nexus — Инфраструктур",
+  "title": "PetroNet — Инфраструктур",
   "description": "Хост, контейнерүүд, Postgres, Redis. Платформ удаашрахад хоёр дахь харах дэлгэц.",
   "tags": [
     "nexus",
