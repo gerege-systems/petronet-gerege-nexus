@@ -180,7 +180,7 @@ check "нэвтрэх гарчиг"      "https://$MONITOR_DOMAIN/login" "Ажи
 # (\\u041d) харагдана — «Нэв». Энэ нь орчуулга бидний файлаас ирж байгаагийн
 # баталгаа: Grafana-ийн жинхэнэ швед chunk-д ийм тэмдэгт байхгүй.
 check "Монгол орчуулга"     "https://$MONITOR_DOMAIN/public/build/$MN_CHUNK"   '\\u041d\\u044d\\u0432'
-check "Gerege Nexus нэр"    "https://$MONITOR_DOMAIN/grafana/public/build/$LANG_CHUNK" 'AppTitle="Gerege Nexus"'
+check "PetroNet нэр"        "https://$MONITOR_DOMAIN/public/build/$LANG_CHUNK" 'AppTitle="PetroNet System"'
 
 icon_type="$(curl -fsS -o /dev/null -w '%{content_type}' --max-time 20 \
   "https://$MONITOR_DOMAIN/public/build/img/fav32.png" 2>/dev/null || true)"
