@@ -11,12 +11,14 @@
 # нэрс (тэдгээрийн доторх hash) хувилбар бүрт өөрчлөгддөг тул тэдгээрийг
 # ажиллаж буй контейнероос уншиж, nginx-ийн snippet-ийг дахин бичдэг.
 #
-# Цөмийн хувилбараас нэг ялгаа: тэнд Grafana нь `/grafana/` дэд зам дээр
-# сууж, домэйны үндэс дээр landing хуудас үйлчилдэг. Энд Grafana нь үндэс
-# дээрээ сууна (`GF_SERVER_SERVE_FROM_SUB_PATH` унтраалттай) — энэ домэйны
-# ард түүнээс өөр юу ч байхгүй тул холбоос бүрийг дахин бичих тохиргоог
-# асаах шаардлагагүй. Тиймээс замууд нь `/public/build/…`, landing хуудас
-# байхгүй: үйлчилгээний картууд petronet.mn-ийн нүүр хуудсан дээр байдаг.
+# Grafana нь `/grafana/` дэд зам дээр сууна (`GF_SERVER_SERVE_FROM_SUB_PATH`),
+# домэйны үндэс дээр landing хуудас үйлчилнэ — цөмийнхтэй ижил байрлал.
+# Тэр нь зүгээр нэг тэгшитгэл биш: домэйныг бичсэн хүн юуны дээр ирснээ
+# уншаад, хэрэгтэй хаалга руугаа нэг товшилтоор ордог. Grafana үндэс дээрээ
+# сууж байсан үед энэ хуудсанд байх зай байгаагүй.
+#
+# Хуучин холбоосууд (monitor.petronet.mn/d/…) хэвээр ажиллана: nginx тэднийг
+# Grafana руу дамжуулж, Grafana өөрөө `/grafana/…` руу шилжүүлнэ.
 #
 # Хэрэглээ:
 #   deploy/scripts/setup_monitor_branding.sh
@@ -27,6 +29,8 @@
 set -euo pipefail
 
 MONITOR_DOMAIN="${MONITOR_DOMAIN:-monitor.petronet.mn}"
+# Grafana хаана сууж байгаа. Дэд зам нь landing хуудсанд үндсийг чөлөөлдөг.
+GRAFANA_PREFIX="${GRAFANA_PREFIX:-/grafana}"
 GRAFANA_CONTAINER="${GRAFANA_CONTAINER:-gerege_petronet_grafana}"
 WEBROOT="${WEBROOT:-/var/www/monitor}"
 SNIPPET="${SNIPPET:-/etc/nginx/snippets/monitor-grafana-overrides.conf}"
@@ -34,6 +38,7 @@ RELOAD="${RELOAD:-1}"
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$DEPLOY_DIR/monitoring/grafana/branding"
+LANDING_SRC="$DEPLOY_DIR/monitor-landing/index.html"
 
 die() { echo "АЛДАА: $*" >&2; exit 1; }
 say() { echo "  $*"; }
@@ -69,6 +74,10 @@ mkdir -p "$WEBROOT/grafana-override"
 install -m 644 "$SRC/grafana-petronet.css" "$WEBROOT/grafana-petronet.css"
 install -m 644 "$SRC/grafana-petronet.js"  "$WEBROOT/grafana-petronet.js"
 install -m 644 "$SRC/logo.webp"            "$WEBROOT/grafana-favicon.webp"
+
+# Landing хуудас. Домэйн солигдвол текст доторх хаяг ч солигдоно.
+[ -f "$LANDING_SRC" ] || die "$LANDING_SRC олдсонгүй"
+sed "s/monitor\.petronet\.mn/$MONITOR_DOMAIN/g" "$LANDING_SRC" > "$WEBROOT/index.html"
 
 echo "==> Монгол орчуулгын chunk-ийг барьж байна"
 python3 - "$SRC/i18n/mn.txt" "$CHUNK_ID" "$MODULE_ID" "$WEBROOT/grafana-override/mn-chunk.js" <<'PY'
@@ -136,10 +145,10 @@ cat > "$SNIPPET" <<NGINX
 # Grafana шинэчлэгдэх бүрд өөрчлөгдөнө — тэр үед скриптийг дахин ажиллуулна.
 # Таарахгүй болбол Grafana өөрийн файлаа өгнө: швед хэл эргэж ирнэ, өөр юу ч
 # эвдрэхгүй.
-location = /public/build/$MN_CHUNK {
+location = $GRAFANA_PREFIX/public/build/$MN_CHUNK {
     alias $WEBROOT/grafana-override/mn-chunk.js;
 }
-location = /public/build/$LANG_CHUNK {
+location = $GRAFANA_PREFIX/public/build/$LANG_CHUNK {
     alias $WEBROOT/grafana-override/langs.js;
 }
 NGINX
@@ -173,17 +182,18 @@ check() { # тайлбар, url, олдох ёстой мөр (хоосон бо
   say "OK   $what"
 }
 
-check "хэв маяг холбогдсон" "https://$MONITOR_DOMAIN/login" "grafana-petronet.css"
-check "скрипт холбогдсон"   "https://$MONITOR_DOMAIN/login" "grafana-petronet.js"
-check "нэвтрэх гарчиг"      "https://$MONITOR_DOMAIN/login" "Ажиглалт — PetroNet System"
+check "landing хуудас"      "https://$MONITOR_DOMAIN/" "$MONITOR_DOMAIN"
+check "хэв маяг холбогдсон" "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/login" "grafana-petronet.css"
+check "скрипт холбогдсон"   "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/login" "grafana-petronet.js"
+check "нэвтрэх гарчиг"      "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/login" "Ажиглалт — PetroNet System"
 # Файл дотор JSON нь мөр болж хадгалагддаг тул кирилл үсэг ХОЁР ташуутай
 # (\\u041d) харагдана — «Нэв». Энэ нь орчуулга бидний файлаас ирж байгаагийн
 # баталгаа: Grafana-ийн жинхэнэ швед chunk-д ийм тэмдэгт байхгүй.
-check "Монгол орчуулга"     "https://$MONITOR_DOMAIN/public/build/$MN_CHUNK"   '\\u041d\\u044d\\u0432'
-check "PetroNet нэр"        "https://$MONITOR_DOMAIN/public/build/$LANG_CHUNK" 'AppTitle="PetroNet System"'
+check "Монгол орчуулга"     "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/public/build/$MN_CHUNK"   '\\u041d\\u044d\\u0432'
+check "PetroNet нэр"        "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/public/build/$LANG_CHUNK" 'AppTitle="PetroNet System"'
 
 icon_type="$(curl -fsS -o /dev/null -w '%{content_type}' --max-time 20 \
-  "https://$MONITOR_DOMAIN/public/build/img/fav32.png" 2>/dev/null || true)"
+  "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/public/build/img/fav32.png" 2>/dev/null || true)"
 if [ "$icon_type" = "image/webp" ]; then
   say "OK   tab icon"
 else
