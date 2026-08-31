@@ -42,14 +42,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { api, type PublicStation, type PublicTrip } from "@/lib/api";
 import { fuelMapStyle, isCovered, ULAANBAATAR } from "@/lib/petro/mapStyle";
 import { addStationPins, addTankerImage, PIN_IMAGE_MATCH, TANKER_IMAGE_ID } from "@/lib/petro/stationPin";
-import { createTankerLayer, TANKER_MODEL_MINZOOM } from "@/lib/petro/tankerLayer";
 import { placeTrips } from "@/lib/petro/tripMotion";
 import { useI18n } from "@/lib/i18n";
 
 const SOURCE = "stations";
 const TRIPS = "trips";
 const ROUTE = "trip-route";
-const TRIP_MODELS = "trip-models";
 
 /**
  * Tell MapLibre where its worker lives.
@@ -125,9 +123,6 @@ export default function PetroMap() {
   // The last answer from the server, so a tap can find the whole station rather
   // than the flattened properties MapLibre carries on a feature.
   const stationsByID = useRef<Map<string, PublicStation>>(new Map());
-  // The three.js layer keeps its own scene, so the fleet is handed to it rather
-  // than pushed through a GeoJSON source like everything else on this map.
-  const tankerLayer = useRef<ReturnType<typeof createTankerLayer> | null>(null);
   // The last answer from the server. The animation frame reads it; the poll
   // replaces it. Nothing else needs to know a poll happened.
   const tripsRef = useRef<PublicTrip[]>([]);
@@ -187,12 +182,12 @@ export default function PetroMap() {
       style: fuelMapStyle(),
       center: [ULAANBAATAR.lon, ULAANBAATAR.lat],
       zoom: 12,
-      // Tilted a little from the start, so the buildings this style extrudes
-      // are visible as buildings and somebody knows the view can be moved at
-      // all. Flat-on, a 3D map looks exactly like a 2D one.
-      pitch: 45,
-      bearing: -12,
-      maxPitch: 75,
+      // Шулуун дээрээс, эргүүлэлгүй. Налуу нь өргөгдсөн барилга байхад
+      // утгатай байсан; растер дэвсгэр налуу үед зөвхөн бүдгэрдэг тул
+      // `maxPitch: 0` — хазайлт нь боломж биш, эвдрэл болно.
+      pitch: 0,
+      bearing: 0,
+      maxPitch: 0,
       attributionControl: { compact: true },
     });
     map.current = m;
@@ -298,14 +293,6 @@ export default function PetroMap() {
       // is the one that moved and the one worth noticing.
       await addTankerImage(m);
       m.addSource(TRIPS, { type: "geojson", data: { type: "FeatureCollection", features: [] } });
-      // Solid lorries, close in — real models rather than extruded prisms.
-      // Above the same zoom the style starts extruding buildings, so the two
-      // kinds of object appear together and neither stands beside a flat
-      // version of the other.
-      const models = createTankerLayer(TRIP_MODELS);
-      tankerLayer.current = models;
-      m.addLayer(models);
-
       m.addLayer({
         id: "trip-tanker",
         type: "symbol",
@@ -319,25 +306,10 @@ export default function PetroMap() {
           "icon-rotate": ["get", "heading"],
           "icon-rotation-alignment": "map",
         },
-        paint: {
-          // Faded out where the models take over, rather than removed: the
-          // layer is still what a tap lands on, and a layer with no features
-          // rendered is a layer chi cannot hit-test.
-          "icon-opacity": [
-            "interpolate", ["linear"], ["zoom"],
-            TANKER_MODEL_MINZOOM - 0.5, 1,
-            TANKER_MODEL_MINZOOM, 0,
-          ],
-        },
       });
 
       m.on("mouseenter", "trip-tanker", () => (m.getCanvas().style.cursor = "pointer"));
       m.on("mouseleave", "trip-tanker", () => (m.getCanvas().style.cursor = ""));
-      // A custom layer holds no features, so it cannot be clicked. The icon
-      // layer stays mounted underneath it as the tap target — invisible above
-      // the model zoom, and still the thing MapLibre hit-tests.
-      // One handler on both layers: they are the same vehicles, and which one
-      // catches the tap is only a question of how far zoomed in somebody is.
       const openTrip = (event: MapLayerMouseEvent) => {
         const feature = event.features?.[0];
         if (!feature) return;
@@ -435,10 +407,6 @@ export default function PetroMap() {
           properties: { ...tripProperties(p.trip), heading: p.heading, progress: p.progress * 100 },
         })),
       });
-
-      tankerLayer.current?.setTankers(
-        placed.map((p) => ({ lat: p.lat, lon: p.lon, heading: p.heading })),
-      );
     };
     frame = requestAnimationFrame(animate);
 

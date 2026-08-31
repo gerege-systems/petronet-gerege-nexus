@@ -206,7 +206,6 @@ services:
       # Газрын зургийн хоёр эх сурвалж. Хоёулаа серверийн тал уншина
       # (NEXT_PUBLIC_ биш): хөтөч энэ origin-ы /tiles ба /basemap-ыг л мэднэ.
       # Вектор нь Улаанбаатарын нарийвчлал, растер нь улсын хамрах хүрээ.
-      MAP_TILES_UPSTREAM: ${MAP_TILES_UPSTREAM:-}
       MAP_RASTER_UPSTREAM: ${MAP_RASTER_UPSTREAM:-}
     ports:
       - "127.0.0.1:3018:3000"
