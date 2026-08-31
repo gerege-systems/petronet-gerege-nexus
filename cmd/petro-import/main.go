@@ -173,7 +173,7 @@ func run(tenantSlug, file, brand string, dryRun, demoStock bool) error {
 	for _, s := range selected {
 		var id string
 		err := tx.QueryRow(ctx, `
-			INSERT INTO tenant.petro_stations
+			INSERT INTO workspace.petro_stations
 			       (tenant_id, name, brand, brand_label, lat, lon,
 			        aimag, district, address, opening_hours, status,
 			        source, source_ref, updated_at)
@@ -237,7 +237,7 @@ func run(tenantSlug, file, brand string, dryRun, demoStock bool) error {
 			}
 
 			_, err := tx.Exec(ctx, `
-				INSERT INTO tenant.petro_station_inventory
+				INSERT INTO workspace.petro_station_inventory
 				       (station_id, tenant_id, fuel_type, fuel_label, price_mnt, status,
 				        tank_capacity_liters, current_stock_liters, last_reported_at)
 				VALUES ($1, $2, $3, $4, $5, $6, $7::numeric, $8::numeric,
@@ -249,11 +249,11 @@ func run(tenantSlug, file, brand string, dryRun, demoStock bool) error {
 				              tank_capacity_liters = CASE
 				                  WHEN EXCLUDED.tank_capacity_liters > 0
 				                  THEN EXCLUDED.tank_capacity_liters
-				                  ELSE tenant.petro_station_inventory.tank_capacity_liters END,
+				                  ELSE workspace.petro_station_inventory.tank_capacity_liters END,
 				              current_stock_liters = CASE
 				                  WHEN EXCLUDED.tank_capacity_liters > 0
 				                  THEN EXCLUDED.current_stock_liters
-				                  ELSE tenant.petro_station_inventory.current_stock_liters END`,
+				                  ELSE workspace.petro_station_inventory.current_stock_liters END`,
 				id, tenantID, code, demo.label, price,
 				defaultTo(fuel.Status, "available"), capacity, level)
 			if err != nil {

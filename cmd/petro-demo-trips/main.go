@@ -191,7 +191,7 @@ func run(tenantSlug string, count int, clear bool, nearLat, nearLon, radiusKm fl
 	// latitude; the box is deliberately rough, because a seeder that needed
 	// PostGIS to place a demo lorry would be the wrong trade.
 	rows, err := pool.Query(ctx, `
-		SELECT id::text, name, lat, lon FROM tenant.petro_stations
+		SELECT id::text, name, lat, lon FROM workspace.petro_stations
 		 WHERE tenant_id = $1
 		   AND ($3 <= 0 OR (
 		         lat BETWEEN $4 - $3 / 111.0 AND $4 + $3 / 111.0
@@ -222,7 +222,7 @@ func run(tenantSlug string, count int, clear bool, nearLat, nearLon, radiusKm fl
 
 	if clear {
 		tag, err := pool.Exec(ctx,
-			`DELETE FROM tenant.petro_dispatch_trips WHERE tenant_id = $1 AND source = $2`,
+			`DELETE FROM workspace.petro_dispatch_trips WHERE tenant_id = $1 AND source = $2`,
 			tenantID, sourceName)
 		if err != nil {
 			return fmt.Errorf("clear previous runs: %w", err)
@@ -286,7 +286,7 @@ func run(tenantSlug string, count int, clear bool, nearLat, nearLon, radiusKm fl
 		}
 
 		_, err := pool.Exec(ctx, `
-			INSERT INTO tenant.petro_dispatch_trips
+			INSERT INTO workspace.petro_dispatch_trips
 			       (tenant_id, trip_code, tanker_plate, driver_name, driver_phone,
 			        from_depot, origin_lat, origin_lon, to_station_id,
 			        fuel_type, fuel_label, volume_liters,
