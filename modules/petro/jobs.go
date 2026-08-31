@@ -20,6 +20,16 @@
  * ponytail: per-replica ticker, no leader election — revisit if a job appears
  * that is not idempotent.
  *
+ * # Why the first pass waits
+ *
+ * The platform applies a module's migrations after it constructs the module,
+ * so at New() these tables do not exist yet — the first pass ran into three
+ * "relation does not exist" errors on every boot and then sat out the hour
+ * until the first tick. It now retries on a widening delay until one pass
+ * succeeds, and only then settles into the hourly cadence. Found by reading
+ * the logs of the first real deployment, which is the only place the ordering
+ * is observable.
+ *
  * # Why the last three days and not only today
  *
  * A report may arrive late, and a day whose figures changed after it was
@@ -49,27 +59,45 @@ const jobInterval = time.Hour
 // anybody tries to answer it.
 func (m *Module) StartJobs(ctx context.Context) {
 	go func() {
+		// 15s, 30s, 60s … up to eight minutes. Long enough to outlast a slow
+		// migration, short enough that a deployment has its reporting period
+		// before anybody arrives to answer it.
+		for attempt := 0; attempt < 6; attempt++ {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(time.Duration(1<<attempt) * 15 * time.Second):
+			}
+			if m.runJobs(ctx) {
+				break
+			}
+		}
+
 		ticker := time.NewTicker(jobInterval)
 		defer ticker.Stop()
 		for {
-			m.runJobs(ctx)
 			select {
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
+				m.runJobs(ctx)
 			}
 		}
 	}()
 }
 
-func (m *Module) runJobs(ctx context.Context) {
+// runJobs answers whether the pass got through without an error, which is what
+// the startup retry above waits for.
+func (m *Module) runJobs(ctx context.Context) bool {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 
 	policy := m.LoadPolicy(ctx)
+	ok := true
 
 	if err := m.EnsurePeriods(ctx, time.Now(), policy); err != nil {
 		slog.Error("petro: could not open the reporting periods", "error", err)
+		ok = false
 	}
 
 	for offset := 0; offset < 3; offset++ {
@@ -77,6 +105,9 @@ func (m *Module) runJobs(ctx context.Context) {
 		if err := m.RefreshDaily(ctx, day); err != nil {
 			slog.Error("petro: could not refresh the national table",
 				"day", day.Format("2006-01-02"), "error", err)
+			ok = false
 		}
 	}
+
+	return ok
 }
