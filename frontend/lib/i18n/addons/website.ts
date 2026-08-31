@@ -203,6 +203,8 @@ export const website = {
   "website.action.my_contracts": { mn: "Надад ирсэн гэрээ", en: "My incoming contracts" },
   "website.action.open_platform": { mn: "Платформ руу", en: "Open the platform" },
   "website.view.hero_inbox_title": { mn: "Танд ирсэн гэрээ", en: "Contracts sent to you" },
+  "website.menu.map": { mn: "Газрын зураг", en: "Map" },
+
   "website.map.eyebrow": { mn: "ЯГ ОДОО", en: "RIGHT NOW" },
   "website.map.title": { mn: "Улсын шатахуун түгээх станцууд", en: "The country's filling stations" },
   "website.map.lede": {

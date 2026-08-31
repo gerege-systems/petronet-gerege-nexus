@@ -17,12 +17,19 @@ import {useBrand} from "@/lib/brandContext";
  * here: a deployment that drops a section must not be left with a menu item
  * pointing at a 404.
  *
- * The last item leaves for the published documentation, so it opens in a new
- * tab and carries `rel="noopener"` rather than silently replacing the page
- * someone is reading. Its address is the deployment's (`BRAND_DOCS_URL`): a
- * deployment with its own name has its own manual, and sending its readers to
- * the platform's is sending them somewhere that does not describe what they
- * are looking at.
+ * Хоёр зүйл жагсаалтаас гадуур бичигдэнэ, учир нь хоёулаа хэсэг биш, хуудас:
+ *
+ * Эхнийх нь газрын зураг. Нүүр хуудсан дээр түүний хэсэг байдаг ч энэ нь
+ * бүтэн дэлгэцийн `/map` руу заана — тэр хоёр нэг компонент, зөвхөн хэмжээ нь
+ * өөр. `SECTION_LINKS` рүү нэмэх нь буруу байх байсан: тэр жагсаалтад орсон
+ * хэсэг нь нүүр хуудсанд ЗУРАГДАХАА БОЛЬДОГ бөгөөд энд алдах юм нь яг тэр —
+ * жолооч нүүр хуудсандаа зургаа хардаг байх ёстой.
+ *
+ * Хоёр дахь нь нийтлэгдсэн баримт бичиг. Шинэ таб дээр нээгдэж `rel="noopener"`
+ * авна — хүний уншиж буй хуудсыг чимээгүй сольж болохгүй. Хаяг нь энэ
+ * суулгацынх (`BRAND_DOCS_URL`): өөрийн нэртэй суулгац өөрийн гарын авлагатай,
+ * уншигчаа платформынх руу явуулах нь тэдний харж буй зүйлийг тайлбарладаггүй
+ * газар руу явуулж байгаа хэрэг.
  *
  * On a narrow screen the same items are behind a button rather than gone.
  * They used to be gone: the stylesheet hid the nav below 900px and the
@@ -69,6 +76,9 @@ export default function SiteHeader({sections}: {sections: LandingSection[]}) {
 
   const items = (
     <>
+      <Link href="/map" onClick={() => setOpen(false)}>
+        {t("website.menu.map")}
+      </Link>
       {sections.map((section) => {
         const link = SECTION_LINKS[section];
         if (!link) return null;
