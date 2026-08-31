@@ -257,8 +257,6 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 	r.Route("/api/v1/petro/public", func(pr chi.Router) {
 		pr.Use(nexus.RateLimit(60, 20))
 		pr.Get("/stations", m.handlePublicStations)
-		// Deliveries in flight. See dispatch.go for what this withholds and why.
-		pr.Get("/trips", m.handlePublicTrips)
 	})
 }
 

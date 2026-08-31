@@ -93,33 +93,6 @@ export type PublicStationList = {
 /** A map viewport, in the order GeoJSON and every mapping client use it. */
 export type BBox = { minLon: number; minLat: number; maxLon: number; maxLat: number };
 
-/** A tanker on its way to a forecourt, as somebody waiting for fuel sees it. */
-export type PublicTrip = {
-  id: string;
-  trip_code: string;
-  tanker_plate: string;
-  brand: string;
-  fuel_type: string;
-  fuel_label: string;
-  from_depot: string;
-  to_station: string;
-  to_station_id: string | null;
-  status: string;
-  lat: number;
-  lon: number;
-  heading: number;
-  /** "device" when a tracker reported this, "schedule" when it is where the timetable says. */
-  position_source: "device" | "schedule";
-  progress_percent: number;
-  eta_minutes: number | null;
-  eta_at: string | null;
-  /** When it left. With `eta_at` and `route`, a client can animate between polls. */
-  departed_at: string;
-  /** The road it is taking, as [[lon,lat], …]. Empty when the router was down. */
-  route: Array<[number, number]>;
-};
-
-export type PublicTripList = { trips: PublicTrip[]; count: number };
 
 /** What a citizen has left of today's ration. */
 export type Entitlement = {
@@ -416,14 +389,6 @@ export const petroApi = {
       `/petro/public/stations?bbox=${box.minLon},${box.minLat},${box.maxLon},${box.maxLat}`,
     ),
 
-  /**
-   * Tankers currently on the road, everywhere.
-   *
-   * No viewport: what makes a delivery interesting is where it is *going*, and
-   * somebody waiting at a forecourt wants to know one is coming whether the
-   * lorry is on the ring road or still in Darkhan.
-   */
-  publicFuelTrips: () => request<PublicTripList>("/petro/public/trips"),
 
   /** Today's ration. Needs a session; a citizen signs in with eID. */
   myFuelEntitlement: () => request<Entitlement>("/petro/me/entitlement"),

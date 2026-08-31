@@ -140,9 +140,7 @@ services:
 
       # Fuel network policy and optional demo routing. Demo movement is off in
       # production unless an operator deliberately enables it.
-      FUEL_DEMO_DISPATCH: ${FUEL_DEMO_DISPATCH:-false}
       FUEL_DAILY_GRANT_MNT: ${FUEL_DAILY_GRANT_MNT:-}
-      OSRM_URL: ${OSRM_URL:-}
 
       # No demo data in production. The seeded account has a published password.
       SEED_DEMO_DATA: "false"

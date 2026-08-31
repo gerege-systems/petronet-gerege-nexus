@@ -82,12 +82,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
     -o /bin/tenant-bootstrap github.com/gerege-systems/open-gerege-nexus/backend/cmd/tenant-bootstrap
 
-# Fuel operator onboarding and deterministic demo dispatch tools. They are
-# explicit commands only; merely shipping them never creates demo records.
+# Шатахууны операторын бүртгэлийг ачаалах тушаал. Зөвхөн гараар дуудагдана;
+# зүгээр л дүрсэнд байснаараа ямар ч бичлэг үүсгэхгүй.
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
     -o /bin/petro-import ./cmd/petro-import
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
-    -o /bin/petro-demo-trips ./cmd/petro-demo-trips
 
 # The platform's migration files, which are data in the module rather than code.
 # The path carries the version, so this reads it back rather than guessing.
@@ -146,7 +144,6 @@ COPY --from=build /bin/migrate  /app/migrate
 COPY --from=build /bin/operator-bootstrap /app/operator-bootstrap
 COPY --from=build /bin/tenant-bootstrap /app/tenant-bootstrap
 COPY --from=build /bin/petro-import /app/petro-import
-COPY --from=build /bin/petro-demo-trips /app/petro-demo-trips
 COPY --from=build /out/db       /app/db
 COPY --from=build /out/catalog  /app/catalog
 
