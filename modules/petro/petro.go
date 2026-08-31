@@ -25,6 +25,7 @@
 package petro
 
 import (
+	"context"
 	"embed"
 	"encoding/json"
 	"errors"
@@ -75,6 +76,15 @@ func New(p nexus.Platform) *Module {
 	// see metrics.go for why a per-company series would be a competitor's read
 	// of a business kept for sixty days.
 	RegisterMetrics(m.db)
+
+	// The seven reports the requirement names, on the platform's engine —
+	// Excel, CSV, schedules and e-mail delivery come with it. See reports.go.
+	RegisterReports()
+
+	// The reporting periods and the national day table. Both are writes that
+	// must happen whether or not anybody opens a screen; see jobs.go for why
+	// they are a ticker rather than a scheduler.
+	m.StartJobs(context.Background())
 
 	return m
 }
@@ -127,6 +137,26 @@ func (m *Module) Permissions() []nexus.PermissionDefinition {
 			Description:  "Register stations, adjust stock and configure vouchers",
 			DefaultRoles: []string{nexus.DefaultRoleManager},
 		},
+		{
+			// Sending the state a figure is a clerk's job, not a manager's, and
+			// a company where only the manager can report is a company that
+			// reports late. Separate from petro.manage for the same reason:
+			// submitting must not require the right to edit the register.
+			Code:         "petro.report.submit",
+			Name:         "Submit regulatory reports",
+			Description:  "Send stock, sales and price figures to the regulator",
+			DefaultRoles: []string{nexus.DefaultRoleManager, nexus.DefaultRoleUser},
+		},
+		{
+			// Held inside a supervisory organisation. It is the second of two
+			// locks: petro_oversight_bodies decides which organisations may see
+			// across companies at all, and this decides who inside one of them
+			// may act. Neither alone is enough.
+			Code:         "petro.oversight",
+			Name:         "Supervise the national fuel network",
+			Description:  "Review submissions, act on sites and read the national picture",
+			DefaultRoles: []string{nexus.DefaultRoleManager},
+		},
 	}
 }
 
@@ -152,6 +182,36 @@ func (m *Module) Menus() []nexus.MenuDefinition {
 				"es": "Red de combustible",
 			},
 		},
+		{
+			ID:    "petro_report",
+			Label: "Regulatory report",
+			Path:  "/petro/report",
+			Icon:  "file-check",
+			Order: 11,
+			Labels: map[string]string{
+				"mn": "Тайлан илгээх",
+				"ar": "تقرير تنظيمي",
+				"zh": "监管报告",
+				"fr": "Rapport réglementaire",
+				"ru": "Отчёт регулятору",
+				"es": "Informe regulatorio",
+			},
+		},
+		{
+			ID:    "petro_oversight",
+			Label: "National oversight",
+			Path:  "/petro/oversight",
+			Icon:  "shield-check",
+			Order: 12,
+			Labels: map[string]string{
+				"mn": "Улсын хяналт",
+				"ar": "الرقابة الوطنية",
+				"zh": "国家监管",
+				"fr": "Supervision nationale",
+				"ru": "Государственный надзор",
+				"es": "Supervisión nacional",
+			},
+		},
 	}
 }
 
@@ -165,6 +225,12 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 	// handler validates the console's own session before reading across fuel
 	// operators; see overview.go.
 	r.Get("/api/platform/v1/petro/overview", m.handleOperatorOverview)
+
+	// Appointing a supervisory body is a deployment act. Inside the tenant
+	// gate an organisation could appoint itself, which is the whole of the
+	// access model undone by one POST.
+	r.Get("/api/platform/v1/petro/oversight-bodies", m.handleOversightBodies)
+	r.Post("/api/platform/v1/petro/oversight-bodies", m.handleOversightBodies)
 
 	r.Route("/api/v1/petro", func(fr chi.Router) {
 		fr.Use(tenantAuthMiddleware)
@@ -237,6 +303,67 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 		// Inside the gate: taking a share of a national ration is not something
 		// a stranger does. The identity is the session's — see entitlement.go
 		// for why there is nowhere in the request to put one.
+		// The regulatory loop's company half: the periods it must answer, the
+		// form or the workbook it answers with, and its own history.
+		//
+		// Reading is petro.read and sending is petro.report.submit. The two are
+		// split because the person who sends the daily figures in a fuel
+		// company is not the person who may add a forecourt.
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/report/periods", m.handleListPeriods)
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/report/periods/{id}/prefill", m.handlePrefill)
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/report/periods/{id}/template.xlsx", m.handleTemplate)
+		fr.With(nexus.RequirePermission(m.perms, "petro.report.submit")).
+			Post("/report/periods/{id}/submissions", m.handleSubmit)
+		fr.With(nexus.RequirePermission(m.perms, "petro.report.submit")).
+			Post("/report/periods/{id}/submissions/excel", m.handleSubmitExcel)
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/report/submissions", m.handleListSubmissions)
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/report/submissions/{id}", m.handleReadSubmission)
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/policy", m.handleReadPolicy)
+
+		// Movements: opened by the sender, closed by the receiver.
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/movements", m.handleListMovements)
+		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
+			Post("/movements", m.handleOpenMovement)
+		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
+			Post("/movements/{id}/receive", m.handleCloseMovement)
+
+		// The register's own additions.
+		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
+			Patch("/registry/{kind}/{id}/code", m.handleSetNationalCode)
+		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
+			Patch("/stations/{id}/census", m.handleCensus)
+		fr.With(nexus.RequirePermission(m.perms, "petro.read")).
+			Get("/census/summary", m.handleCensusSummary)
+
+		// The state's half. Every one of these also asks petro_is_oversight()
+		// inside the handler: the permission says who in the ministry may act,
+		// the table says which organisation is the ministry.
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Get("/oversight/queue", m.handleReviewQueue)
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Post("/oversight/submissions/{id}/approve", m.handleReview(StatusApproved))
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Post("/oversight/submissions/{id}/return", m.handleReview(StatusReturned))
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Get("/oversight/dashboard", m.handleNationalDashboard)
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Get("/oversight/gaps", m.handleGaps)
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Get("/oversight/reconciliation", m.handleReconciliation)
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Post("/oversight/daily/refresh", m.handleRefreshDaily)
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Post("/oversight/sites/{kind}/{id}/status", m.handleSetSiteStatus)
+		fr.With(nexus.RequirePermission(m.perms, "petro.oversight")).
+			Post("/oversight/movements/{id}/dispute", m.handleDisputeMovement)
+
 		fr.Get("/me/entitlement", m.handleMyEntitlement)
 		fr.Get("/me/vouchers", m.handleMyVouchers)
 		fr.Post("/me/vouchers", m.handleIssueVoucher)
@@ -257,6 +384,10 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 	r.Route("/api/v1/petro/public", func(pr chi.Router) {
 		pr.Use(nexus.RateLimit(60, 20))
 		pr.Get("/stations", m.handlePublicStations)
+		// Open data: national totals by grade, with the share of the country
+		// they were computed from. Kenya's 2026 standard — published on the
+		// same schedule every day, weekends included.
+		pr.Get("/daily", m.handlePublicDaily)
 	})
 }
 
