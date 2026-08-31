@@ -73,6 +73,15 @@ RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
     -o /bin/operator-bootstrap github.com/gerege-systems/open-gerege-nexus/backend/cmd/operator-bootstrap
 
+# Байгууллага үүсгэх.
+#
+# Шинэ ААН-ийг системд оруулах ажил нь консолын дэлгэцээс хийгддэг ч тэр нь
+# операторын session шаарддаг. Эхний нэвтрүүлэлтийн үед — 200 гаруй ААН-ийг
+# багцаар оруулах өдөр — shell-ээс хийх зам байх ёстой. Мөн шидтэн өнгөрсний
+# дараа хоёр дахь байгууллага үүсгэх цорын ганц бус зам нь энэ.
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
+    -o /bin/tenant-bootstrap github.com/gerege-systems/open-gerege-nexus/backend/cmd/tenant-bootstrap
+
 # Fuel operator onboarding and deterministic demo dispatch tools. They are
 # explicit commands only; merely shipping them never creates demo records.
 RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-w -s" \
@@ -135,6 +144,7 @@ WORKDIR /app
 COPY --from=build /bin/petronet /app/petronet
 COPY --from=build /bin/migrate  /app/migrate
 COPY --from=build /bin/operator-bootstrap /app/operator-bootstrap
+COPY --from=build /bin/tenant-bootstrap /app/tenant-bootstrap
 COPY --from=build /bin/petro-import /app/petro-import
 COPY --from=build /bin/petro-demo-trips /app/petro-demo-trips
 COPY --from=build /out/db       /app/db
