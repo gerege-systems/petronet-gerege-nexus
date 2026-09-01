@@ -312,7 +312,12 @@ export default function PetroMap({
         </p>
       ) : null}
 
-      {selected ? <StationSheet station={selected} onClose={() => setSelected(null)} /> : null}
+      {selected ? // key: without it React reuses the sheet's instance across stations, so the
+        // grade, the voucher and the error survived a change of station. Tapping a
+        // diesel-only forecourt and then a petrol-only one sent a diesel voucher
+        // request for a station that does not sell it, and showed the first
+        // station's QR under the second one's name (audit §20).
+        <StationSheet key={selected.id} station={selected} onClose={() => setSelected(null)} /> : null}
     </div>
   );
 }

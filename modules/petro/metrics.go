@@ -258,7 +258,7 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 		       COALESCE(sum(tank_capacity_liters), 0)::float8,
 		       count(*) FILTER (
 		           WHERE tank_capacity_liters > 0
-		             AND current_stock_liters / tank_capacity_liters < 0.2)::float8
+		             AND current_stock_liters < tank_capacity_liters * 0.2)::float8
 		  FROM petro_station_inventory
 		 GROUP BY fuel_type`,
 		func(label string, stock, capacity, low float64) {
@@ -322,7 +322,7 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 
 	if err := c.pair(ctx, `
 		SELECT count(*)::float8, COALESCE(sum(volume_liters), 0)::float8
-		  FROM petro_dispatch_trips WHERE completed_at IS NULL`,
+		  FROM petro_dispatch_trips WHERE status = 'in_transit'`,
 		func(count, liters float64) {
 			gauge(tripsInFlightDesc, count)
 			gauge(tripLitersDesc, liters)

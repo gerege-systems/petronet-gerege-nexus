@@ -39,6 +39,7 @@
 package petro
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
@@ -169,6 +170,19 @@ func (m *Module) handleMyEntitlement(w http.ResponseWriter, r *http.Request) {
 		Date:        nexus.Today().Format("2006-01-02"),
 		GrantedMNT:  grant,
 		RemainigMNT: grant,
+	}
+
+	// Expired vouchers are settled on the way in.
+	//
+	// The sweep ran only when a voucher was issued, so a citizen who took
+	// thirty thousand and never spent it saw "20,000 ₮ remaining" three hours
+	// later while actually holding fifty — and the screen filters its amount
+	// buttons by that figure, so they were shown less than they had and,
+	// below the smallest button, nothing at all (audit §37). Reading the
+	// entitlement is the moment the answer has to be true.
+	if err := m.settleExpiredVouchers(r.Context(), citizenID); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not settle expired vouchers")
+		return
 	}
 
 	err = m.db.QueryRow(r.Context(), `
@@ -405,4 +419,36 @@ func voucherToken() (string, error) {
 		return "", err
 	}
 	return base64.RawURLEncoding.EncodeToString(raw), nil
+}
+
+// settleExpiredVouchers gives back what an unspent voucher held.
+//
+// Lifted out of the issue path so the read can run it too — the two callers
+// need the same three statements, and a copy would be a second definition of
+// what "expired" means to an entitlement.
+func (m *Module) settleExpiredVouchers(ctx context.Context, citizenID string) error {
+	tx, err := m.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	if _, err := tx.Exec(ctx, `
+		UPDATE petro_entitlements e
+		   SET used_mnt = GREATEST(e.used_mnt - expired.amount, 0), updated_at = NOW()
+		  FROM (
+		      SELECT for_date, SUM(amount_mnt) AS amount
+		        FROM petro_vouchers
+		       WHERE citizen_id = $1 AND status = 'active' AND expires_at <= NOW()
+		       GROUP BY for_date
+		  ) AS expired
+		 WHERE e.citizen_id = $1 AND e.for_date = expired.for_date`, citizenID); err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `
+		UPDATE petro_vouchers SET status = 'expired'
+		 WHERE citizen_id = $1 AND status = 'active' AND expires_at <= NOW()`, citizenID); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
 }

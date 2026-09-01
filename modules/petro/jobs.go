@@ -90,12 +90,23 @@ func (m *Module) StartJobs(ctx context.Context) {
 
 // runJobs answers whether the pass got through without an error, which is what
 // the startup retry above waits for.
-func (m *Module) runJobs(ctx context.Context) bool {
+func (m *Module) runJobs(ctx context.Context) (ok bool) {
+	// A panic on this goroutine takes the whole API process down: it is not
+	// inside a request, so nothing above it recovers. A missed pass is a gap
+	// in a table until the next tick; a crash is every request on the
+	// deployment, and the two are not close (audit §31).
+	defer func() {
+		if reason := recover(); reason != nil {
+			slog.Error("petro: scheduled work panicked", "reason", reason)
+			ok = false
+		}
+	}()
+
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 
 	policy := m.LoadPolicy(ctx)
-	ok := true
+	ok = true
 
 	// nexus.Now(), not time.Now(): a reporting period is a calendar day, and
 	// the calendar this system keeps is Ulaanbaatar's. In UTC the period for

@@ -61,6 +61,10 @@ func (m *Module) handleSetNationalCode(w http.ResponseWriter, r *http.Request) {
 	}
 	kind := chi.URLParam(r, "kind")
 	id := chi.URLParam(r, "id")
+	if !isUUID(id) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	table := ""
 	switch kind {
@@ -151,6 +155,10 @@ func (m *Module) handleCensus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := chi.URLParam(r, "id")
+	if !isUUID(id) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var patch CensusPatch
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&patch); err != nil {

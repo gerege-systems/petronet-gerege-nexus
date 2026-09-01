@@ -17,9 +17,11 @@ import { BookOpen, BrainCircuit, Plus, Save, Trash2 } from "lucide-react";
 import { useAction } from "@/components/cp/Action";
 import { Card, formatMoment } from "@/components/cp/ui";
 import { cp, type Knowledge, type Prompt } from "@/lib/cp";
+import { useConsole } from "@/components/cp/Console";
 import { useI18n } from "@/lib/i18n";
+import { CpWriteGate } from "@/components/cp/CpWriteGate";
 
-export default function Assistant() {
+function AssistantBody() {
   const { t, locale } = useI18n();
   const action = useAction();
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -204,5 +206,17 @@ function PromptEditor({ prompt, onSave }: { prompt: Prompt; onSave: (content: st
         </label>
       </div>
     </div>
+  );
+}
+
+// The screen carries buttons that only some roles may press. The gate reads
+// the operator's role once and disables every control inside it — the server
+// checks the same capability, so this is the screen agreeing with the server
+// rather than deciding anything (audit §17).
+export default function Assistant() {
+  return (
+    <CpWriteGate capability="settings.write">
+      <AssistantBody />
+    </CpWriteGate>
   );
 }

@@ -190,6 +190,10 @@ func (m *Module) handleCloseMovement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := chi.URLParam(r, "id")
+	if !isUUID(id) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var receipt MovementReceipt
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&receipt); err != nil {
@@ -339,6 +343,10 @@ func (m *Module) handleDisputeMovement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := chi.URLParam(r, "id")
+	if !isUUID(id) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var verdict Verdict
 	if r.ContentLength > 0 {

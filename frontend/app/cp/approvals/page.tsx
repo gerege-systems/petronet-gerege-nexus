@@ -16,9 +16,11 @@ import { Check, X } from "lucide-react";
 import { useAction } from "@/components/cp/Action";
 import { Card, formatMoment } from "@/components/cp/ui";
 import { cp, type Approval } from "@/lib/cp";
+import { useConsole } from "@/components/cp/Console";
 import { useI18n } from "@/lib/i18n";
+import { CpWriteGate } from "@/components/cp/CpWriteGate";
 
-export default function Approvals() {
+function ApprovalsBody() {
   const { t, locale } = useI18n();
   const action = useAction();
   const [approvals, setApprovals] = useState<Approval[]>([]);
@@ -121,5 +123,17 @@ export default function Approvals() {
 
       {action.dialog}
     </div>
+  );
+}
+
+// The screen carries buttons that only some roles may press. The gate reads
+// the operator's role once and disables every control inside it — the server
+// checks the same capability, so this is the screen agreeing with the server
+// rather than deciding anything (audit §17).
+export default function Approvals() {
+  return (
+    <CpWriteGate capability="approval.decide">
+      <ApprovalsBody />
+    </CpWriteGate>
   );
 }

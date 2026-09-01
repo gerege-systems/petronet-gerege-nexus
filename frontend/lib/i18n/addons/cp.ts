@@ -120,6 +120,13 @@ export const cp = {
   "cp.field.requested_by": { mn: "Хүссэн", en: "Asked by" },
 
   "cp.state.active": { mn: "Идэвхтэй", en: "Active" },
+  // Гарч ирэх нөхцөл нь: тухайн ролид энэ дэлгэцийн үйлдэл байхгүй. Товчийг
+  // нуухын оронд идэвхгүй болгож, шалтгааныг нэг мөрөөр хэлнэ — байхгүй товч
+  // нь «энэ боломж алга» гэж уншигддаг, идэвхгүй товч нь «энэ чиний биш».
+  "cp.notice.read_only": {
+    mn: "Таны эрхээр энэ дэлгэцийг зөвхөн уншина.",
+    en: "Your role reads this screen; it cannot act on it.",
+  },
   "cp.state.suspended": { mn: "Түдгэлзсэн", en: "Suspended" },
   "cp.state.deleting": { mn: "Устгал хүлээж буй", en: "Awaiting deletion" },
   "cp.state.soft": { mn: "Зөөлөн (анхааруулна)", en: "Soft (warns)" },

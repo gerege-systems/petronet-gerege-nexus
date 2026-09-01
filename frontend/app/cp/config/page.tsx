@@ -18,10 +18,12 @@ import { History, KeyRound, RotateCcw, ToggleLeft, ToggleRight } from "lucide-re
 import { useAction } from "@/components/cp/Action";
 import { Badge, Card, formatMoment, Table } from "@/components/cp/ui";
 import { cp, type Credential, type Flag, type Setting, type SettingChange } from "@/lib/cp";
+import { useConsole } from "@/components/cp/Console";
 import { useI18n } from "@/lib/i18n";
+import { CpWriteGate } from "@/components/cp/CpWriteGate";
 import { Modal } from "@/components/ui";
 
-export default function Configuration() {
+function ConfigurationBody() {
   const { t, locale } = useI18n();
   const action = useAction();
 
@@ -697,5 +699,17 @@ function Line({
         className={`mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 ${mono ? "font-mono text-sm" : ""}`}
       />
     </label>
+  );
+}
+
+// The screen carries buttons that only some roles may press. The gate reads
+// the operator's role once and disables every control inside it — the server
+// checks the same capability, so this is the screen agreeing with the server
+// rather than deciding anything (audit §17).
+export default function Configuration() {
+  return (
+    <CpWriteGate capability="settings.write">
+      <ConfigurationBody />
+    </CpWriteGate>
   );
 }

@@ -87,7 +87,17 @@ export default function StationSheet({
   }
 
   const remaining = entitlement?.remaining_mnt ?? 0;
+  // The remainder is offered when it is smaller than the smallest button.
+  //
+  // The list was filtered to `value <= remaining` and nothing else, so a
+  // citizen holding five thousand tugrik — a daily grant of 25,000 with 20,000
+  // already drawn — saw "5,000 ₮ remaining", no buttons at all, and a disabled
+  // "take a voucher" with no explanation (audit §38). Their remainder is a
+  // perfectly good voucher; it simply was not one of the four round numbers.
   const affordable = AMOUNTS.filter((value) => value <= remaining);
+  if (affordable.length === 0 && remaining > 0) {
+    affordable.push(Math.floor(remaining));
+  }
 
   return (
     <aside className="pointer-events-auto absolute inset-x-0 bottom-0 z-20 max-h-[75dvh] overflow-y-auto rounded-t-2xl bg-white shadow-2xl ring-1 ring-black/10 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-[380px] sm:max-h-none sm:rounded-none sm:rounded-l-2xl">

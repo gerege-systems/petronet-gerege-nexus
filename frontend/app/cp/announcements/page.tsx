@@ -16,10 +16,12 @@ import { Megaphone } from "lucide-react";
 import { useAction } from "@/components/cp/Action";
 import { Badge, Card, formatMoment, Table } from "@/components/cp/ui";
 import { cp, type Announcement } from "@/lib/cp";
+import { useConsole } from "@/components/cp/Console";
 import { useI18n } from "@/lib/i18n";
+import { CpWriteGate } from "@/components/cp/CpWriteGate";
 import { Modal } from "@/components/ui";
 
-export default function Announcements() {
+function AnnouncementsBody() {
   const { t, locale } = useI18n();
   const action = useAction();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -227,5 +229,17 @@ function WriteDialog({ onClose, onPublished }: { onClose: () => void; onPublishe
         </div>
       </form>
     </Modal>
+  );
+}
+
+// The screen carries buttons that only some roles may press. The gate reads
+// the operator's role once and disables every control inside it — the server
+// checks the same capability, so this is the screen agreeing with the server
+// rather than deciding anything (audit §17).
+export default function Announcements() {
+  return (
+    <CpWriteGate capability="settings.write">
+      <AnnouncementsBody />
+    </CpWriteGate>
   );
 }

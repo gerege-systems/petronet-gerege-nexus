@@ -237,6 +237,10 @@ func (m *Module) handleCreateTank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	depotID := chi.URLParam(r, "id")
+	if !isUUID(depotID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var draft TankDraft
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&draft); err != nil {
@@ -318,6 +322,10 @@ func (m *Module) handleUpdateTank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tankID := chi.URLParam(r, "tankId")
+	if !isUUID(tankID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var reading GaugeReading
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048)).Decode(&reading); err != nil {
@@ -398,6 +406,10 @@ func (m *Module) handleReceiveIntoDepot(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	depotID := chi.URLParam(r, "id")
+	if !isUUID(depotID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var request DepotReceiveRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&request); err != nil {
@@ -560,6 +572,10 @@ func (m *Module) handleListDepotReceipts(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	depotID := chi.URLParam(r, "id")
+	if !isUUID(depotID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	rows, err := m.db.Query(r.Context(), `
 		SELECT rc.id::text, rc.depot_id::text, rc.tank_id::text,

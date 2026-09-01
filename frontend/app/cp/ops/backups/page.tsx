@@ -16,9 +16,11 @@ import { DatabaseBackup, RefreshCw, ShieldCheck } from "lucide-react";
 import { useAction } from "@/components/cp/Action";
 import { Badge, Card, formatMoment, Table } from "@/components/cp/ui";
 import { cp, type BackupEntry, type Overview } from "@/lib/cp";
+import { useConsole } from "@/components/cp/Console";
 import { useI18n } from "@/lib/i18n";
+import { CpWriteGate } from "@/components/cp/CpWriteGate";
 
-export default function Backups() {
+function BackupsBody() {
   const { t, locale } = useI18n();
   const action = useAction();
   const [history, setHistory] = useState<BackupEntry[]>([]);
@@ -128,5 +130,17 @@ function Stat({ label, value, warn }: { label: string; value: string; warn?: boo
       <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p>
       <p className={`mt-1 text-lg font-semibold ${warn ? "text-amber-700" : "text-slate-900"}`}>{value}</p>
     </div>
+  );
+}
+
+// The screen carries buttons that only some roles may press. The gate reads
+// the operator's role once and disables every control inside it — the server
+// checks the same capability, so this is the screen agreeing with the server
+// rather than deciding anything (audit §17).
+export default function Backups() {
+  return (
+    <CpWriteGate capability="settings.write">
+      <BackupsBody />
+    </CpWriteGate>
   );
 }

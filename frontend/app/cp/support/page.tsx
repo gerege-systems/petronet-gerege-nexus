@@ -19,9 +19,11 @@ import { KeyRound, LockOpen, LogOut, Search } from "lucide-react";
 import { useAction } from "@/components/cp/Action";
 import { Badge, Card, formatMoment, Table } from "@/components/cp/ui";
 import { cp, type Person } from "@/lib/cp";
+import { useConsole } from "@/components/cp/Console";
 import { useI18n } from "@/lib/i18n";
+import { CpWriteGate } from "@/components/cp/CpWriteGate";
 
-export default function Support() {
+function SupportBody() {
   const { t, locale } = useI18n();
   const action = useAction();
   const [query, setQuery] = useState("");
@@ -122,27 +124,40 @@ export default function Support() {
                     })
                   }
                 />
-                {person.memberships.length > 0 && (
+                {person.memberships.map((membership) => (
+                  // One button per organisation, rather than one button that
+                  // picked memberships[0].
+                  //
+                  // The mail is sent on behalf of an organisation: its
+                  // verification quota is spent, its name is the sender, and
+                  // its audit log carries the row. Choosing the first entry of
+                  // a list meant a person in three companies got a link
+                  // charged to whichever one happened to sort first —
+                  // impersonation had the same shape and was fixed there for
+                  // the same reason (audit §19). Where somebody belongs to one
+                  // organisation this is exactly the button it was before.
                   <SupportButton
+                    key={membership.tenant_id}
                     icon={<KeyRound className="w-4 h-4" />}
-                    label={t("cp.action.send_reset")}
+                    label={
+                      person.memberships.length === 1
+                        ? t("cp.action.send_reset")
+                        : `${t("cp.action.send_reset")} · ${membership.tenant_name}`
+                    }
                     onClick={() =>
                       action.run({
                         title: t("cp.action.send_reset"),
-                        detail: person.email,
+                        detail: `${person.email} · ${membership.tenant_name}`,
                         perform: (reason) =>
                           cp.credentialLink(person.id, {
-                            // The organisation the mail is sent on behalf of —
-                            // the verification service counts its quota per
-                            // organisation, so it cannot be "none".
-                            tenant_id: person.memberships[0].tenant_id,
+                            tenant_id: membership.tenant_id,
                             purpose: "reset",
                             reason,
                           }),
                       })
                     }
                   />
-                )}
+                ))}
               </div>
             </div>
           </Card>
@@ -168,5 +183,17 @@ function SupportButton({ icon, label, onClick }: { icon: React.ReactNode; label:
       {icon}
       {label}
     </button>
+  );
+}
+
+// The screen carries buttons that only some roles may press. The gate reads
+// the operator's role once and disables every control inside it — the server
+// checks the same capability, so this is the screen agreeing with the server
+// rather than deciding anything (audit §17).
+export default function Support() {
+  return (
+    <CpWriteGate capability="support.act">
+      <SupportBody />
+    </CpWriteGate>
   );
 }

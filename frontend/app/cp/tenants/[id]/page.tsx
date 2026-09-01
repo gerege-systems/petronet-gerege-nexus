@@ -33,6 +33,7 @@ import { useAction } from "@/components/cp/Action";
 import { Badge, Card, formatMoment, Table } from "@/components/cp/ui";
 import { cp, type Quota, type TenantDetail, type VerifiedPerson } from "@/lib/cp";
 import { useI18n } from "@/lib/i18n";
+import { cpAllowed as allowed } from "@/lib/cpCapabilities";
 import { Modal } from "@/components/ui";
 
 export default function Detail() {
@@ -360,17 +361,6 @@ export default function Detail() {
  * will refuse them — and it is deliberately the same shape as the Go map, so
  * the two can be compared by eye when a capability is added.
  */
-const CAPABILITIES: Record<string, string[]> = {
-  superadmin: ["tenant.suspend", "tenant.delete", "quota.write", "support.act",
-    "user.impersonate", "approval.decide", "settings.write"],
-  operator: ["tenant.suspend", "quota.write", "support.act", "settings.write"],
-  support: ["support.act", "user.impersonate"],
-  auditor: [],
-};
-
-function allowed(role: string, capability: string): boolean {
-  return (CAPABILITIES[role] ?? []).includes(capability);
-}
 
 function StateBadge({ tenant }: { tenant: { suspended_at: string | null; deletion_scheduled_at: string | null } }) {
   const { t } = useI18n();

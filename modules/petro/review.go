@@ -226,6 +226,10 @@ func (m *Module) handleSetSiteStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	kind := chi.URLParam(r, "kind")
 	id := chi.URLParam(r, "id")
+	if !isUUID(id) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var change SiteStatusChange
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 2048)).Decode(&change); err != nil {
