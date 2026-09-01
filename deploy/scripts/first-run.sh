@@ -99,37 +99,42 @@ finish() {
   echo "→ Grafana-гийн нэвтрэлт"
   # Клиентийг платформ өөрөө бүртгэдэг; энд хийх зүйл нь нууцыг сэлгэж, түүнийг
   # .env рүү бичих — яг энэ алхам нь өмнө нь орхигдож, товч нь ажиллахгүй байсан.
-  local cid
+  # Нууцыг эхлээд үүсгэнэ: `oauth2_clients_secret_matches_type` шалгуур нь
+  # confidential клиентийг нууцгүйгээр оруулахыг татгалздаг тул «оруулаад дараа
+  # нь сэлгэх» гэсэн дараалал ажиллахгүй.
+  local cid secret hash owner
+  secret="$(openssl rand -hex 32)"
+  hash="$(printf '%s' "$secret" | sha256sum | cut -d' ' -f1)"
   cid="$(psql_db -tAc "SELECT client_id FROM workspace.oauth2_clients WHERE client_id LIKE 'grafana-%' ORDER BY created_at LIMIT 1" || true)"
 
-  # Шинэ суулгацад клиент байхгүй — үүсгэнэ. Эзэмшигч нь эхний байгууллага:
-  # OAuth клиент нь тенантад харьяалагддаг ба ажиглалт бол платформын өөрийн
-  # хэрэгсэл тул суулгацыг нээсэн байгууллага түүнийг эзэмшинэ.
   if [ -z "$cid" ]; then
-    local owner
+    # Эзэмшигч нь эхний байгууллага: OAuth клиент тенантад харьяалагддаг ба
+    # ажиглалт нь платформын өөрийн хэрэгсэл тул суулгацыг нээсэн байгууллага
+    # түүнийг эзэмшинэ.
     owner="$(psql_db -tAc "SELECT id::text FROM registry.tenants WHERE kind = 'organisation' ORDER BY created_at LIMIT 1" || true)"
-    if [ -n "$owner" ]; then
+    if [ -z "$owner" ]; then
+      echo "  байгууллага үүсээгүй тул Grafana-гийн клиентийг үүсгэсэнгүй"
+    else
       cid="grafana-monitor-$(openssl rand -hex 8)"
       psql_db -c "
         INSERT INTO workspace.oauth2_clients
-               (tenant_id, client_id, client_name, client_type, redirect_uris,
-                grant_types, scopes, post_logout_redirect_uris)
-        VALUES ('$owner'::uuid, '$cid', 'Ажиглалт (Grafana)', 'confidential',
+               (tenant_id, client_id, client_secret_hash, client_name, client_type,
+                redirect_uris, grant_types, scopes, post_logout_redirect_uris)
+        VALUES ('$owner'::uuid, '$cid', '$hash', 'Ажиглалт (Grafana)', 'confidential',
                 ARRAY['https://monitor.petronet.mn/grafana/login/generic_oauth'],
                 ARRAY['authorization_code','refresh_token'],
                 ARRAY['openid','profile','email','roles'],
                 ARRAY['https://monitor.petronet.mn/grafana/login'])" >/dev/null
       echo "  клиент үүслээ: $cid"
     fi
-  fi
-
-  if [ -n "$cid" ]; then
-    local secret hash
-    secret="$(openssl rand -hex 32)"
-    hash="$(printf '%s' "$secret" | sha256sum | cut -d' ' -f1)"
+  else
     psql_db -c "UPDATE workspace.oauth2_clients
                    SET client_secret_hash = '$hash', secret_rotated_at = NOW(), updated_at = NOW()
                  WHERE client_id = '$cid'" >/dev/null
+    echo "  нууц сэлгэгдлээ: $cid"
+  fi
+
+  if [ -n "$cid" ]; then
     set_env GRAFANA_OAUTH_ENABLED true
     set_env GRAFANA_OAUTH_NAME PetroNet
     set_env GRAFANA_OAUTH_CLIENT_ID "$cid"
@@ -138,9 +143,7 @@ finish() {
     chmod 600 "$ENV_FILE"
     cp "$ENV_FILE" "$SRC_DIR/deploy/.env"
     $COMPOSE up -d grafana >/dev/null
-    echo "  $cid холбогдлоо"
-  else
-    echo "  байгууллага үүсээгүй тул Grafana-гийн клиентийг үүсгэсэнгүй"
+    echo "  .env-д бичигдэж, Grafana шинэчлэгдлээ"
   fi
 
   echo "→ хяналтын байгууллага"
