@@ -101,6 +101,28 @@ finish() {
   # .env рүү бичих — яг энэ алхам нь өмнө нь орхигдож, товч нь ажиллахгүй байсан.
   local cid
   cid="$(psql_db -tAc "SELECT client_id FROM workspace.oauth2_clients WHERE client_id LIKE 'grafana-%' ORDER BY created_at LIMIT 1" || true)"
+
+  # Шинэ суулгацад клиент байхгүй — үүсгэнэ. Эзэмшигч нь эхний байгууллага:
+  # OAuth клиент нь тенантад харьяалагддаг ба ажиглалт бол платформын өөрийн
+  # хэрэгсэл тул суулгацыг нээсэн байгууллага түүнийг эзэмшинэ.
+  if [ -z "$cid" ]; then
+    local owner
+    owner="$(psql_db -tAc "SELECT id::text FROM registry.tenants WHERE kind = 'organisation' ORDER BY created_at LIMIT 1" || true)"
+    if [ -n "$owner" ]; then
+      cid="grafana-monitor-$(openssl rand -hex 8)"
+      psql_db -c "
+        INSERT INTO workspace.oauth2_clients
+               (tenant_id, client_id, client_name, client_type, redirect_uris,
+                grant_types, scopes, post_logout_redirect_uris)
+        VALUES ('$owner'::uuid, '$cid', 'Ажиглалт (Grafana)', 'confidential',
+                ARRAY['https://monitor.petronet.mn/grafana/login/generic_oauth'],
+                ARRAY['authorization_code','refresh_token'],
+                ARRAY['openid','profile','email','roles'],
+                ARRAY['https://monitor.petronet.mn/grafana/login'])" >/dev/null
+      echo "  клиент үүслээ: $cid"
+    fi
+  fi
+
   if [ -n "$cid" ]; then
     local secret hash
     secret="$(openssl rand -hex 32)"
@@ -118,7 +140,7 @@ finish() {
     $COMPOSE up -d grafana >/dev/null
     echo "  $cid холбогдлоо"
   else
-    echo "  Grafana-гийн клиент бүртгэгдээгүй байна — консолоос үүсгээд дахин ажиллуулна уу"
+    echo "  байгууллага үүсээгүй тул Grafana-гийн клиентийг үүсгэсэнгүй"
   fi
 
   echo "→ хяналтын байгууллага"
