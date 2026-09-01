@@ -161,7 +161,19 @@ func BalanceResidual(l ReportLine) float64 {
 // fixes one and resubmits into a second refusal stops trusting the system.
 func ValidateLine(l ReportLine, ctx LineContext, pol Policy) []Finding {
 	var out []Finding
+	// Every finding names the row it belongs to.
+	//
+	// Only `site_unknown` used to carry site_kind/site_id, so the portal — which
+	// places a message beside the line that caused it — had nothing to place
+	// and showed a bare "returned" banner instead (audit §39). The row is known
+	// here; carrying it costs three map entries.
 	add := func(rule, severity, message string, detail map[string]any) {
+		if detail == nil {
+			detail = map[string]any{}
+		}
+		detail["site_kind"] = l.SiteKind
+		detail["site_id"] = l.SiteID
+		detail["product_code"] = l.ProductCode
 		out = append(out, Finding{Rule: rule, Severity: severity, Message: message, Detail: detail})
 	}
 

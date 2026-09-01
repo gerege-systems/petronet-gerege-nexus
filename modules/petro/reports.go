@@ -116,6 +116,24 @@ func category(key, mn, en string) nexus.ColumnSpec {
 		Titles: map[string]string{"mn": mn, "en": en}}
 }
 
+// latestLines is the subquery every line-reading report starts from.
+//
+// Audit §10: the four aggregates filtered on `status IN ('submitted','approved')`
+// and nothing more, so a company that corrected a report had both versions
+// summed — the day's sales doubled, the price averaged twice, and the national
+// days-of-supply came out five times low. The refresh statement had known the
+// right answer all along (DISTINCT ON … ORDER BY version DESC); these four had
+// simply never been given it.
+const latestLines = `
+	SELECT DISTINCT ON (l.site_kind, l.site_id, l.product_code, p.period_start)
+	       l.*, p.period_start
+	  FROM petro_report_lines l
+	  JOIN petro_report_submissions s ON s.id = l.submission_id
+	  JOIN petro_report_periods p ON p.id = s.period_id
+	 WHERE s.status IN ('submitted', 'approved')
+	   AND p.period_start BETWEEN $1::date AND $2::date
+	 ORDER BY l.site_kind, l.site_id, l.product_code, p.period_start, s.version DESC`
+
 // RegisterReports declares this module's reports with the engine.
 //
 // Called from New, like the metrics: a report that has to be wired up in a
@@ -177,17 +195,14 @@ func RegisterReports() {
 				money("avg_price", "Дундаж үнэ", "Average price"),
 			},
 			query: `
+				WITH lines AS (` + latestLines + `)
 				SELECT st.name, COALESCE(NULLIF(st.aimag, ''), '—'), pr.label_mn,
 				       SUM(l.sales_liters)::float8, AVG(l.price_mnt)::float8
-				  FROM petro_report_lines l
-				  JOIN petro_report_submissions s ON s.id = l.submission_id
-				  JOIN petro_report_periods p ON p.id = s.period_id
+				  FROM lines l
 				  JOIN petro_stations st ON st.id = l.site_id
 				  JOIN petro_products pr ON pr.code = l.product_code
 				 WHERE l.site_kind = 'station'
-				   AND s.status IN ('submitted', 'approved')
-				   AND p.period_start BETWEEN $1::date AND $2::date
-				 GROUP BY st.name, st.aimag, pr.label_mn, pr.sort_order
+				 GROUP BY st.id, st.name, st.aimag, pr.label_mn, pr.sort_order
 				 ORDER BY 4 DESC`,
 		},
 		{
@@ -201,18 +216,15 @@ func RegisterReports() {
 				number("receipts_liters", "Орсон (л)", "Received (l)"),
 			},
 			query: `
+				WITH lines AS (` + latestLines + `)
 				SELECT dp.name, pr.label_mn,
 				       SUM(l.transfers_out_liters + l.sales_liters)::float8,
 				       SUM(l.receipts_liters)::float8
-				  FROM petro_report_lines l
-				  JOIN petro_report_submissions s ON s.id = l.submission_id
-				  JOIN petro_report_periods p ON p.id = s.period_id
+				  FROM lines l
 				  JOIN petro_depots dp ON dp.id = l.site_id
 				  JOIN petro_products pr ON pr.code = l.product_code
 				 WHERE l.site_kind = 'depot'
-				   AND s.status IN ('submitted', 'approved')
-				   AND p.period_start BETWEEN $1::date AND $2::date
-				 GROUP BY dp.name, pr.label_mn, pr.sort_order
+				 GROUP BY dp.id, dp.name, pr.label_mn, pr.sort_order
 				 ORDER BY 3 DESC`,
 		},
 		{
@@ -228,18 +240,15 @@ func RegisterReports() {
 				money("max_price", "Хамгийн их", "Highest"),
 			},
 			query: `
-				SELECT p.period_start::text, pr.label_mn,
+				WITH lines AS (` + latestLines + `)
+				SELECT l.period_start::text, pr.label_mn,
 				       COALESCE(NULLIF(st.aimag, ''), '—'),
 				       AVG(l.price_mnt)::float8, MIN(l.price_mnt)::float8, MAX(l.price_mnt)::float8
-				  FROM petro_report_lines l
-				  JOIN petro_report_submissions s ON s.id = l.submission_id
-				  JOIN petro_report_periods p ON p.id = s.period_id
+				  FROM lines l
 				  JOIN petro_stations st ON st.id = l.site_id
 				  JOIN petro_products pr ON pr.code = l.product_code
 				 WHERE l.site_kind = 'station' AND l.price_mnt IS NOT NULL
-				   AND s.status IN ('submitted', 'approved')
-				   AND p.period_start BETWEEN $1::date AND $2::date
-				 GROUP BY p.period_start, pr.label_mn, pr.sort_order, st.aimag
+				 GROUP BY l.period_start, pr.label_mn, pr.sort_order, st.aimag
 				 ORDER BY 1 DESC, pr.sort_order`,
 		},
 		{
@@ -253,20 +262,19 @@ func RegisterReports() {
 				number("receipts", "Хүлээн авалт (л)", "Receipts (l)"),
 				number("sales", "Борлуулалт (л)", "Sales (l)"),
 				number("closing", "Хаалт (л)", "Closing (l)"),
+				number("closing_15c", "Хаалт 15 °C (л)", "Closing at 15 °C (l)"),
 				number("variance", "Зөрүү (л)", "Variance (l)"),
 			},
 			query: `
-				SELECT p.period_start::text, pr.label_mn,
+				WITH lines AS (` + latestLines + `)
+				SELECT l.period_start::text, pr.label_mn,
 				       SUM(l.opening_liters)::float8, SUM(l.receipts_liters)::float8,
 				       SUM(l.sales_liters)::float8, SUM(l.closing_liters)::float8,
+				       SUM(COALESCE(l.closing_liters_15c, l.closing_liters))::float8,
 				       SUM(l.variance_liters)::float8
-				  FROM petro_report_lines l
-				  JOIN petro_report_submissions s ON s.id = l.submission_id
-				  JOIN petro_report_periods p ON p.id = s.period_id
+				  FROM lines l
 				  JOIN petro_products pr ON pr.code = l.product_code
-				 WHERE s.status IN ('submitted', 'approved')
-				   AND p.period_start BETWEEN $1::date AND $2::date
-				 GROUP BY p.period_start, pr.label_mn, pr.sort_order
+				 GROUP BY l.period_start, pr.label_mn, pr.sort_order
 				 ORDER BY 1 DESC, pr.sort_order`,
 		},
 		{

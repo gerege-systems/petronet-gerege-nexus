@@ -431,3 +431,139 @@ func TestRefreshRetiresTheRowsOfAClosedSite(t *testing.T) {
 		t.Fatalf("a closed site left %v litres in the national total", after)
 	}
 }
+
+// ── аудитын §1 ба §2 — гинжний хасах тэмдэг ──────────────────────────────────
+
+// The bug this guards: every stock write in the module was an addition, so a
+// litre that left a depot was still counted there and counted again where it
+// arrived. The national total — the number the system exists to produce — was
+// double.
+func TestFuelLeavesTheDepotWhenALorryIsLoaded(t *testing.T) {
+	pool := openFuelPool(t)
+	company := newCompany(t, pool, "outflow")
+	depotID, tankID := company.base(t, 100000)
+	shipmentID := company.declare(t, 60000)
+	company.clear(t, shipmentID)
+	if rec := company.receive(t, depotID, tankID, shipmentID, 60000); rec.Code != http.StatusCreated {
+		t.Fatalf("receive into depot: %d %s", rec.Code, rec.Body.String())
+	}
+	if level := company.tankLevel(t, pool, tankID); level != 60000 {
+		t.Fatalf("tank holds %v after the receipt, want 60000", level)
+	}
+
+	stationID := company.sells(t, "Хүлээн авагч ШТС", 40000, 3190)
+	rec := company.call(t, company.module.handleDispatchFromDepot, http.MethodPost,
+		"/depots/x/dispatch",
+		DispatchDraft{TankID: tankID, ToStationID: stationID, Liters: 20000,
+			TankerPlate: "1234 УБА", OpenMovement: true},
+		map[string]string{"id": depotID})
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("dispatch: %d %s", rec.Code, rec.Body.String())
+	}
+	out := decode[Dispatch](t, rec)
+	if out.TankAfterLiters != 40000 {
+		t.Fatalf("tank holds %v after loading 20000 of 60000, want 40000", out.TankAfterLiters)
+	}
+	if level := company.tankLevel(t, pool, tankID); level != 40000 {
+		t.Fatalf("the tank row says %v, want 40000", level)
+	}
+	if out.MovementRef == "" {
+		t.Fatal("the load opened no movement")
+	}
+}
+
+// A base cannot send out more than it holds, and the refusal is the database's.
+func TestADepotCannotDispatchMoreThanItHolds(t *testing.T) {
+	pool := openFuelPool(t)
+	company := newCompany(t, pool, "overdraw")
+	depotID, tankID := company.base(t, 100000)
+	shipmentID := company.declare(t, 10000)
+	company.clear(t, shipmentID)
+	company.receive(t, depotID, tankID, shipmentID, 10000)
+
+	rec := company.call(t, company.module.handleDispatchFromDepot, http.MethodPost,
+		"/depots/x/dispatch",
+		DispatchDraft{TankID: tankID, Liters: 25000, TankerPlate: "5678 УБА"},
+		map[string]string{"id": depotID})
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("an overdraw answered %d %s", rec.Code, rec.Body.String())
+	}
+	if level := company.tankLevel(t, pool, tankID); level != 10000 {
+		t.Fatalf("the refused load still moved the tank to %v", level)
+	}
+}
+
+// Audit §2: the voucher columns existed, the reader read them, and nothing
+// ever wrote them — so a voucher's only ending was expiry, which gives the
+// money back. Selling fuel is what closes it, and it closes exactly once.
+func TestASaleDrawsDownTheForecourtAndClosesTheVoucher(t *testing.T) {
+	pool := openFuelPool(t)
+	company := newCompany(t, pool, "sale")
+	stationID := company.sells(t, "Түгээх ШТС", 40000, 3190)
+
+	// Fuel has to arrive before it can be sold.
+	if _, err := pool.Exec(context.Background(), `
+		UPDATE petro_station_inventory SET current_stock_liters = 5000
+		 WHERE station_id = $1::uuid AND fuel_type = 'ai92'`, stationID); err != nil {
+		t.Fatalf("seed the tank: %v", err)
+	}
+
+	var voucherID string
+	if err := pool.QueryRow(context.Background(), `
+		INSERT INTO petro_vouchers
+		       (citizen_id, tenant_id, for_date, amount_mnt, fuel_type, qr_token, expires_at)
+		VALUES (gen_random_uuid(), $1::uuid, CURRENT_DATE, 50000, 'ai92', $2, NOW() + INTERVAL '3 hours')
+		RETURNING id::text`, company.tenantID, uuid.NewString()).Scan(&voucherID); err != nil {
+		t.Fatalf("create a voucher: %v", err)
+	}
+
+	rec := company.call(t, company.module.handleRecordSale, http.MethodPost, "/stations/x/sales",
+		SaleDraft{FuelType: "ai92", Liters: 15, VoucherID: voucherID},
+		map[string]string{"id": stationID})
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("sale: %d %s", rec.Code, rec.Body.String())
+	}
+	if sale := decode[Sale](t, rec); sale.StockAfterLiter != 4985 {
+		t.Fatalf("stock is %v after selling 15 of 5000, want 4985", sale.StockAfterLiter)
+	}
+
+	var status string
+	var redeemed *string
+	if err := pool.QueryRow(context.Background(),
+		`SELECT status, redeemed_at::text FROM petro_vouchers WHERE id = $1::uuid`,
+		voucherID).Scan(&status, &redeemed); err != nil {
+		t.Fatalf("read the voucher: %v", err)
+	}
+	if status != "redeemed" || redeemed == nil {
+		t.Fatalf("the voucher is %q, redeemed_at %v", status, redeemed)
+	}
+
+	// A second scan of the same code must not dispense again.
+	rec = company.call(t, company.module.handleRecordSale, http.MethodPost, "/stations/x/sales",
+		SaleDraft{FuelType: "ai92", Liters: 15, VoucherID: voucherID},
+		map[string]string{"id": stationID})
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("a spent voucher was accepted again: %d %s", rec.Code, rec.Body.String())
+	}
+}
+
+// Audit §8: the forecourt table had no capacity CHECK, so a delivery into a
+// nearly-full tank produced a level no vessel could hold — invisible on screen
+// because the public API clamps the percentage at 100.
+func TestAForecourtTankCannotBeOverfilled(t *testing.T) {
+	pool := openFuelPool(t)
+	company := newCompany(t, pool, "overfill")
+	stationID := company.sells(t, "Дүүрэн ШТС", 30000, 3190)
+
+	if _, err := pool.Exec(context.Background(), `
+		UPDATE petro_station_inventory SET current_stock_liters = 28000
+		 WHERE station_id = $1::uuid AND fuel_type = 'ai92'`, stationID); err != nil {
+		t.Fatalf("seed the tank: %v", err)
+	}
+	_, err := pool.Exec(context.Background(), `
+		UPDATE petro_station_inventory SET current_stock_liters = current_stock_liters + 20000
+		 WHERE station_id = $1::uuid AND fuel_type = 'ai92'`, stationID)
+	if err == nil {
+		t.Fatal("a 30,000 litre tank accepted 48,000 litres")
+	}
+}

@@ -38,6 +38,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -177,7 +178,7 @@ func run(tenantSlug, file, brand string, dryRun, demoStock bool) error {
 			       (tenant_id, name, brand, brand_label, lat, lon,
 			        aimag, district, address, opening_hours, status,
 			        source, source_ref, updated_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $7, $8, $9, $10, $11, $12, NOW())
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
 			ON CONFLICT (tenant_id, source, source_ref)
 			  WHERE source IS NOT NULL AND source_ref IS NOT NULL
 			DO UPDATE SET name = EXCLUDED.name,
@@ -193,7 +194,8 @@ func run(tenantSlug, file, brand string, dryRun, demoStock bool) error {
 			              updated_at = NOW()
 			RETURNING id::text`,
 			tenantID, s.Name, s.Brand, s.BrandLabel, s.Lat, s.Lon,
-			s.District, s.Address, defaultTo(s.OpeningHours, "24/7"),
+			aimagOf(s.District), districtOf(s.District), s.Address,
+			defaultTo(s.OpeningHours, "24/7"),
 			defaultTo(s.Status, "available"), sourceName, s.ID,
 		).Scan(&id)
 		if err != nil {
@@ -297,4 +299,33 @@ func defaultTo(value, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+// aimagOf and districtOf split the one place name the source file carries.
+//
+// The seed's `district` holds either a province ("Архангай аймаг") or a
+// district of the capital ("Багахангай"), and the importer used to write it
+// into BOTH columns — `VALUES (…, $7, $7, …)`. Every station in Ulaanbaatar
+// then had a province called Bayangol, and the national table, which groups by
+// province, produced a breakdown of a country that does not exist (audit §14).
+//
+// The rule is the country's own: a name ending in "аймаг" is a province, and
+// anything else is a district of the capital.
+func aimagOf(place string) string {
+	place = strings.TrimSpace(place)
+	if place == "" {
+		return ""
+	}
+	if strings.HasSuffix(place, "аймаг") {
+		return place
+	}
+	return "Улаанбаатар"
+}
+
+func districtOf(place string) string {
+	place = strings.TrimSpace(place)
+	if strings.HasSuffix(place, "аймаг") {
+		return ""
+	}
+	return place
 }

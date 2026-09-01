@@ -79,6 +79,10 @@ type NationalRow struct {
 	SitesTotal     int      `json:"sites_total"`
 	SitesReported  int      `json:"sites_reported"`
 	DaysOfSupply   *float64 `json:"days_of_supply"`
+
+	// Carried while the product rows are being summed; not serialised.
+	daysOfSupplySum    float64 `json:"-"`
+	daysOfSupplyWeight float64 `json:"-"`
 }
 
 // handleNationalDashboard answers the state's picture of the country.
@@ -126,8 +130,6 @@ func (m *Module) handleNationalDashboard(w http.ResponseWriter, r *http.Request)
 			return
 		}
 		detail = append(detail, n)
-		sitesTotal += n.SitesTotal
-		sitesReported += n.SitesReported
 
 		agg, seen := byProduct[n.ProductCode]
 		if !seen {
@@ -135,24 +137,59 @@ func (m *Module) handleNationalDashboard(w http.ResponseWriter, r *http.Request)
 			row.Aimag = ""
 			byProduct[n.ProductCode] = &row
 			productOrder = append(productOrder, n.ProductCode)
-			continue
+		} else {
+			agg.StockLiters += n.StockLiters
+			agg.CapacityLiters += n.CapacityLiters
+			agg.ReceiptsLiters += n.ReceiptsLiters
+			agg.SalesLiters += n.SalesLiters
+			agg.SitesTotal += n.SitesTotal
+			agg.SitesReported += n.SitesReported
 		}
-		agg.StockLiters += n.StockLiters
-		agg.CapacityLiters += n.CapacityLiters
-		agg.ReceiptsLiters += n.ReceiptsLiters
-		agg.SalesLiters += n.SalesLiters
-		agg.SitesTotal += n.SitesTotal
-		agg.SitesReported += n.SitesReported
+		// Weighted by the stock it describes: a province holding a million
+		// litres and one holding a thousand must not count equally toward the
+		// national figure.
+		if n.DaysOfSupply != nil && n.StockLiters > 0 {
+			byProduct[n.ProductCode].daysOfSupplySum += *n.DaysOfSupply * n.StockLiters
+			byProduct[n.ProductCode].daysOfSupplyWeight += n.StockLiters
+		}
 	}
 
-	// Days of supply is recomputed from the summed stock and sales rather than
-	// averaged across provinces: an average of ratios answers a question nobody
-	// asked, and it is the headline number.
+	// Sites are counted once, from the register, rather than by summing the
+	// per-grade rows.
+	if err := m.db.QueryRow(r.Context(), `
+		WITH sites AS (
+			SELECT id FROM petro_stations WHERE registry_status <> 'closed'
+			UNION ALL
+			SELECT id FROM petro_depots WHERE registry_status <> 'closed')
+		SELECT count(*)::int FROM sites`).Scan(&sitesTotal); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not count the register")
+		return
+	}
+	if err := m.db.QueryRow(r.Context(), `
+		SELECT count(DISTINCT (l.site_kind, l.site_id))::int
+		  FROM petro_report_lines l
+		  JOIN petro_report_submissions s ON s.id = l.submission_id
+		  JOIN petro_report_periods p ON p.id = s.period_id
+		 WHERE p.period_start = $1::date AND s.status IN ('submitted', 'approved')`,
+		day).Scan(&sitesReported); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not count the reporters")
+		return
+	}
+
+	// Days of supply comes from the stored column, summed, and is not
+	// recomputed here.
+	//
+	// It used to be `stock / sales_today`, while the column it was overwriting
+	// held `stock / seven-day average`. The two disagreed inside one response:
+	// a Sunday, when a grade sells a third of its weekly average, showed twelve
+	// days in the province rows and thirty-six in the product rows — and the
+	// larger one was the headline, and the one published as open data (audit
+	// §24). One definition, in the table, where the refresh put it.
 	products := make([]NationalRow, 0, len(productOrder))
 	for _, code := range productOrder {
 		p := byProduct[code]
-		if p.SalesLiters > 0 {
-			dos := p.StockLiters / p.SalesLiters
+		if p.daysOfSupplyWeight > 0 {
+			dos := p.daysOfSupplySum / p.daysOfSupplyWeight
 			p.DaysOfSupply = &dos
 		} else {
 			p.DaysOfSupply = nil
@@ -160,6 +197,13 @@ func (m *Module) handleNationalDashboard(w http.ResponseWriter, r *http.Request)
 		products = append(products, *p)
 	}
 
+	// Coverage counts forecourts, not forecourt×grade pairs.
+	//
+	// The table is keyed by (day, product, province), so summing sites_total
+	// across every grade counted a station that sells three grades three times:
+	// a country of five hundred stations reported "412 of 1,500" — the number
+	// the file's own header calls the first row on the screen, three times
+	// larger than the register (audit §25).
 	coverage := 0.0
 	if sitesTotal > 0 {
 		coverage = float64(sitesReported) / float64(sitesTotal) * 100
@@ -243,6 +287,10 @@ func (m *Module) handleGaps(w http.ResponseWriter, r *http.Request) {
 		}
 		g.Overdue = true
 		missing = append(missing, g)
+	}
+	if err := rows.Err(); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not read the rows")
+		return
 	}
 
 	nexus.JSON(w, http.StatusOK, map[string]any{
@@ -396,11 +444,28 @@ func (m *Module) handlePublicDaily(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// The same two corrections the oversight dashboard needed: days of supply
+	// is the stored column, weighted by the stock it describes, and the site
+	// counts come from the rows rather than from summing them across grades.
 	rows, err := m.db.Query(r.Context(), `
 		SELECT n.product_code, pr.label_mn,
 		       SUM(n.stock_liters)::float8, SUM(n.capacity_liters)::float8,
 		       SUM(n.sales_liters)::float8,
-		       SUM(n.sites_total)::int, SUM(n.sites_reported)::int
+		       (SELECT count(*)::int FROM (
+		           SELECT id FROM petro_stations WHERE registry_status <> 'closed'
+		           UNION ALL
+		           SELECT id FROM petro_depots WHERE registry_status <> 'closed') s),
+		       (SELECT count(DISTINCT (l.site_kind, l.site_id))::int
+		          FROM petro_report_lines l
+		          JOIN petro_report_submissions sub ON sub.id = l.submission_id
+		          JOIN petro_report_periods p ON p.id = sub.period_id
+		         WHERE p.period_start = $1::date
+		           AND sub.status IN ('submitted', 'approved')
+		           AND l.product_code = n.product_code),
+		       CASE WHEN SUM(n.stock_liters) FILTER (WHERE n.days_of_supply IS NOT NULL) > 0
+		            THEN SUM(n.days_of_supply * n.stock_liters)
+		                 / SUM(n.stock_liters) FILTER (WHERE n.days_of_supply IS NOT NULL)
+		       END::float8
 		  FROM petro_daily_national n
 		  JOIN petro_products pr ON pr.code = n.product_code
 		 WHERE n.day = $1::date
@@ -427,15 +492,15 @@ func (m *Module) handlePublicDaily(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var p publicRow
 		if err := rows.Scan(&p.ProductCode, &p.ProductLabel, &p.StockLiters, &p.CapacityL,
-			&p.SalesLiters, &p.SitesTotal, &p.SitesReported); err != nil {
+			&p.SalesLiters, &p.SitesTotal, &p.SitesReported, &p.DaysOfSupply); err != nil {
 			nexus.Error(w, http.StatusInternalServerError, "could not read the daily figures")
 			return
 		}
-		if p.SalesLiters > 0 {
-			dos := p.StockLiters / p.SalesLiters
-			p.DaysOfSupply = &dos
-		}
 		out = append(out, p)
+	}
+	if err := rows.Err(); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not read the daily figures")
+		return
 	}
 
 	nexus.JSON(w, http.StatusOK, map[string]any{"day": day, "products": out})

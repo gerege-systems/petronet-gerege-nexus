@@ -298,6 +298,16 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
 			Post("/depots/{id}/receipts", m.handleReceiveIntoDepot)
 
+		// The two acts that take fuel OUT — the chain's missing minus sign.
+		// Loading a lorry draws down a base's tank; dispensing draws down a
+		// forecourt's and closes the voucher, if one was presented. Before
+		// these existed every litre that left a depot was still counted there
+		// and counted again where it arrived (audit §1, §2).
+		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
+			Post("/depots/{id}/dispatch", m.handleDispatchFromDepot)
+		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
+			Post("/stations/{id}/sales", m.handleRecordSale)
+
 		// A citizen's own ration and the vouchers drawn on it.
 		//
 		// Inside the gate: taking a share of a national ration is not something

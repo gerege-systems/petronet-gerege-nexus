@@ -151,3 +151,47 @@ func TestCountBySeverity(t *testing.T) {
 		t.Fatalf("counts = %d errors, %d warnings; want 2, 1", errors, warnings)
 	}
 }
+
+// Audit §26: stripping every comma turned a decimal comma into ten times the
+// figure, silently — the sender's own workbook showed the right number.
+func TestSpreadsheetNumbersAreReadInEitherConvention(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]string{
+		"1234,5":    "1234.5",   // decimal comma
+		"19 000,25": "19000.25", // grouped with spaces, decimal comma
+		// Three digits after the comma is a thousands group everywhere it is
+		// written; two or fewer is a decimal comma. Litres are stored to three
+		// decimals, so the ambiguity is real — and a person typing 1,234 for
+		// one and a bit litres is rarer than one typing it for 1,234.
+		"1,234":     "1234",
+		"1,234,567": "1234567",  // grouped with commas
+		"12345.67":  "12345.67", // plain
+		"  ":        "",
+	}
+	for cell, want := range cases {
+		if got := readNumber(cell); got != want {
+			t.Errorf("readNumber(%q) = %q, want %q", cell, got, want)
+		}
+	}
+}
+
+// Audit §27: the template arrives with the site filled in, so "has a site id"
+// never meant "somebody answered".
+func TestAnUntouchedTemplateRowIsNotAZeroReport(t *testing.T) {
+	t.Parallel()
+
+	blank := make([]string, colNote+1)
+	blank[colSiteID] = "some-uuid"
+	blank[colOpening] = "8000" // issued by the system, not typed by the sender
+	if !untouched(blank) {
+		t.Fatal("a row nobody filled in was taken for a report of zero")
+	}
+
+	answered := make([]string, colNote+1)
+	answered[colSiteID] = "some-uuid"
+	answered[colClosing] = "0"
+	if untouched(answered) {
+		t.Fatal("a deliberate zero was discarded")
+	}
+}

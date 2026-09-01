@@ -292,3 +292,29 @@ func isUniqueViolation(err error) bool {
 	var pgErr interface{ SQLState() string }
 	return errors.As(err, &pgErr) && pgErr.SQLState() == "23505"
 }
+
+// isUUID says whether a path or body value can be cast to uuid at all.
+//
+// Ten places used to interpolate `$1::uuid` straight from a URL, so a request
+// for /depots/not-a-uuid/receipts answered 500 rather than 400 — an invalid
+// request reported as a server fault (audit §35). Checking the shape here is
+// cheaper than teaching every query to recognise 22P02.
+func isUUID(value string) bool {
+	if len(value) != 36 {
+		return false
+	}
+	for i, c := range value {
+		switch i {
+		case 8, 13, 18, 23:
+			if c != '-' {
+				return false
+			}
+		default:
+			isHex := (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+			if !isHex {
+				return false
+			}
+		}
+	}
+	return true
+}

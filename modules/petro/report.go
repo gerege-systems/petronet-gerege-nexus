@@ -356,7 +356,18 @@ func (m *Module) submitDraft(w http.ResponseWriter, r *http.Request, periodID st
 			j.std = &corrected
 		}
 		if throughput := l.Opening + l.Receipts; throughput > 0 {
+			// variance_pct is NUMERIC(8,4), so ±9999.9999. A closing figure
+			// typed into the wrong box — a totaliser reading where a level
+			// belongs — produces tens of thousands of per cent and a numeric
+			// overflow that rolls the whole submission back. The number is a
+			// signal, not a measurement: clamped, it still says "impossible".
 			pct := j.residual / throughput * 100
+			if pct > 9999 {
+				pct = 9999
+			}
+			if pct < -9999 {
+				pct = -9999
+			}
 			j.pct = &pct
 		}
 		graded = append(graded, j)
@@ -381,12 +392,23 @@ func (m *Module) submitDraft(w http.ResponseWriter, r *http.Request, periodID st
 	var version int
 	var seq int64
 	var prevHash []byte
+	// Every one of these three is per company, and none of them said so.
+	//
+	// The row-level policy on this table is deliberately wider than one
+	// organisation — a supervisory body reads across all of them — so a query
+	// that leaves the tenant out does not get narrowed by the policy the way an
+	// ordinary one would. A sender inside a supervisory body was numbering
+	// versions from somebody else's history, colliding on the (tenant_id, seq)
+	// index, and chaining their hash to another company's submission (audit
+	// §12). tenantID was already in scope; it simply was not used.
 	err = tx.QueryRow(r.Context(), `
-		SELECT COALESCE(MAX(version) FILTER (WHERE period_id = $1), 0) + 1,
+		SELECT COALESCE(MAX(version) FILTER (WHERE period_id = $2), 0) + 1,
 		       COALESCE(MAX(seq), 0) + 1,
 		       (SELECT hash FROM petro_report_submissions
-		         WHERE seq = (SELECT MAX(seq) FROM petro_report_submissions))
-		  FROM petro_report_submissions`, periodID).Scan(&version, &seq, &prevHash)
+		         WHERE tenant_id = $1
+		           AND seq = (SELECT MAX(seq) FROM petro_report_submissions WHERE tenant_id = $1))
+		  FROM petro_report_submissions
+		 WHERE tenant_id = $1`, tenantID, periodID).Scan(&version, &seq, &prevHash)
 	if err != nil {
 		nexus.Error(w, http.StatusInternalServerError, "could not place the submission")
 		return
@@ -425,6 +447,15 @@ func (m *Module) submitDraft(w http.ResponseWriter, r *http.Request, periodID st
 	submission.Hash = hex.EncodeToString(hash)
 
 	for _, j := range graded {
+		// A line the dictionary does not know cannot be stored: product_code is
+		// a foreign key, and inserting it would raise 23503 and roll back the
+		// other eleven hundred rows — the submission would come back as a bare
+		// 400 with no findings, which is the opposite of what this module
+		// promises (audit §11). The finding is kept against the submission
+		// instead, so the sender still learns which row and why.
+		if _, known := categories[j.line.ProductCode]; !known {
+			continue
+		}
 		var lineID string
 		err = tx.QueryRow(r.Context(), `
 			INSERT INTO petro_report_lines
@@ -445,19 +476,20 @@ func (m *Module) submitDraft(w http.ResponseWriter, r *http.Request, periodID st
 			return
 		}
 
-		for _, f := range j.findings {
-			detail, _ := json.Marshal(f.Detail)
-			if f.Detail == nil {
-				detail = nil
-			}
-			if _, err := tx.Exec(r.Context(), `
-				INSERT INTO petro_validation_findings
-				       (submission_id, tenant_id, line_id, rule, severity, message, detail)
-				VALUES ($1::uuid, $2, $3::uuid, $4, $5, $6, $7)`,
-				submission.ID, tenantID, lineID, f.Rule, f.Severity, f.Message, detail); err != nil {
-				nexus.Error(w, http.StatusInternalServerError, "could not record the findings")
-				return
-			}
+		if err := m.writeFindings(r.Context(), tx, submission.ID, tenantID, &lineID, j.findings); err != nil {
+			nexus.Error(w, http.StatusInternalServerError, "could not record the findings")
+			return
+		}
+	}
+
+	// Findings for the lines that could not be stored at all.
+	for _, j := range graded {
+		if _, known := categories[j.line.ProductCode]; known {
+			continue
+		}
+		if err := m.writeFindings(r.Context(), tx, submission.ID, tenantID, nil, j.findings); err != nil {
+			nexus.Error(w, http.StatusInternalServerError, "could not record the findings")
+			return
 		}
 	}
 
@@ -824,6 +856,31 @@ func (m *Module) EnsurePeriods(ctx context.Context, through time.Time, pol Polic
 			return err
 		}
 		day = day.AddDate(0, 0, 1)
+	}
+	return nil
+}
+
+// writeFindings records what validation found, against a line when there is
+// one and against the submission when the line could not be stored.
+//
+// One place rather than two loops with the same INSERT, because the pair
+// differ only in whether line_id is null — and a copy that drifted would leave
+// one class of finding silently unwritten.
+func (m *Module) writeFindings(ctx context.Context, tx pgx.Tx, submissionID, tenantID string,
+	lineID *string, findings []Finding,
+) error {
+	for _, f := range findings {
+		var detail []byte
+		if f.Detail != nil {
+			detail, _ = json.Marshal(f.Detail)
+		}
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO petro_validation_findings
+			       (submission_id, tenant_id, line_id, rule, severity, message, detail)
+			VALUES ($1::uuid, $2, NULLIF($3, '')::uuid, $4, $5, $6, $7)`,
+			submissionID, tenantID, derefOrEmpty(lineID), f.Rule, f.Severity, f.Message, detail); err != nil {
+			return err
+		}
 	}
 	return nil
 }

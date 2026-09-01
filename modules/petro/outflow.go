@@ -1,0 +1,349 @@
+/*
+ * Gerege Nexus
+ * Copyright (c) 2026 Gerege Systems Development Team, Gerege Nomadica Foundation.
+ * Distributed under the Apache 2.0 License.
+ *
+ * Түлш гарах хоёр зам — гинжний дутуу байсан хасах тэмдэг.
+ *
+ * # Юу дутуу байсан бэ
+ *
+ * Аудитын №1: модуль дотор нөөцийн бичилт бүр НЭМЭХ үйлдэл байв. Агуулахын
+ * сав `+`, ШТС-ийн сав `+`, партийн хүлээн авалт `+`. `petro_depot_tanks` ба
+ * `petro_station_inventory`-оос хасах ганц ч мэдэгдэл репод байгаагүй. Үр дүн
+ * нь: агуулахад 100,000 л хүлээж авна → сав 100,000. Тэндээс рейс гарч ШТС
+ * дээр 100,000 л хүлээж авна → ШТС 100,000, агуулах ХЭВЭЭР 100,000. Улсын
+ * нөөц гэж 200,000 л мэдээлэгдэнэ — систем оршин байгаагийн гол шалтгаан
+ * болох тэр тоо хоёр дахин.
+ *
+ * # Хоёр үйл явдал, хоёулаа нэг зарчимтай
+ *
+ *	ачилт    агуулахын савнаас хасаж, рейс үүсгэнэ
+ *	түгээлт  ШТС-ийн савнаас хасаж, ваучерыг хаана
+ *
+ * Хоёулаа транзакц: сав буурсан атлаа рейс үүсээгүй бол түлш алга болно, рейс
+ * үүссэн атлаа сав буураагүй бол түлш хоёр дахин болно. Аль нь ч болохгүй.
+ *
+ * # Сөрөг үлдэгдлийг өгөгдлийн сан татгалзана
+ *
+ * `tank_within_capacity` CHECK нь 0-ээс доош унахыг аль хэдийн хориглодог —
+ * агуулахын хувьд шалгалт нь энд биш тэнд. ШТС-ийн хүснэгтэд тийм CHECK
+ * байгаагүй тул 00012 түүнийг нэмнэ (аудитын №8). Хоёр тохиолдолд ч handler
+ * эхлээд уншаад дараа нь бичдэггүй: хоёр зэрэг түгээлт хоёулаа «хангалттай
+ * байна» гэж уншаад хоёулаа хасах болно.
+ */
+
+package petro
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+
+	"github.com/gerege-systems/open-gerege-nexus/backend/pkg/nexus"
+	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
+)
+
+// DispatchDraft loads a tanker at a depot.
+type DispatchDraft struct {
+	TankID       string  `json:"tank_id"`
+	ToStationID  string  `json:"to_station_id"`
+	Liters       float64 `json:"liters"`
+	TankerPlate  string  `json:"tanker_plate"`
+	DriverName   string  `json:"driver_name"`
+	DriverPhone  string  `json:"driver_phone"`
+	SealNo       string  `json:"seal_no"`
+	TripCode     string  `json:"trip_code"`
+	OpenMovement bool    `json:"open_movement"`
+}
+
+// Dispatch is a loaded tanker on its way.
+type Dispatch struct {
+	TripID          string  `json:"trip_id"`
+	TripCode        string  `json:"trip_code"`
+	FuelType        string  `json:"fuel_type"`
+	Liters          float64 `json:"liters"`
+	TankAfterLiters float64 `json:"tank_after_liters"`
+	MovementRef     string  `json:"movement_ref,omitempty"`
+	ToStationID     string  `json:"to_station_id,omitempty"`
+}
+
+// handleDispatchFromDepot takes fuel out of a depot tank and puts it on a lorry.
+//
+// This is the event the chain was missing. Until it existed the only way a
+// depot's level could change was upward, so every litre that left a base was
+// still counted there — and counted again at the forecourt it reached.
+func (m *Module) handleDispatchFromDepot(w http.ResponseWriter, r *http.Request) {
+	claims, err := nexus.UserFromContext(r.Context())
+	if err != nil {
+		nexus.Error(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	tenantID, ok := nexus.RequireWorkspace(w, r)
+	if !ok {
+		return
+	}
+	depotID := chi.URLParam(r, "id")
+
+	var draft DispatchDraft
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&draft); err != nil {
+		nexus.Error(w, http.StatusBadRequest, "invalid payload")
+		return
+	}
+	if !isUUID(draft.TankID) {
+		nexus.Error(w, http.StatusBadRequest, "савны id буруу")
+		return
+	}
+	if draft.Liters <= 0 {
+		nexus.Error(w, http.StatusBadRequest, "ачих хэмжээ 0-ээс их байх ёстой")
+		return
+	}
+	if draft.ToStationID != "" && !isUUID(draft.ToStationID) {
+		nexus.Error(w, http.StatusBadRequest, "ШТС-ийн id буруу")
+		return
+	}
+	if draft.TankerPlate == "" {
+		nexus.Error(w, http.StatusBadRequest, "цистерний улсын дугаар заавал")
+		return
+	}
+
+	tx, err := m.db.Begin(r.Context())
+	if err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not open a transaction")
+		return
+	}
+	defer func() { _ = tx.Rollback(r.Context()) }()
+
+	// Out of the tank first, and by subtraction rather than by assignment: two
+	// lorries loading at once must not both read the same level and both
+	// succeed. The CHECK constraint is what refuses the overdraw, so the
+	// decision is the database's and applies to every future caller too.
+	var out Dispatch
+	err = tx.QueryRow(r.Context(), `
+		UPDATE petro_depot_tanks
+		   SET current_liters = current_liters - $3, updated_at = NOW()
+		 WHERE id = $1::uuid AND depot_id = $2::uuid
+		RETURNING fuel_type, fuel_label, current_liters::float8`,
+		draft.TankID, depotID, draft.Liters).
+		Scan(&out.FuelType, new(string), &out.TankAfterLiters)
+	if errors.Is(err, pgx.ErrNoRows) {
+		nexus.Error(w, http.StatusNotFound, "энэ баазад ийм сав олдсонгүй")
+		return
+	}
+	if isCheckViolation(err) {
+		nexus.Error(w, http.StatusConflict, "савны үлдэгдэл хүрэлцэхгүй байна")
+		return
+	}
+	if err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not draw from the tank")
+		return
+	}
+	out.Liters = draft.Liters
+
+	code := draft.TripCode
+	if code == "" {
+		code = nationalRef(nexus.Now())
+	}
+	out.TripCode = code
+
+	var station *string
+	if draft.ToStationID != "" {
+		station = &draft.ToStationID
+		out.ToStationID = draft.ToStationID
+	}
+
+	err = tx.QueryRow(r.Context(), `
+		INSERT INTO petro_dispatch_trips
+		       (tenant_id, trip_code, tanker_plate, driver_name, driver_phone,
+		        to_station_id, fuel_type, fuel_label, volume_liters, seal_no,
+		        from_depot_id, from_tank_id, status)
+		VALUES ($1, $2, $3, $4, $5, $6::uuid, $7, $8, $9, $10, $11::uuid, $12::uuid, 'in_transit')
+		RETURNING id::text`,
+		tenantID, code, draft.TankerPlate, draft.DriverName, draft.DriverPhone,
+		station, out.FuelType, fuelLabel(out.FuelType), draft.Liters, draft.SealNo,
+		depotID, draft.TankID).Scan(&out.TripID)
+	if err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not record the trip")
+		return
+	}
+
+	// One act, one movement — the object the regulator can chase. Optional
+	// because a company may not be registering movements yet, and a load that
+	// happened is worth recording either way.
+	if draft.OpenMovement {
+		ref := nationalRef(nexus.Now())
+		if _, err := tx.Exec(r.Context(), `
+			INSERT INTO petro_movements
+			       (tenant_id, national_ref, from_kind, from_id, to_kind, to_id,
+			        product_code, declared_liters, trip_id, due_at)
+			VALUES ($1, $2, 'depot', $3::uuid, 'station', $4::uuid, $5, $6, $7::uuid,
+			        NOW() + INTERVAL '72 hours')`,
+			tenantID, ref, depotID, station, out.FuelType, draft.Liters, out.TripID); err != nil {
+			nexus.Error(w, http.StatusBadRequest, "could not open the movement")
+			return
+		}
+		out.MovementRef = ref
+	}
+
+	if err := tx.Commit(r.Context()); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not commit the dispatch")
+		return
+	}
+
+	nexus.Audit(r.Context(), tenantID, claims.UserID, "petro.depot.dispatched", out.TripID,
+		map[string]any{"depot_id": depotID, "tank_id": draft.TankID,
+			"liters": draft.Liters, "plate": draft.TankerPlate})
+
+	nexus.JSON(w, http.StatusCreated, out)
+}
+
+// SaleDraft is fuel leaving a forecourt.
+//
+// VoucherID is optional: most litres in this country are bought with money.
+// When it is present the sale also closes the voucher, which is the only place
+// in the system that ever does — see handleRecordSale.
+type SaleDraft struct {
+	FuelType  string  `json:"fuel_type"`
+	Liters    float64 `json:"liters"`
+	VoucherID string  `json:"voucher_id"`
+	QRToken   string  `json:"qr_token"`
+	Note      string  `json:"note"`
+}
+
+// Sale is what the forecourt is left with.
+type Sale struct {
+	StationID       string   `json:"station_id"`
+	FuelType        string   `json:"fuel_type"`
+	Liters          float64  `json:"liters"`
+	StockAfterLiter float64  `json:"stock_after_liters"`
+	VoucherID       string   `json:"voucher_id,omitempty"`
+	AmountMNT       *float64 `json:"amount_mnt,omitempty"`
+}
+
+// handleRecordSale takes fuel out of a forecourt tank, and closes a voucher if
+// one was presented.
+//
+// # Why the voucher is redeemed here and nowhere else
+//
+// Audit §2: the columns redeemed_at, redeemed_station_id and redeemed_liters
+// existed, handleMyVouchers read them, and nothing in the repository ever
+// wrote them. A voucher's only ending was expiry, and expiry gives the amount
+// back — so a citizen could draw fifty thousand tugrik, buy the fuel, and have
+// the entitlement returned to them three hours later, every three hours. The
+// daily limit existed only on paper.
+//
+// A voucher is spent at a pump, so the pump's own act — the sale — is what
+// closes it. A separate "redeem" endpoint would let a voucher be closed
+// without fuel moving, and fuel move without a voucher closing.
+func (m *Module) handleRecordSale(w http.ResponseWriter, r *http.Request) {
+	claims, err := nexus.UserFromContext(r.Context())
+	if err != nil {
+		nexus.Error(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	tenantID, ok := nexus.RequireWorkspace(w, r)
+	if !ok {
+		return
+	}
+	stationID := chi.URLParam(r, "id")
+	if !isUUID(stationID) {
+		nexus.Error(w, http.StatusBadRequest, "ШТС-ийн id буруу")
+		return
+	}
+
+	var draft SaleDraft
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&draft); err != nil {
+		nexus.Error(w, http.StatusBadRequest, "invalid payload")
+		return
+	}
+	if draft.Liters <= 0 {
+		nexus.Error(w, http.StatusBadRequest, "түгээсэн хэмжээ 0-ээс их байх ёстой")
+		return
+	}
+	if draft.VoucherID != "" && !isUUID(draft.VoucherID) {
+		nexus.Error(w, http.StatusBadRequest, "ваучерын id буруу")
+		return
+	}
+
+	tx, err := m.db.Begin(r.Context())
+	if err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not open a transaction")
+		return
+	}
+	defer func() { _ = tx.Rollback(r.Context()) }()
+
+	sale := Sale{StationID: stationID, Liters: draft.Liters}
+
+	// The voucher first: if it cannot be closed, no fuel should leave. Matched
+	// by id or by the QR the citizen presents, and only while it is active —
+	// the WHERE clause is what makes a second scan of the same code fail
+	// rather than dispense twice.
+	if draft.VoucherID != "" || draft.QRToken != "" {
+		var amount float64
+		var fuelType string
+		err = tx.QueryRow(r.Context(), `
+			UPDATE petro_vouchers
+			   SET status = 'redeemed', redeemed_at = NOW(),
+			       redeemed_station_id = $2::uuid, redeemed_liters = $3
+			 WHERE (id = NULLIF($1, '')::uuid OR qr_token = NULLIF($4, ''))
+			   AND status = 'active' AND expires_at > NOW()
+			RETURNING id::text, amount_mnt::float8, fuel_type`,
+			draft.VoucherID, stationID, draft.Liters, draft.QRToken).
+			Scan(&sale.VoucherID, &amount, &fuelType)
+		if errors.Is(err, pgx.ErrNoRows) {
+			nexus.Error(w, http.StatusConflict,
+				"ваучер идэвхгүй, хугацаа дууссан, эсвэл аль хэдийн ашиглагдсан байна")
+			return
+		}
+		if err != nil {
+			nexus.Error(w, http.StatusInternalServerError, "could not redeem the voucher")
+			return
+		}
+		sale.AmountMNT = &amount
+		if draft.FuelType == "" {
+			draft.FuelType = fuelType
+		}
+		if draft.FuelType != fuelType {
+			nexus.Error(w, http.StatusConflict, "ваучерын түлшний төрөл таарахгүй байна")
+			return
+		}
+	}
+
+	if draft.FuelType == "" {
+		nexus.Error(w, http.StatusBadRequest, "түлшний төрөл заавал")
+		return
+	}
+	sale.FuelType = draft.FuelType
+
+	// Out of the tank, by subtraction. The CHECK added in 00012 refuses a
+	// forecourt dispensing more than it holds.
+	err = tx.QueryRow(r.Context(), `
+		UPDATE petro_station_inventory
+		   SET current_stock_liters = current_stock_liters - $3, last_reported_at = NOW()
+		 WHERE station_id = $1::uuid AND fuel_type = $2
+		RETURNING current_stock_liters::float8`,
+		stationID, draft.FuelType, draft.Liters).Scan(&sale.StockAfterLiter)
+	if errors.Is(err, pgx.ErrNoRows) {
+		nexus.Error(w, http.StatusNotFound, "энэ ШТС дээр ийм түлш бүртгэлгүй байна")
+		return
+	}
+	if isCheckViolation(err) {
+		nexus.Error(w, http.StatusConflict, "савны үлдэгдэл хүрэлцэхгүй байна")
+		return
+	}
+	if err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not draw from the tank")
+		return
+	}
+
+	if err := tx.Commit(r.Context()); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not commit the sale")
+		return
+	}
+
+	nexus.Audit(r.Context(), tenantID, claims.UserID, "petro.station.dispensed", stationID,
+		map[string]any{"fuel_type": draft.FuelType, "liters": draft.Liters,
+			"voucher_id": sale.VoucherID})
+
+	nexus.JSON(w, http.StatusCreated, sale)
+}

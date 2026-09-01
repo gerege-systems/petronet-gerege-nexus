@@ -79,11 +79,21 @@ func (m *Module) handleSetNationalCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// An absent field is not an instruction to clear one. `PATCH {}` used to
+	// answer 200 with national_code null, and because the index is unique
+	// across the country another company's station could then take the freed
+	// licence number — with no way back (audit §22). Clearing it is still
+	// possible, by saying so: {"national_code": ""}.
+	if patch.NationalCode == nil {
+		nexus.Error(w, http.StatusBadRequest, "national_code талбарыг заана уу")
+		return
+	}
+
 	var code *string
 	// The table name comes from the switch above, never from the request.
 	err = m.db.QueryRow(r.Context(),
 		`UPDATE `+table+` SET national_code = NULLIF($2, ''), updated_at = NOW()
-		  WHERE id = $1::uuid RETURNING national_code`, id, derefOrEmpty(patch.NationalCode)).
+		  WHERE id = $1::uuid RETURNING national_code`, id, *patch.NationalCode).
 		Scan(&code)
 	if errors.Is(err, pgx.ErrNoRows) {
 		nexus.Error(w, http.StatusNotFound, "ийм объект олдсонгүй")
@@ -114,12 +124,17 @@ func (m *Module) handleSetNationalCode(w http.ResponseWriter, r *http.Request) {
 //	D  mechanical totalisers — a person reads them
 //
 // The February driver order falls out of counting these.
+// Pointers throughout, so a patch that mentions one field leaves the rest
+// alone. They were plain strings, and a follow-up {"has_internet": true} blanked
+// the class, the brand and the protocol while stamping census_at — the index
+// said "surveyed" and the summary counted it as "not surveyed" (audit §21).
+// Every other patch handler in this module already works this way.
 type CensusPatch struct {
-	IntegrationClass string `json:"integration_class"`
-	PumpBrand        string `json:"pump_brand"`
-	PumpProtocol     string `json:"pump_protocol"`
-	HasATG           *bool  `json:"has_atg"`
-	HasInternet      *bool  `json:"has_internet"`
+	IntegrationClass *string `json:"integration_class"`
+	PumpBrand        *string `json:"pump_brand"`
+	PumpProtocol     *string `json:"pump_protocol"`
+	HasATG           *bool   `json:"has_atg"`
+	HasInternet      *bool   `json:"has_internet"`
 }
 
 var integrationClasses = map[string]bool{"A": true, "B": true, "C": true, "D": true}
@@ -142,7 +157,8 @@ func (m *Module) handleCensus(w http.ResponseWriter, r *http.Request) {
 		nexus.Error(w, http.StatusBadRequest, "invalid payload")
 		return
 	}
-	if patch.IntegrationClass != "" && !integrationClasses[patch.IntegrationClass] {
+	if patch.IntegrationClass != nil && *patch.IntegrationClass != "" &&
+		!integrationClasses[*patch.IntegrationClass] {
 		nexus.Error(w, http.StatusBadRequest, "ангилал нь A, B, C, D-ийн нэг байна")
 		return
 	}
@@ -150,14 +166,15 @@ func (m *Module) handleCensus(w http.ResponseWriter, r *http.Request) {
 	var name, class string
 	err = m.db.QueryRow(r.Context(), `
 		UPDATE petro_stations
-		   SET integration_class = NULLIF($2, '')::char(1),
-		       pump_brand = $3, pump_protocol = $4,
-		       has_atg = COALESCE($5, has_atg),
-		       has_internet = COALESCE($6, has_internet),
+		   SET integration_class = COALESCE(NULLIF($2, '')::char(1), integration_class),
+		       pump_brand    = COALESCE($3, pump_brand),
+		       pump_protocol = COALESCE($4, pump_protocol),
+		       has_atg       = COALESCE($5, has_atg),
+		       has_internet  = COALESCE($6, has_internet),
 		       census_at = NOW(), updated_at = NOW()
 		 WHERE id = $1::uuid
 		RETURNING name, COALESCE(integration_class, '')`,
-		id, patch.IntegrationClass, patch.PumpBrand, patch.PumpProtocol,
+		id, derefOrEmpty(patch.IntegrationClass), patch.PumpBrand, patch.PumpProtocol,
 		patch.HasATG, patch.HasInternet).Scan(&name, &class)
 	if errors.Is(err, pgx.ErrNoRows) {
 		nexus.Error(w, http.StatusNotFound, "ийм ШТС олдсонгүй")
@@ -169,7 +186,8 @@ func (m *Module) handleCensus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	nexus.Audit(r.Context(), tenantID, claims.UserID, "petro.census.recorded", id,
-		map[string]any{"name": name, "class": class, "protocol": patch.PumpProtocol})
+		map[string]any{"name": name, "class": class,
+			"protocol": derefOrEmpty(patch.PumpProtocol)})
 
 	nexus.JSON(w, http.StatusOK, map[string]any{
 		"id": id, "name": name, "integration_class": class,

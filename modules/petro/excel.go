@@ -206,12 +206,29 @@ func (m *Module) handleSubmitExcel(w http.ResponseWriter, r *http.Request) {
 		if strings.TrimSpace(row[colSiteID]) == "" {
 			continue // a blank line in the middle of a sheet is not an error
 		}
+		// A row the sender never touched is not a report of zero.
+		//
+		// The template arrives with the site and the grade already filled in,
+		// so "site_id is present" said nothing about whether anybody answered.
+		// A company that filled in three of its forty forecourts submitted
+		// thirty-seven declarations of zero — counted as reported, added into
+		// the national total, and passing validation because a site with no
+		// history has nothing to be continuous with (audit §27).
+		if untouched(row) {
+			continue
+		}
 
+		// A cell is a number written by a person in a spreadsheet, so it may
+		// carry a thousands separator, a space, or a comma used as the decimal
+		// point. Stripping every comma turned `1234,5` — what a Mongolian or
+		// Russian locale writes — into `12345`, ten times the figure, with no
+		// error anywhere: the balance then failed and the sender could not find
+		// the cause in their own workbook (audit §26).
 		amount := func(index int) (float64, error) {
 			if index >= len(row) {
 				return 0, nil
 			}
-			raw := strings.TrimSpace(strings.ReplaceAll(row[index], ",", ""))
+			raw := readNumber(row[index])
 			if raw == "" {
 				return 0, nil
 			}
@@ -293,4 +310,34 @@ func (m *Module) handleSubmitExcel(w http.ResponseWriter, r *http.Request) {
 		IdempotencyKey: r.FormValue("idempotency_key"),
 		Lines:          lines,
 	})
+}
+
+// readNumber normalises one spreadsheet cell into something ParseFloat reads.
+//
+// Spaces and non-breaking spaces are thousands separators and go. What a comma
+// means depends on where it sits: with a comma and no dot, and two or fewer
+// digits after the last comma, it is a decimal point; otherwise it groups.
+func readNumber(cell string) string {
+	raw := strings.TrimSpace(cell)
+	raw = strings.NewReplacer(" ", "", "\u00a0", "", "\u202f", "").Replace(raw)
+	if raw == "" {
+		return ""
+	}
+
+	lastComma := strings.LastIndex(raw, ",")
+	if lastComma >= 0 && !strings.Contains(raw, ".") && len(raw)-lastComma-1 <= 2 {
+		return strings.Replace(raw, ",", ".", 1)
+	}
+	return strings.ReplaceAll(raw, ",", "")
+}
+
+// untouched says the sender left this template row exactly as it was issued:
+// every figure column blank.
+func untouched(row []string) bool {
+	for _, index := range []int{colReceipts, colSales, colTransfers, colAdjustments, colClosing} {
+		if index < len(row) && strings.TrimSpace(row[index]) != "" {
+			return false
+		}
+	}
+	return true
 }

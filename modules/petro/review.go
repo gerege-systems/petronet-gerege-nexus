@@ -117,6 +117,10 @@ func (m *Module) handleReviewQueue(w http.ResponseWriter, r *http.Request) {
 		}
 		out = append(out, s)
 	}
+	if err := rows.Err(); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not read the rows")
+		return
+	}
 	nexus.JSON(w, http.StatusOK, map[string]any{"submissions": out})
 }
 

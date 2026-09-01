@@ -239,7 +239,17 @@ func (m *Module) handleCloseMovement(w http.ResponseWriter, r *http.Request) {
 	}
 	var variance *float64
 	if left > 0 {
+		// Clamped to the column. `received_liters: 200000` against a declared
+		// 1,000 — an extra zero — produced −19,900%, a numeric overflow, a 500,
+		// and a movement left open for ever with no way to close it (audit
+		// §13). At the clamp it still reads as impossible, which is the point.
 		v := (left - right) / left * 100
+		if v > 9999 {
+			v = 9999
+		}
+		if v < -9999 {
+			v = -9999
+		}
 		variance = &v
 	}
 
@@ -311,6 +321,10 @@ func (m *Module) handleListMovements(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		out = append(out, mv)
+	}
+	if err := rows.Err(); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "could not read the rows")
+		return
 	}
 	nexus.JSON(w, http.StatusOK, map[string]any{"movements": out})
 }

@@ -80,6 +80,7 @@ export default function ReportPage() {
   const [tolerance, setTolerance] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [attemptKey, setAttemptKey] = useState(() => crypto.randomUUID());
 
   const loadPeriods = useCallback(() => {
     api
@@ -122,6 +123,7 @@ export default function ReportPage() {
         );
       })
       .catch((err) => setError(err instanceof Error ? err.message : String(err)));
+    setAttemptKey(crypto.randomUUID());
   }, [selected]);
 
   const period = useMemo(
@@ -129,19 +131,33 @@ export default function ReportPage() {
     [periods, selected],
   );
 
-  // Findings come back keyed by the stored line id, which the sender has never
-  // seen. They are re-keyed by site and grade so a message can sit on the row
-  // that caused it.
+  // Findings are keyed by the row they belong to, and the server now names
+  // that row on every finding.
+  //
+  // It used to key on detail.site_kind/site_id, which only the `site_unknown`
+  // rule ever filled in — so a returned report showed the amber banner and
+  // nothing else: no line, no rule, no numbers. The sender saw "returned" and
+  // had to guess, which is the behaviour this file's own header calls the thing
+  // it exists to prevent (audit §39). Findings that name no row are shown
+  // above the table rather than dropped.
   const findingsByRow = useMemo(() => {
     const map: Record<string, ReportFinding[]> = {};
     for (const finding of findings) {
-      const detail = (finding.detail ?? {}) as { site_kind?: string; site_id?: string };
+      const d = (finding.detail ?? {}) as {
+        site_kind?: string;
+        site_id?: string;
+        product_code?: string;
+      };
       const key =
-        detail.site_kind && detail.site_id ? `${detail.site_kind}|${detail.site_id}` : "*";
+        d.site_kind && d.site_id
+          ? `${d.site_kind}|${d.site_id}|${d.product_code ?? ""}`
+          : "*";
       (map[key] ??= []).push(finding);
     }
     return map;
   }, [findings]);
+
+  const unplacedFindings = findingsByRow["*"] ?? [];
 
   const send = useCallback(async () => {
     if (!selected || !lines) return;
@@ -149,9 +165,14 @@ export default function ReportPage() {
     setError(null);
     try {
       const result = await api.submitFuelReport(selected, {
-        // The key makes a resend the same submission rather than a second one:
-        // a lost connection must not become two reports for one day.
-        idempotency_key: `${selected}:${Date.now()}`,
+        // One key per attempt at THIS form, not per press.
+        //
+        // It was `${selected}:${Date.now()}`, which changed on every click —
+        // so the one thing it existed to prevent, a lost response followed by a
+        // second press, produced a second submission with a different key and
+        // the server stored both (audit §40). The key is minted when the form
+        // is filled and reused until it succeeds.
+        idempotency_key: attemptKey,
         lines: lines.map((line) => {
           const key = `${line.site_kind}|${line.site_id}|${line.product_code}`;
           const entry = entries[key] ?? emptyEntry;
@@ -171,13 +192,15 @@ export default function ReportPage() {
       });
       setFindings(result.findings);
       setOutcome(result.submission);
+      // The attempt is over; a correction is a new one.
+      setAttemptKey(crypto.randomUUID());
       loadPeriods();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setSending(false);
     }
-  }, [entries, lines, loadPeriods, selected]);
+  }, [attemptKey, entries, lines, loadPeriods, selected]);
 
   return (
     <div>
@@ -251,6 +274,14 @@ export default function ReportPage() {
             </p>
           ) : null}
 
+          {unplacedFindings.length > 0 ? (
+            <ul className="mb-6 space-y-1 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+              {unplacedFindings.map((finding, index) => (
+                <li key={index}>{finding.message}</li>
+              ))}
+            </ul>
+          ) : null}
+
           {lines === null ? (
             <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
           ) : lines.length === 0 ? (
@@ -289,7 +320,8 @@ export default function ReportPage() {
                           ? (throughput * tolerance) / 100
                           : 1;
                       const off = entry.closing !== "" && drift > allowed;
-                      const rowFindings = findingsByRow[`${line.site_kind}|${line.site_id}`] ?? [];
+                      const rowFindings =
+                        findingsByRow[`${line.site_kind}|${line.site_id}|${line.product_code}`] ?? [];
 
                       const cell = (field: keyof Entry, width: string) => (
                         <input

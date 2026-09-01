@@ -95,7 +95,7 @@ BEGIN
     WITH day_lines AS (
         SELECT DISTINCT ON (l.site_kind, l.site_id, l.product_code)
                l.site_kind, l.site_id, l.product_code,
-               l.closing_liters, l.receipts_liters, l.sales_liters
+               l.closing_liters, l.closing_liters_15c, l.receipts_liters, l.sales_liters
           FROM petro_report_lines l
           JOIN petro_report_submissions s ON s.id = l.submission_id
           JOIN petro_report_periods p ON p.id = s.period_id
@@ -138,13 +138,19 @@ BEGIN
            (day, product_code, aimag, stock_liters, capacity_liters, receipts_liters,
             sales_liters, sites_total, sites_reported, days_of_supply, refreshed_at)
     SELECT for_day, e.product_code, e.aimag,
-           COALESCE(SUM(d.closing_liters), 0),
+           -- Standard litres where the sender measured, observed where they
+           -- did not. volume.go computes the correction and the module stored
+           -- it, and then every aggregate summed the observed figure anyway —
+           -- so the national series carried the ±1–2% seasonal swing the
+           -- correction exists to remove (audit §15).
+           COALESCE(SUM(COALESCE(d.closing_liters_15c, d.closing_liters)), 0),
            COALESCE(SUM(e.capacity_liters), 0),
            COALESCE(SUM(d.receipts_liters), 0),
            COALESCE(SUM(d.sales_liters), 0),
            COUNT(*), COUNT(d.site_id),
            CASE WHEN COALESCE(SUM(w.avg_sales), 0) > 0
-                THEN COALESCE(SUM(d.closing_liters), 0) / SUM(w.avg_sales) END,
+                THEN COALESCE(SUM(COALESCE(d.closing_liters_15c, d.closing_liters)), 0)
+                     / SUM(w.avg_sales) END,
            NOW()
       FROM expected e
       LEFT JOIN day_lines d
