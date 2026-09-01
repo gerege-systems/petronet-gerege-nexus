@@ -312,3 +312,122 @@ func TestAMovementIsOpenedAndClosedWithItsGap(t *testing.T) {
 		t.Fatalf("a closed movement was closed again: %d", rec.Code)
 	}
 }
+
+// ── аудитын §4 ба §5-ын засварыг барих тестүүд ───────────────────────────────
+
+// The policy this replaced was FOR UPDATE and knew nothing about columns, so a
+// manager inside a supervisory body could rewrite any company's register: its
+// name, its coordinates, its licence number. Only the status may cross the
+// ownership line, and only through the named action.
+func TestAnOversightBodyCannotRewriteAnotherCompanysRegister(t *testing.T) {
+	pool := openFuelPool(t)
+	owner := newCompany(t, pool, "owned")
+	ministry := newCompany(t, pool, "rewriter")
+	ministry.appoint(t, pool)
+
+	stationID := owner.sells(t, "Хамгаалагдсан ШТС", 30000, 3190)
+
+	lat, lon := 1.0, 1.0
+	rec := ministry.call(t, ministry.module.handleUpdateStation, http.MethodPatch,
+		"/stations/x", StationDraft{Name: "Булаасан нэр", Brand: "x", Lat: &lat, Lon: &lon},
+		map[string]string{"id": stationID})
+	if rec.Code == http.StatusOK {
+		t.Fatalf("a supervisory body rewrote another company's station: %s", rec.Body.String())
+	}
+
+	var name string
+	if err := pool.QueryRow(context.Background(),
+		`SELECT name FROM petro_stations WHERE id = $1::uuid`, stationID).Scan(&name); err != nil {
+		t.Fatalf("read the station: %v", err)
+	}
+	if name != "Хамгаалагдсан ШТС" {
+		t.Fatalf("the station's name is now %q", name)
+	}
+
+	// Suspending it, though, is exactly what a supervisory body is for.
+	rec = ministry.call(t, ministry.module.handleSetSiteStatus, http.MethodPost,
+		"/oversight/sites/station/x/status",
+		SiteStatusChange{RegistryStatus: "suspended", Note: "шалгалт"},
+		map[string]string{"kind": "station", "id": stationID})
+	if rec.Code != http.StatusOK {
+		t.Fatalf("suspend: %d %s", rec.Code, rec.Body.String())
+	}
+}
+
+// An ordinary company must not be able to suspend anything at all.
+func TestOnlyAnOversightBodyCanSuspendASite(t *testing.T) {
+	pool := openFuelPool(t)
+	owner := newCompany(t, pool, "self-suspend")
+	stationID := owner.sells(t, "Өөрийн ШТС", 30000, 3190)
+
+	rec := owner.call(t, owner.module.handleSetSiteStatus, http.MethodPost,
+		"/oversight/sites/station/x/status",
+		SiteStatusChange{RegistryStatus: "closed"},
+		map[string]string{"kind": "station", "id": stationID})
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("a company suspended a site itself: %d %s", rec.Code, rec.Body.String())
+	}
+}
+
+// The refresh button answered 42501 on every press: the handler runs inside the
+// workspace gate, and the tenant role held SELECT on the national table and
+// nothing more. The integration test called RefreshDaily on the raw pool, so
+// the HTTP path was never exercised — this one goes through the handler.
+func TestTheRefreshButtonWorksFromInsideTheWorkspaceGate(t *testing.T) {
+	pool := openFuelPool(t)
+	ministry := newCompany(t, pool, "refresher")
+	ministry.appoint(t, pool)
+
+	rec := ministry.call(t, ministry.module.handleRefreshDaily, http.MethodPost,
+		"/oversight/daily/refresh?day=2026-09-07", nil, nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("refresh from the tenant role: %d %s", rec.Code, rec.Body.String())
+	}
+}
+
+// A day recomputed after its last site closed must lose the row, not keep the
+// stock it held — a pure upsert left ghost litres in the national total.
+func TestRefreshRetiresTheRowsOfAClosedSite(t *testing.T) {
+	pool := openFuelPool(t)
+	filler := newCompany(t, pool, "ghost")
+	ministry := newCompany(t, pool, "ghost-ministry")
+	ministry.appoint(t, pool)
+
+	station := filler.sells(t, "Хаагдах ШТС", 30000, 3190)
+	period := makePeriod(t, pool, "2026-09-08")
+	filler.submit(t, period, reportLine(station, 0, 20000, 19000, 1000))
+
+	day, _ := time.Parse("2006-01-02", "2026-09-08")
+	module := &Module{db: pool}
+	if err := module.RefreshDaily(context.Background(), day); err != nil {
+		t.Fatalf("first refresh: %v", err)
+	}
+
+	var before float64
+	if err := pool.QueryRow(context.Background(),
+		`SELECT COALESCE(SUM(stock_liters), 0)::float8 FROM petro_daily_national WHERE day = $1::date`,
+		"2026-09-08").Scan(&before); err != nil {
+		t.Fatalf("read the day: %v", err)
+	}
+	if before < 1000 {
+		t.Fatalf("the first refresh recorded %v litres, want the reported 1000", before)
+	}
+
+	if _, err := pool.Exec(context.Background(),
+		`UPDATE petro_stations SET registry_status = 'closed' WHERE id = $1::uuid`, station); err != nil {
+		t.Fatalf("close the station: %v", err)
+	}
+	if err := module.RefreshDaily(context.Background(), day); err != nil {
+		t.Fatalf("second refresh: %v", err)
+	}
+
+	var after float64
+	if err := pool.QueryRow(context.Background(),
+		`SELECT COALESCE(SUM(stock_liters), 0)::float8 FROM petro_daily_national WHERE day = $1::date`,
+		"2026-09-08").Scan(&after); err != nil {
+		t.Fatalf("read the day again: %v", err)
+	}
+	if after != 0 {
+		t.Fatalf("a closed site left %v litres in the national total", after)
+	}
+}

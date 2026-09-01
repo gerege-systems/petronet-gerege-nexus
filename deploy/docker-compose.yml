@@ -26,7 +26,18 @@ services:
     image: postgres:16-alpine
     container_name: gerege_petronet_postgres
     restart: unless-stopped
+    # Улаанбаатарын цаг, кластерын түвшинд.
+    #
+    # Модуль нь `CURRENT_DATE`-ийг долоон газар хэрэглэдэг — иргэний өдрийн
+    # эрх, ваучерын өдөр, хэмжүүрүүд. UTC дээр тэдгээр нь орон нутгийн 08:00
+    # цагт эргэдэг: өдрийн эрх шөнө дунд биш өглөө сэргэж, «тайлагнаагүй»
+    # жагсаалт эцсийн хугацааны дараа найман цаг хоосон харагдана. Go тал нь
+    # `nexus.Now()`-оор аль хэдийн Улаанбаатарын цагтай байсан тул хоёр тал
+    # өөр өдөр дээр ажиллаж байв.
+    command: ["postgres", "-c", "timezone=Asia/Ulaanbaatar"]
     environment:
+      TZ: ${TZ:-Asia/Ulaanbaatar}
+      PGTZ: ${TZ:-Asia/Ulaanbaatar}
       POSTGRES_DB: platform_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${PETRONET_POSTGRES_PASSWORD:?PETRONET_POSTGRES_PASSWORD is required}
@@ -47,6 +58,7 @@ services:
     # pins — the image carries both, so they cannot drift apart.
     command: ["/app/migrate", "up"]
     environment:
+      TZ: ${TZ:-Asia/Ulaanbaatar}
       DATABASE_URL: postgres://postgres:${PETRONET_POSTGRES_PASSWORD}@postgres:5432/platform_db?sslmode=disable
     depends_on:
       postgres:
@@ -58,6 +70,7 @@ services:
     container_name: gerege_petronet_backend
     restart: unless-stopped
     environment:
+      TZ: ${TZ:-Asia/Ulaanbaatar}
       DATABASE_URL: postgres://postgres:${PETRONET_POSTGRES_PASSWORD}@postgres:5432/platform_db?sslmode=disable
       ENVIRONMENT: production
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-https://petronet.mn}
@@ -175,6 +188,7 @@ services:
     container_name: gerege_petronet_web
     restart: unless-stopped
     environment:
+      TZ: ${TZ:-Asia/Ulaanbaatar}
       NODE_ENV: production
       # Where the shell asks, server-side, what this deployment is. The browser
       # never uses it: it asks its own origin (lib/apiBase.ts). A server has no

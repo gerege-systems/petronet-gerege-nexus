@@ -9,6 +9,7 @@ package petro
 // platform while allowing the distribution module to supply its own screen.
 
 import (
+	"encoding/json"
 	"errors"
 	"io"
 	"log/slog"
@@ -23,6 +24,20 @@ import (
 )
 
 var operatorAuthClient = &http.Client{Timeout: 5 * time.Second}
+
+// operatorSession answers the console session's status and the role it holds.
+//
+// The role was there all along — /me returns it — and this function used to
+// throw it away, which is how a read-only auditor could appoint a supervisory
+// body over every company on the deployment (audit §3). A status code alone
+// cannot tell "signed in" from "allowed to write".
+func operatorSession(r *http.Request) (status int, role string) {
+	status = operatorSessionStatus(r)
+	if status != http.StatusOK {
+		return status, ""
+	}
+	return status, operatorRole(r)
+}
 
 func operatorSessionStatus(r *http.Request) int {
 	port := strings.TrimSpace(os.Getenv("PORT"))
@@ -44,6 +59,40 @@ func operatorSessionStatus(r *http.Request) int {
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, resp.Body)
 	return resp.StatusCode
+}
+
+// operatorRole reads the role out of the console's own /me answer.
+//
+// A second call rather than one that returns both, because the status check
+// has four callers that do not care who the operator is, and a shared function
+// that decoded a body for all of them would spend a JSON parse on every read.
+func operatorRole(r *http.Request) string {
+	port := strings.TrimSpace(os.Getenv("PORT"))
+	if port == "" {
+		port = "8080"
+	}
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodGet,
+		"http://127.0.0.1:"+port+"/api/platform/v1/me", nil)
+	if err != nil {
+		return ""
+	}
+	req.Host = r.Host
+	req.Header.Set("Cookie", r.Header.Get("Cookie"))
+	resp, err := operatorAuthClient.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	var answer struct {
+		Operator struct {
+			Role string `json:"role"`
+		} `json:"operator"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<16)).Decode(&answer); err != nil {
+		return ""
+	}
+	return answer.Operator.Role
 }
 
 const overviewQuery = `

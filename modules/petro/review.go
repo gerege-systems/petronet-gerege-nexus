@@ -46,6 +46,7 @@ import (
 	"github.com/gerege-systems/open-gerege-nexus/backend/pkg/nexus"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // requireOversight refuses a caller whose organisation is not a supervisory
@@ -232,37 +233,42 @@ func (m *Module) handleSetSiteStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	table := ""
-	switch kind {
-	case "station":
-		table = "petro_stations"
-	case "depot":
-		table = "petro_depots"
-	default:
+	if kind != "station" && kind != "depot" {
 		nexus.Error(w, http.StatusBadRequest, "объектын төрөл нь station эсвэл depot байна")
 		return
 	}
 
-	// The table name is chosen from the switch above and never from the path,
-	// so the interpolation below cannot carry anything a caller wrote.
-	var name string
+	// Through a named action rather than an UPDATE under a row-level policy.
+	//
+	// The policy that used to carry this was `FOR UPDATE`, and a row-level
+	// policy knows nothing about columns: it opened every column of every
+	// company's register to any manager inside a supervisory body — a name, a
+	// coordinate, a licence number, all writable by somebody who was only ever
+	// meant to be able to suspend. The function does the one thing and checks
+	// petro_is_oversight() itself (migration 00011).
+	var name *string
 	err := m.db.QueryRow(r.Context(),
-		`UPDATE `+table+` SET registry_status = $2, updated_at = NOW()
-		  WHERE id = $1::uuid RETURNING name`, id, change.RegistryStatus).Scan(&name)
-	if errors.Is(err, pgx.ErrNoRows) {
-		nexus.Error(w, http.StatusNotFound, "ийм объект олдсонгүй")
+		`SELECT petro_set_site_status($1, $2::uuid, $3)`, kind, id, change.RegistryStatus).
+		Scan(&name)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "42501" {
+			nexus.Error(w, http.StatusForbidden, "энэ үйлдэл зөвхөн хяналтын байгууллагад нээлттэй")
+			return
+		}
+		nexus.Error(w, http.StatusInternalServerError, "could not change the status")
 		return
 	}
-	if err != nil {
-		nexus.Error(w, http.StatusInternalServerError, "could not change the status")
+	if name == nil {
+		nexus.Error(w, http.StatusNotFound, "ийм объект олдсонгүй")
 		return
 	}
 
 	nexus.Audit(r.Context(), tenantID, claims.UserID, "petro.site."+change.RegistryStatus, id,
-		map[string]any{"kind": kind, "name": name, "note": change.Note})
+		map[string]any{"kind": kind, "name": *name, "note": change.Note})
 
 	nexus.JSON(w, http.StatusOK, map[string]any{
-		"id": id, "kind": kind, "name": name, "registry_status": change.RegistryStatus,
+		"id": id, "kind": kind, "name": *name, "registry_status": change.RegistryStatus,
 	})
 }
 

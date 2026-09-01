@@ -148,7 +148,7 @@ func (m *Module) handleOpenMovement(w http.ResponseWriter, r *http.Request) {
 		RETURNING id::text, national_ref, from_kind, from_id::text, to_kind, to_id::text,
 		          product_code, declared_liters::float8, received_liters::float8, status,
 		          variance_pct::float8, opened_at::text, due_at::text, closed_at::text, note`,
-		tenantID, nationalRef(time.Now()), draft.FromKind, draft.FromID, draft.ToKind,
+		tenantID, nationalRef(nexus.Now()), draft.FromKind, draft.FromID, draft.ToKind,
 		draft.ToID, draft.ProductCode, draft.DeclaredLiters, declared15C, trip,
 		draft.DueHours, draft.Note).
 		Scan(&mv.ID, &mv.NationalRef, &mv.FromKind, &mv.FromID, &mv.ToKind, &mv.ToID,

@@ -43,6 +43,8 @@ import (
 	"context"
 	"log/slog"
 	"time"
+
+	"github.com/gerege-systems/open-gerege-nexus/backend/pkg/nexus"
 )
 
 // jobInterval is how often the two statements run.
@@ -95,13 +97,16 @@ func (m *Module) runJobs(ctx context.Context) bool {
 	policy := m.LoadPolicy(ctx)
 	ok := true
 
-	if err := m.EnsurePeriods(ctx, time.Now(), policy); err != nil {
+	// nexus.Now(), not time.Now(): a reporting period is a calendar day, and
+	// the calendar this system keeps is Ulaanbaatar's. In UTC the period for
+	// "today" opened at eight in the morning.
+	if err := m.EnsurePeriods(ctx, nexus.Now(), policy); err != nil {
 		slog.Error("petro: could not open the reporting periods", "error", err)
 		ok = false
 	}
 
 	for offset := 0; offset < 3; offset++ {
-		day := time.Now().AddDate(0, 0, -offset)
+		day := nexus.Now().AddDate(0, 0, -offset)
 		if err := m.RefreshDaily(ctx, day); err != nil {
 			slog.Error("petro: could not refresh the national table",
 				"day", day.Format("2006-01-02"), "error", err)

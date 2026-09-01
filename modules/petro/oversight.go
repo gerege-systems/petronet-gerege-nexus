@@ -49,96 +49,20 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-// refreshDailyStatement recomputes one day of the national table.
-//
-// Written as a single statement so that the day is replaced atomically: a
-// partially refreshed day would put a coverage figure on the dashboard that
-// belongs to no moment in time.
-const refreshDailyStatement = `
-WITH day_lines AS (
-    SELECT DISTINCT ON (l.site_kind, l.site_id, l.product_code)
-           l.site_kind, l.site_id, l.product_code,
-           l.closing_liters, l.receipts_liters, l.sales_liters
-      FROM petro_report_lines l
-      JOIN petro_report_submissions s ON s.id = l.submission_id
-      JOIN petro_report_periods p ON p.id = s.period_id
-     WHERE p.period_start = $1::date
-       AND s.status IN ('submitted', 'approved')
-     ORDER BY l.site_kind, l.site_id, l.product_code, s.version DESC
-),
-week_sales AS (
-    SELECT l.site_kind, l.site_id, l.product_code, AVG(l.sales_liters) AS avg_sales
-      FROM petro_report_lines l
-      JOIN petro_report_submissions s ON s.id = l.submission_id
-      JOIN petro_report_periods p ON p.id = s.period_id
-     WHERE p.period_start BETWEEN ($1::date - 6) AND $1::date
-       AND s.status IN ('submitted', 'approved')
-     GROUP BY l.site_kind, l.site_id, l.product_code
-),
-site_aimag AS (
-    SELECT 'station'::text AS site_kind, id AS site_id, COALESCE(NULLIF(aimag, ''), '—') AS aimag
-      FROM petro_stations WHERE registry_status <> 'closed'
-    UNION ALL
-    SELECT 'depot', id, COALESCE(NULLIF(aimag, ''), '—')
-      FROM petro_depots WHERE registry_status <> 'closed'
-),
-site_products AS (
-    SELECT 'station'::text AS site_kind, station_id AS site_id, fuel_type AS product_code,
-           tank_capacity_liters AS capacity_liters
-      FROM petro_station_inventory
-    UNION ALL
-    SELECT 'depot', depot_id, fuel_type, SUM(capacity_liters)
-      FROM petro_depot_tanks GROUP BY 1, 2, 3
-),
-expected AS (
-    SELECT sp.site_kind, sp.site_id, sp.product_code, sa.aimag, sp.capacity_liters
-      FROM site_products sp
-      JOIN site_aimag sa ON sa.site_kind = sp.site_kind AND sa.site_id = sp.site_id
-      JOIN petro_products pr ON pr.code = sp.product_code
-),
-rolled AS (
-    SELECT e.product_code, e.aimag,
-           COALESCE(SUM(d.closing_liters), 0) AS stock_liters,
-           COALESCE(SUM(e.capacity_liters), 0) AS capacity_liters,
-           COALESCE(SUM(d.receipts_liters), 0) AS receipts_liters,
-           COALESCE(SUM(d.sales_liters), 0) AS sales_liters,
-           COUNT(*) AS sites_total,
-           COUNT(d.site_id) AS sites_reported,
-           COALESCE(SUM(w.avg_sales), 0) AS avg_daily_sales
-      FROM expected e
-      LEFT JOIN day_lines d
-             ON d.site_kind = e.site_kind AND d.site_id = e.site_id
-            AND d.product_code = e.product_code
-      LEFT JOIN week_sales w
-             ON w.site_kind = e.site_kind AND w.site_id = e.site_id
-            AND w.product_code = e.product_code
-     GROUP BY e.product_code, e.aimag
-)
-INSERT INTO petro_daily_national
-       (day, product_code, aimag, stock_liters, capacity_liters, receipts_liters,
-        sales_liters, sites_total, sites_reported, days_of_supply, refreshed_at)
-SELECT $1::date, product_code, aimag, stock_liters, capacity_liters, receipts_liters,
-       sales_liters, sites_total, sites_reported,
-       CASE WHEN avg_daily_sales > 0 THEN stock_liters / avg_daily_sales END,
-       NOW()
-  FROM rolled
-ON CONFLICT (day, product_code, aimag) DO UPDATE SET
-       stock_liters    = EXCLUDED.stock_liters,
-       capacity_liters = EXCLUDED.capacity_liters,
-       receipts_liters = EXCLUDED.receipts_liters,
-       sales_liters    = EXCLUDED.sales_liters,
-       sites_total     = EXCLUDED.sites_total,
-       sites_reported  = EXCLUDED.sites_reported,
-       days_of_supply  = EXCLUDED.days_of_supply,
-       refreshed_at    = NOW()`
-
 // RefreshDaily recomputes one day of the national aggregate.
 //
 // Exported so a scheduled job, a backfill command and the manual button on the
 // oversight screen all take the same path — three callers, one definition of
 // what the country's numbers are.
 func (m *Module) RefreshDaily(ctx context.Context, day time.Time) error {
-	_, err := m.db.Exec(ctx, refreshDailyStatement, day.Format("2006-01-02"))
+	// Through petro_refresh_daily rather than a statement here, and the reason
+	// is that the button never worked: the handler runs inside the workspace
+	// gate, so the connection is bound to the tenant role, and migration 00010
+	// granted that role SELECT on petro_daily_national and nothing else. Every
+	// press answered 42501. The function is SECURITY DEFINER, checks the
+	// caller itself, and deletes the day before rewriting it — which also
+	// retires the ghost rows a pure upsert left behind (audit §5, §23).
+	_, err := m.db.Exec(ctx, `SELECT petro_refresh_daily($1::date)`, day.Format("2006-01-02"))
 	return err
 }
 
