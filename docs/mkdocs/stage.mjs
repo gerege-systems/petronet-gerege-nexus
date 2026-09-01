@@ -122,7 +122,13 @@ function rewriteLinks(markdown, fromSrc, fromSlug) {
     }
     // Anything the site does not publish keeps working by pointing at GitHub,
     // which is where that file still is.
-    return `](https://github.com/gerege-systems/open-gerege-nexus/blob/main/${resolved}${anchor})`;
+    // This repository's own files, not the core's.
+    //
+    // The fallback pointed at open-gerege-nexus, so a link to something that
+    // lives only here — .env.example, the nginx configuration, a workflow —
+    // resolved to a path that repository does not have, and the published site
+    // carried a 404 (audit §46).
+    return `](https://github.com/gerege-systems/petronet-gerege-nexus/blob/main/${resolved}${anchor})`;
   };
 
   // Markdown links first, then the raw HTML ones. README.md writes its language

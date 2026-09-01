@@ -688,8 +688,16 @@ func (m *Module) loadLineContexts(ctx context.Context, periodStart string) (map[
 		}
 		key := lineKey("station", id, product)
 		priceCopy := price
+		stockCopy := stock
 		contexts[key] = LineContext{
 			SiteExists: true, SiteName: name, CapacityLiters: capacity, PrevPrice: &priceCopy,
+			// The register's level is the opening figure for a site that has
+			// never reported. The scan read it and discarded it, so a forecourt
+			// added this week arrived on the form with an opening of zero and
+			// its first balance was struck against a tank the system already
+			// knew held twenty thousand litres (audit §28). A previous report
+			// still wins — that is set below and overwrites this.
+			PrevClosing: &stockCopy,
 		}
 		order = append(order, key)
 	}
@@ -827,9 +835,18 @@ func chainHash(prev []byte, tenantID, periodID string, version int, lines []Repo
 	h.Write(prev)
 	fmt.Fprintf(h, "%s|%s|%d|", tenantID, periodID, version)
 	for _, l := range lines {
-		fmt.Fprintf(h, "%s|%s|%s|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f;",
+		// Every figure the line carries, not only the balance.
+		//
+		// Price, temperature, density and the note were outside the hash, and
+		// the retail price is the number with the most obvious reason to be
+		// edited afterwards: it is published in petro.prices. A change to it
+		// moved no hash at all, which is precisely the question the chain was
+		// built to answer (audit §29).
+		fmt.Fprintf(h, "%s|%s|%s|%.3f|%.3f|%.3f|%.3f|%.3f|%.3f|%s|%s|%s|%s;",
 			l.SiteKind, l.SiteID, l.ProductCode,
-			l.Opening, l.Receipts, l.Sales, l.TransfersOut, l.Adjustments, l.Closing)
+			l.Opening, l.Receipts, l.Sales, l.TransfersOut, l.Adjustments, l.Closing,
+			optionalNumber(l.PriceMNT), optionalNumber(l.TemperatureC),
+			optionalNumber(l.DensityKgM3), l.Note)
 	}
 	return h.Sum(nil)
 }
@@ -883,4 +900,13 @@ func (m *Module) writeFindings(ctx context.Context, tx pgx.Tx, submissionID, ten
 		}
 	}
 	return nil
+}
+
+// optionalNumber renders a figure that may be absent, so that "not measured"
+// and "measured as zero" hash differently.
+func optionalNumber(value *float64) string {
+	if value == nil {
+		return "-"
+	}
+	return fmt.Sprintf("%.4f", *value)
 }

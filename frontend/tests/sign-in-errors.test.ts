@@ -7,6 +7,8 @@ import { join } from "node:path";
 
 import { expect, test } from "vitest";
 
+import { coreModuleDir } from "./coreSource.mjs";
+
 /**
  * Every reason the server can send back to the sign-in screen.
  *
@@ -22,8 +24,12 @@ import { expect, test } from "vitest";
  */
 
 const root = join(import.meta.dirname, "..");
-const identityDir = join(root, "..", "backend", "internal", "workspace", "identity");
-const coreSourceAvailable = existsSync(join(identityDir, "google.go"));
+// The core is a Go module here, not a sibling directory — see coreSource.mjs.
+// This pointed at a path that does not exist in a distribution repository, so
+// every test below skipped and reported green.
+const coreDir = coreModuleDir(root);
+const identityDir = coreDir ? join(coreDir, "internal", "workspace", "identity") : "";
+const coreSourceAvailable = Boolean(identityDir) && existsSync(join(identityDir, "google.go"));
 const goSources = coreSourceAvailable
   ? ["google.go", "sso.go"].map((name) => readFileSync(join(identityDir, name), "utf8"))
   : [];
@@ -96,7 +102,7 @@ test.skipIf(!coreSourceAvailable)("a first sign-in that could not be started is 
   // says try again. Google's binding path used to send the first.
   expect(loginScreen).toContain('binding_failed:"auth.sso.error_binding"');
   const google = readFileSync(
-    join(root, "..", "backend", "internal", "workspace", "identity", "google.go"),
+    join(identityDir, "google.go"),
     "utf8",
   );
   expect(google).toContain('h.failGoogle(w, r, "binding_failed")');

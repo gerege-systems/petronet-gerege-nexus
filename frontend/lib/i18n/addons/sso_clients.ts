@@ -86,6 +86,13 @@ export const sso_clients = {
   "sso_clients.redirects.rule_https": { mn: "localhost-оос бусад тохиолдолд заавал https.", en: "https everywhere except localhost." },
   "sso_clients.redirects.rule_fragment": { mn: "Fragment (#) агуулж болохгүй — сервер рүү илгээгддэггүй тул тааруулах боломжгүй.", en: "No fragment (#): it is never sent to the server, so it cannot be matched." },
   "sso_clients.redirects.rule_custom": { mn: "Мобайл аппын өөрийн scheme (com.example.app:/cb) зөвхөн нээлттэй клиентэд.", en: "A custom mobile scheme (com.example.app:/cb) is accepted for public clients only." },
+    // Нийтийн хаяг http дээр байх нь loopback биш. Хуудасны зорилго нь яг тэр
+  // тохиолдлыг олох явдал байсан ба өмнө нь түүнийг «loopback» гэж тайвшруулж
+  // байсан.
+  "sso_clients.redirects.insecure": {
+    mn: "ХАМГААЛАЛТГҮЙ — нийтийн хаяг http дээр",
+    en: "INSECURE — a public host over http",
+  },
   "sso_clients.redirects.loopback": { mn: "Loopback — зөвхөн хөгжүүлэлтэд", en: "Loopback — development only" },
   "sso_clients.redirects.none": { mn: "Бүртгэлтэй redirect URI алга.", en: "No redirect URIs registered." },
   "sso_clients.redirects.no_redirect_needed": { mn: "Зөвхөн машины урсгал — redirect шаардлагагүй", en: "Machine-only flow — no redirect needed" },

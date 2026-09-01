@@ -20,6 +20,7 @@ import { Badge, Card, formatMoment, Table } from "@/components/cp/ui";
 import { cp, type Credential, type Flag, type Setting, type SettingChange } from "@/lib/cp";
 import { useConsole } from "@/components/cp/Console";
 import { useI18n } from "@/lib/i18n";
+import { endOfLocalDay } from "@/lib/localDate";
 import { CpWriteGate } from "@/components/cp/CpWriteGate";
 import { Modal } from "@/components/ui";
 
@@ -603,12 +604,12 @@ function FlagDialog({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
         owner,
         kind,
         enabled: false,
-        rollout: Number(rollout),
+        rollout: rolloutPercent(rollout) ?? undefined,
         // A flag with no date is a flag nobody will remember to remove, so the
         // field is offered every time one is created — the console warns about
         // the ones that lapse, and it can only warn about the ones that have a
         // date to lapse.
-        expires_at: expires ? new Date(expires).toISOString() : null,
+        expires_at: endOfLocalDay(expires),
         reason,
       });
       onSaved();
@@ -712,4 +713,20 @@ export default function Configuration() {
       <ConfigurationBody />
     </CpWriteGate>
   );
+}
+
+/**
+ * The rollout percentage, or nothing.
+ *
+ * The field is free text, and `Number("")` is 0 while `Number("50%")` is NaN —
+ * which JSON renders as null. Clearing the box created a flag at 0% with no
+ * error anywhere, and typing the per cent sign somebody naturally types
+ * created one with no rollout at all (audit §44).
+ */
+function rolloutPercent(raw: string): number | null {
+  const digits = raw.replace(/[^\d.]/g, "");
+  if (digits === "") return null;
+  const value = Number(digits);
+  if (!Number.isFinite(value) || value < 0 || value > 100) return null;
+  return value;
 }

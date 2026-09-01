@@ -104,6 +104,8 @@ export default function PetroMap({
   const map = useRef<InstanceType<typeof MapLibreMap> | null>(null);
   const [count, setCount] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [truncated, setTruncated] = useState(false);
+  const requestTicket = useRef(0);
   // The station whose panel is open. Held in React rather than drawn into a
   // MapLibre popup because the panel has a form in it — see StationSheet.
   const [selected, setSelected] = useState<PublicStation | null>(null);
@@ -142,16 +144,27 @@ export default function PetroMap({
       setError(null);
       return;
     }
+    // Which request this is. A viewport that moves faster than the network —
+    // Darkhan, then straight on to Khovd — produced two in flight, and if
+    // Darkhan's answered second its points were drawn over Khovd's view while
+    // the lookup table held Darkhan's: every visible pin answered nothing when
+    // tapped (audit §42). Only the newest request may write.
+    const ticket = ++requestTicket.current;
     try {
       const result = await api.publicFuelStations(box);
+      if (ticket !== requestTicket.current) return;
       const source = m.getSource(SOURCE) as GeoJSONSource | undefined;
       source?.setData(toFeatureCollection(result.stations));
       stationsByID.current = new Map(result.stations.map((s) => [s.id, s]));
       setCount(result.count);
+      // The server says when it stopped counting; saying "300 stations" over a
+      // viewport holding 480 is a figure that reads as a fact.
+      setTruncated(Boolean(result.truncated));
       setError(null);
     } catch (err) {
       // A 429 is the rate limiter, not a fault: the map stays as it was and the
       // next settled viewport asks again.
+      if (ticket !== requestTicket.current) return;
       setError(err instanceof Error ? err.message : String(err));
     }
   }, []);
@@ -279,7 +292,14 @@ export default function PetroMap({
       m.remove();
       map.current = null;
     };
-  }, [refresh, t, locate, initialZoom]);
+    // `t` is deliberately not a dependency.
+    //
+    // It changes when somebody switches language, and it is never read inside
+    // this effect — but listing it tore the map down and built it again: the
+    // viewport jumped back to Ulaanbaatar and every tile was fetched afresh,
+    // for a change of words that this effect does not use (audit §42).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refresh, locate, initialZoom]);
 
   return (
     // The height is an inline style rather than a utility class on purpose.
@@ -301,7 +321,7 @@ export default function PetroMap({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 p-3">
         <div className="pointer-events-auto mx-auto flex w-fit items-center gap-3 rounded-full bg-white/95 px-4 py-1.5 text-sm shadow-lg ring-1 ring-black/5 backdrop-blur">
           <span className="font-medium text-slate-900">
-            {count === null ? "…" : `${count} ШТС`}
+            {count === null ? "…" : `${count}${truncated ? "+" : ""} ШТС`}
           </span>
         </div>
       </div>

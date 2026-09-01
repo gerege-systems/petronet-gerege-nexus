@@ -9,18 +9,37 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { Globe, Laptop, Route, Server, ShieldCheck, Smartphone } from "lucide-react";
+import { Globe, Laptop, Route, Server, ShieldCheck, Smartphone, TriangleAlert } from "lucide-react";
 import { api, type OAuth2Client } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { Chip, CopyButton, Empty, ErrorNote, Loading, Panel, Screen, useCopy } from "../shared";
 
-type Entry = { client: OAuth2Client; uri: string; kind: "https" | "loopback" | "custom" };
+type Entry = { client: OAuth2Client; uri: string; kind: "https" | "loopback" | "insecure" | "custom" };
 
+/**
+ * What kind of redirect this is — which is a question about the host, not only
+ * about the scheme.
+ *
+ * `http:` was labelled "loopback" outright, so a staging URL left in a
+ * production client — `http://staging.partner.example.com/cb`, the single most
+ * dangerous entry this page can hold — was shown with a laptop icon and the
+ * reassuring word "loopback". Finding exactly that is what the page is for
+ * (audit §45).
+ */
 function classify(uri: string): Entry["kind"] {
   try {
     const parsed = new URL(uri);
     if (parsed.protocol === "https:") return "https";
-    if (parsed.protocol === "http:") return "loopback";
+    if (parsed.protocol === "http:") {
+      const host = parsed.hostname.toLowerCase();
+      const loopback =
+        host === "localhost" ||
+        host === "127.0.0.1" ||
+        host === "[::1]" ||
+        host === "::1" ||
+        host.endsWith(".localhost");
+      return loopback ? "loopback" : "insecure";
+    }
     return "custom";
   } catch {
     return "custom";
@@ -120,6 +139,12 @@ export default function RedirectPoliciesPage() {
                         <span className="inline-flex items-center gap-1">
                           <Laptop className="w-3.5 h-3.5 text-amber-600" />
                           <Chip tone="amber">{t("sso_clients.redirects.loopback")}</Chip>
+                        </span>
+                      )}
+                      {kind === "insecure" && (
+                        <span className="inline-flex items-center gap-1">
+                          <TriangleAlert className="w-3.5 h-3.5 text-rose-600" />
+                          <Chip tone="rose">{t("sso_clients.redirects.insecure")}</Chip>
                         </span>
                       )}
                       {kind === "custom" && <Chip tone="blue">custom scheme</Chip>}

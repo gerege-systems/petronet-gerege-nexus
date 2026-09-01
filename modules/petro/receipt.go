@@ -124,8 +124,14 @@ func (m *Module) handleReceiveDelivery(w http.ResponseWriter, r *http.Request) {
 	// The run being unloaded. Locked, so two attendants confirming the same
 	// arrival at once queue behind each other rather than both proceeding.
 	var (
-		receipt   Receipt
-		stationID string
+		receipt Receipt
+		// A pointer, because the column is nullable: a station deleted while
+		// its delivery was on the road leaves to_station_id NULL (ON DELETE
+		// SET NULL). Scanning that into a plain string fails inside pgx,
+		// before the `== ""` check below could turn it into the 409 that was
+		// written for exactly this case — the driver got 500 "could not read
+		// the delivery" instead (audit §34).
+		stationID *string
 		batchID   *string
 	)
 	err = tx.QueryRow(r.Context(), `
@@ -144,7 +150,7 @@ func (m *Module) handleReceiveDelivery(w http.ResponseWriter, r *http.Request) {
 		nexus.Error(w, http.StatusInternalServerError, "could not read the delivery")
 		return
 	}
-	if stationID == "" {
+	if stationID == nil || *stationID == "" {
 		nexus.Error(w, http.StatusConflict, "энэ рейс аль ШТС рүү явахыг заагаагүй байна")
 		return
 	}
@@ -157,7 +163,7 @@ func (m *Module) handleReceiveDelivery(w http.ResponseWriter, r *http.Request) {
 		        seal_status, manifest_liters, received_by, note)
 		VALUES ($1, $2::uuid, $3::uuid, $4::uuid, $5, $6, $7, $8, $9::uuid, $10)
 		RETURNING id::text, received_at`,
-		tenantID, stationID, tripID, batchID, receipt.FuelType, request.Liters,
+		tenantID, *stationID, tripID, batchID, receipt.FuelType, request.Liters,
 		request.SealStatus, request.ManifestLiters, claims.UserID, request.Note).
 		Scan(&receipt.ID, &receipt.ReceivedAt)
 	if isUniqueViolation(err) {
@@ -181,7 +187,7 @@ func (m *Module) handleReceiveDelivery(w http.ResponseWriter, r *http.Request) {
 		   SET current_stock_liters = petro_station_inventory.current_stock_liters + $5,
 		       last_reported_at = NOW()
 		RETURNING current_stock_liters::float8`,
-		stationID, tenantID, receipt.FuelType, receipt.FuelLabel, request.Liters).
+		*stationID, tenantID, receipt.FuelType, receipt.FuelLabel, request.Liters).
 		Scan(&receipt.StockAfterLiters)
 	if err != nil {
 		nexus.Error(w, http.StatusInternalServerError, "could not add the fuel to the tank")
@@ -220,7 +226,7 @@ func (m *Module) handleReceiveDelivery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	receipt.StationID = stationID
+	receipt.StationID = *stationID
 	receipt.TripID = &tripID
 	receipt.BatchID = batchID
 	receipt.Liters = request.Liters

@@ -322,6 +322,17 @@ func (m *Module) handleSetStationGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	draft.FuelType = strings.TrimSpace(draft.FuelType)
+	// The same check the tank and the consignment already make.
+	//
+	// This one only refused an empty string, so an operator could register a
+	// grade spelled "АИ-92" or "euro92" and stock would accumulate against it.
+	// The report form would then offer that row, and submitting it broke the
+	// product foreign key — a 400 on a line the sender could not correct, and
+	// litres that could never be reported (audit §33).
+	if _, known := fuelLabels[draft.FuelType]; draft.FuelType != "" && !known {
+		nexus.Error(w, http.StatusBadRequest, "энэ түлшний төрлийг мэдэхгүй байна")
+		return
+	}
 	if draft.FuelType == "" {
 		nexus.Error(w, http.StatusBadRequest, "түлшний төрөл заавал шаардлагатай")
 		return

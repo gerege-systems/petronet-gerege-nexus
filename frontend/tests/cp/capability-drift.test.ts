@@ -8,6 +8,8 @@ import { join } from "node:path";
 
 import { expect, test } from "vitest";
 
+import { coreModuleDir } from "../coreSource.mjs";
+
 /**
  * The console hides buttons a role may not press, from a copy of the server's
  * capability table.
@@ -25,13 +27,15 @@ import { expect, test } from "vitest";
  */
 
 const root = join(import.meta.dirname, "..", "..");
-const operatorSource = join(root, "..", "backend", "internal", "operator", "operator", "operator.go");
-const coreSourceAvailable = existsSync(operatorSource);
+// The core is a Go module here, not a sibling directory — see coreSource.mjs.
+const coreDir = coreModuleDir(root);
+const operatorSource = coreDir
+  ? join(coreDir, "internal", "operator", "operator", "operator.go")
+  : "";
+const coreSourceAvailable = Boolean(operatorSource) && existsSync(operatorSource);
 const goSource = coreSourceAvailable ? readFileSync(operatorSource, "utf8") : "";
-const consoleSource = readFileSync(
-  join(root, "app", "cp", "tenants", "[id]", "page.tsx"),
-  "utf8",
-);
+// The table now lives in one module rather than being copied into two screens.
+const consoleSource = readFileSync(join(root, "lib", "cpCapabilities.ts"), "utf8");
 
 /** `CapTenantSuspend Capability = "tenant.suspend"` → the dotted verb. */
 function goConstants(pattern: RegExp): Record<string, string> {
@@ -61,8 +65,8 @@ function goCapabilities(): Record<string, Set<string>> {
 }
 
 function consoleCapabilities(): Record<string, Set<string>> {
-  const start = consoleSource.indexOf("const CAPABILITIES");
-  expect(start, "the console no longer carries a capability table").not.toBe(-1);
+  const start = consoleSource.indexOf("const CP_CAPABILITIES");
+  expect(start, "lib/cpCapabilities.ts no longer carries a capability table").not.toBe(-1);
   const block = consoleSource.slice(start, consoleSource.indexOf("};", start));
   const held: Record<string, Set<string>> = {};
   for (const [, role, body] of block.matchAll(/(\w+):\s*\[([^\]]*)\]/g)) {

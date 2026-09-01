@@ -27,10 +27,15 @@
 #
 # Тохируулга (env эсвэл дуудахын өмнө export):
 #
-#   BACKUP_DIR       — хаана хадгалах (анхдагч /var/backups/gerege-nexus)
+#   BACKUP_DIR       — хаана хадгалах (анхдагч /var/backups/petronet)
 #   BACKUP_KEEP_DAYS — хэдэн хоног хадгалах (анхдагч 14)
-#   POSTGRES_CONTAINER — postgres контейнерийн нэр (анхдагч gerege_nexus_postgres)
+#   POSTGRES_CONTAINER — postgres контейнерийн нэр (анхдагч gerege_petronet_postgres)
 #   POSTGRES_DB / POSTGRES_USER — анхдагч platform_db / postgres
+#
+# Толгойн эдгээр утга нь кодынхтой таарч байх ёстой. Өмнө нь цөмийн анхдагчийг
+# (gerege_nexus_postgres) баримтжуулсан атлаа код нь энэ суулгацынхыг хэрэглэдэг
+# байсан — тэр файлын өөрийнх нь анхааруулга яг хөршийн сангаас dump авсан
+# тухай юм (аудитын №46).
 #   TEXTFILE_DIR     — node_exporter-ийн textfile хавтас
 #                      (анхдагч /var/lib/node_exporter, хоосон бол бичихгүй)
 #

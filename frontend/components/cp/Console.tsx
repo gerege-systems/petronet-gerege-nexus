@@ -170,6 +170,19 @@ interface ConsoleState {
 
 const ConsoleContext = createContext<ConsoleState | null>(null);
 
+/**
+ * The console state, or null outside the frame.
+ *
+ * `useConsole` throws, which is right for a page that cannot work without the
+ * operator. A gate that only decides whether to grey out a button is a
+ * different case: rendered in a unit test with no frame around it, throwing
+ * would fail the test for a reason that has nothing to do with what it checks.
+ * The server enforces the capability regardless.
+ */
+export function useConsoleIfPresent(): ConsoleState | null {
+  return useContext(ConsoleContext);
+}
+
 /** useConsole is how a page reaches the signed-in operator. */
 export function useConsole(): ConsoleState {
   const state = useContext(ConsoleContext);

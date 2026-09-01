@@ -104,9 +104,15 @@ const forDistributionsWithoutAFrontend = [
 const declared = new Set([
   ...forDistributionsWithoutAFrontend,
   ...(await collect(path.join(ROOT, "backend"), [".go"], /Icon:\s*"([a-z0-9-]+)"/g)),
+  // This distribution's own module lives in modules/, not backend/ — its menu
+  // icons were never collected, so a menu entry could name an icon the map did
+  // not carry and the entry rendered blank (audit §45).
+  ...(await collect(path.join(ROOT, "modules"), [".go"], /Icon:\s*"([a-z0-9-]+)"/g)),
   ...(await collect(path.join(ROOT, "catalog"), [".json"], /"icon"\s*:\s*"([a-z0-9-]+)"/g)),
-  ...(await collect(path.join(ROOT, "frontend", "app"), [".tsx"], /icon:\s*"([a-z0-9-]+)"/g)),
-  ...(await collect(path.join(ROOT, "frontend", "components"), [".tsx"], /icon:\s*"([a-z0-9-]+)"/g)),
+  // .ts as well as .tsx: the shell's line definitions are a data file, and
+  // five of its icon names were missing from the map for exactly that reason.
+  ...(await collect(path.join(ROOT, "frontend", "app"), [".tsx", ".ts"], /icon:\s*"([a-z0-9-]+)"/g)),
+  ...(await collect(path.join(ROOT, "frontend", "components"), [".tsx", ".ts"], /icon:\s*"([a-z0-9-]+)"/g)),
 ]);
 
 /** building-2 → Building2, bar-chart-3 → BarChart3, file-text → FileText. */

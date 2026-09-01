@@ -54,7 +54,7 @@ export default function ShipmentsPage() {
   useEffect(load, [load]);
 
   const statusLabel = useCallback(
-    (status: string) => t(`fuel.ship.status.${status}`) || status,
+    (status: string) => t(`petro.ship.status.${status}`) || status,
     [t],
   );
 

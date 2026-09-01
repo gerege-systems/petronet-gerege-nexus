@@ -8,7 +8,7 @@
 
 import type { ReactNode } from "react";
 
-import { useConsole } from "@/components/cp/Console";
+import { useConsoleIfPresent } from "@/components/cp/Console";
 import { cpAllowed } from "@/lib/cpCapabilities";
 import { useI18n } from "@/lib/i18n";
 
@@ -34,9 +34,12 @@ export function CpWriteGate({
   capability: string;
   children: ReactNode;
 }) {
-  const { operator } = useConsole();
+  const console_ = useConsoleIfPresent();
   const { t } = useI18n();
-  const may = cpAllowed(operator.role, capability);
+  // No frame means no operator to judge — a unit test, or a screen rendered on
+  // its own. The gate then stays open and the server decides, which is what it
+  // does in every case anyway.
+  const may = console_ === null || cpAllowed(console_.operator.role, capability);
 
   return (
     <>

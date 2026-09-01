@@ -99,11 +99,15 @@ export default function UrtuuSettingsPage() {
     load();
   }, [load]);
 
-  const act = async (action: () => Promise<unknown>, message: string) => {
+  // `message` is optional so an action that already said something specific is
+  // not overwritten by a generic line: the ring sync sets "imported twelve" or
+  // "nothing new", and passing a fixed message here replaced both with
+  // "imported 0" the moment the call returned (audit §45).
+  const act = async (action: () => Promise<unknown>, message?: string) => {
     setFailure("");
     try {
       await action();
-      setNotice(message);
+      if (message !== undefined) setNotice(message);
       await load();
     } catch (err) {
       setFailure(err instanceof Error ? err.message : String(err));
@@ -294,7 +298,11 @@ export default function UrtuuSettingsPage() {
                       ? t("urtuu.message.ring_unchanged")
                       : t("urtuu.message.imported", { count: result.imported }),
                   );
-                }, t("urtuu.message.imported", { count: 0 }))
+                  // The success message is set inside the action; `act`'s own
+                  // second argument would overwrite it with "imported 0" the
+                  // moment the call returned, so a sync that brought twelve
+                  // codes read exactly like one that brought none (audit §45).
+                })
               }
               className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1"
             >
@@ -825,4 +833,18 @@ function OpenCodesDialog({
       </div>
     </Modal>
   );
+}
+
+/**
+ * A duration a person can read.
+ *
+ * It was `Math.round(seconds / 86400)` with the word "days" after it, so a
+ * four-hour undertaking — 14,400 seconds, the tightest one on the page —
+ * rendered as "0 days" (audit §45).
+ */
+function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) return "—";
+  if (seconds < 3600) return `${Math.round(seconds / 60)} мин`;
+  if (seconds < 86400) return `${Math.round(seconds / 3600)} цаг`;
+  return `${Math.round(seconds / 86400)} хоног`;
 }

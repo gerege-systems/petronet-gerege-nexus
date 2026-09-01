@@ -333,7 +333,7 @@ function GradeCard({
         </span>
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${gradeTone(grade.status)}`}>
           {knownGradeStatus(grade.status)
-            ? t(`fuel.station.grade_status.${grade.status}`)
+            ? t(`petro.station.grade_status.${grade.status}`)
             : grade.status}
         </span>
       </div>
@@ -453,7 +453,7 @@ function GradeRow({
           >
             {GRADE_STATUSES.map((status) => (
               <option key={status} value={status}>
-                {t(`fuel.station.grade_status.${status}`)}
+                {t(`petro.station.grade_status.${status}`)}
               </option>
             ))}
           </select>
