@@ -17,7 +17,6 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Fuel, RefreshCw, TriangleAlert } from "lucide-react";
 
-import Console from "@/components/cp/Console";
 import { Badge, Card, Table, formatMoment } from "@/components/cp/ui";
 import { cp, type FuelOverview } from "@/lib/cp";
 import { useI18n } from "@/lib/i18n";
@@ -36,14 +35,6 @@ function percent(level: number, capacity: number): string {
 }
 
 export default function ControlPlaneFuelPage() {
-  return (
-    <Console>
-      <FuelOversight />
-    </Console>
-  );
-}
-
-function FuelOversight() {
   const { locale } = useI18n();
   const [overview, setOverview] = useState<FuelOverview | null>(null);
   const [failure, setFailure] = useState("");
