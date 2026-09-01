@@ -16,7 +16,8 @@
 #   ./deploy/scripts/first-run.sh prepare   # (сонголтоор) цэвэрлэх, миграц, .env
 #   docker exec -it gerege_petronet_backend /app/tenant-bootstrap …
 #   docker exec -it gerege_petronet_backend /app/operator-bootstrap …
-#   ./deploy/scripts/first-run.sh finish    # зохицуулагч, бодлого, шалгалт
+#   PETRONET_OVERSIGHT_SLUGS=<яамны slug>,<агентлагийн slug> \
+#       ./deploy/scripts/first-run.sh finish
 #
 # Өгөгдлийг устгах нь `PETRONET_WIPE=yes-i-mean-it` гэж ЗӨВХӨН тодорхой
 # хэлсэн үед л явагдана. Түүнгүйгээр `prepare` нь байгаа сан дээр миграц ба
@@ -121,12 +122,22 @@ finish() {
   fi
 
   echo "→ хяналтын байгууллага"
-  # Аль байгууллага зохицуулагч болохыг slug-аар нь хэлнэ. Байхгүй slug нь
-  # чимээгүй алгасагдана: энэ скрипт нь суулгац бүрд ижил, нэрс нь ялгаатай.
-  psql_db -c "
-    INSERT INTO petro_oversight_bodies (tenant_id, name, scope)
-    SELECT id, name, 'national' FROM registry.tenants WHERE slug IN ('aueby', 'amgtg')
-    ON CONFLICT (tenant_id) DO UPDATE SET name = EXCLUDED.name, scope = EXCLUDED.scope" >/dev/null
+  # Аль байгууллага зохицуулагч болохыг slug-аар нь хэлнэ, ба тэдгээрийг энд
+  # хатуу бичих аргагүй: анхны тохиргооны шидтэн байгууллагын slug-ийг улсын
+  # бүртгэлийн дугаараар нь тавьдаг тул суулгац бүрд өөр. Тавиагүй бол алхам нь
+  # алгасагдаж, юуг тавихыг хэлнэ — таамгаар нэг байгууллагад бүх компанийн
+  # өгөгдөл рүү хандах эрх өгөхөөс хоосон орхих нь дээр.
+  if [ -n "${PETRONET_OVERSIGHT_SLUGS:-}" ]; then
+    local slugs
+    slugs="$(printf '%s' "$PETRONET_OVERSIGHT_SLUGS" | sed "s/[^,]*/'&'/g")"
+    psql_db -c "
+      INSERT INTO petro_oversight_bodies (tenant_id, name, scope)
+      SELECT id, name, 'national' FROM registry.tenants WHERE slug IN ($slugs)
+      ON CONFLICT (tenant_id) DO UPDATE SET name = EXCLUDED.name, scope = EXCLUDED.scope" >/dev/null
+  else
+    echo "  PETRONET_OVERSIGHT_SLUGS тавиагүй — алгаслаа"
+    echo "  жишээ: PETRONET_OVERSIGHT_SLUGS=9129294,amgtg $0 finish"
+  fi
   psql_db -tAc "SELECT '  ' || t.slug || ' — ' || o.scope
                   FROM petro_oversight_bodies o JOIN registry.tenants t ON t.id = o.tenant_id"
 
