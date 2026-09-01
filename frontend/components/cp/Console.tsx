@@ -102,7 +102,7 @@ const APPS: ConsoleApp[] = [
         { href: "/cp/tenants", label: "cp.section.tenants", icon: <Building2 className="w-5 h-5" /> },
         { href: "/cp/support", label: "cp.section.support", icon: <LifeBuoy className="w-5 h-5" /> },
         { href: "/cp/approvals", label: "cp.section.approvals", icon: <CheckCheck className="w-5 h-5" /> },
-        { href: "/cp/fuel", label: "cp.section.fuel", icon: <Fuel className="w-5 h-5" /> },
+        { href: "/cp/petro", label: "cp.section.fuel", icon: <Fuel className="w-5 h-5" /> },
       ] },
       { id: "cp.group.entitlements", items: [
         { href: "/cp/quotas", label: "cp.section.quotas", icon: <Scale className="w-5 h-5" /> },
