@@ -1,7 +1,7 @@
 {
   "uid": "nexus-infrastructure",
   "title": "PetroNet — Инфраструктур",
-  "description": "Хост, контейнерүүд, Postgres, Redis. Платформ удаашрахад хоёр дахь харах дэлгэц.",
+  "description": "Хост, Postgres, платформын процесс. Систем удаашрахад хоёр дахь харах дэлгэц.",
   "tags": [
     "nexus",
     "infra"
@@ -34,7 +34,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
+        "w": 5,
         "x": 0,
         "y": 0
       },
@@ -107,8 +107,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 4,
+        "w": 5,
+        "x": 5,
         "y": 0
       },
       "targets": [
@@ -180,8 +180,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 8,
+        "w": 5,
+        "x": 10,
         "y": 0
       },
       "targets": [
@@ -253,8 +253,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 4,
-        "x": 12,
+        "w": 5,
+        "x": 15,
         "y": 0
       },
       "targets": [
@@ -319,7 +319,7 @@
       "gridPos": {
         "h": 4,
         "w": 4,
-        "x": 16,
+        "x": 20,
         "y": 0
       },
       "targets": [
@@ -355,75 +355,6 @@
               {
                 "color": "red",
                 "value": 0.9
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "noValue": "Хэмжигдэхгүй байна"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto"
-      }
-    },
-    {
-      "type": "stat",
-      "title": "Redis",
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "nexus-prometheus"
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 4,
-        "x": 20,
-        "y": 0
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "nexus-prometheus"
-          },
-          "editorMode": "code",
-          "expr": "redis_up",
-          "legendFormat": "up",
-          "range": true,
-          "instant": false,
-          "refId": "A",
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
               }
             ]
           },
@@ -678,176 +609,12 @@
     },
     {
       "type": "row",
-      "title": "Контейнерүүд",
+      "title": "Postgres",
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
         "y": 12
-      },
-      "collapsed": false,
-      "panels": []
-    },
-    {
-      "type": "timeseries",
-      "title": "Контейнер бүрийн CPU",
-      "description": " Контейнерийг ID-гаар нэрлэсэн, нэрээр нь биш. Docker 29 нь containerd snapshotter ашигладаг тул cAdvisor контейнерийн нэрийг Docker-оос уншиж чадахгүй — containerd-аас уншихад ID л ирдэг. Аль контейнер болохыг `docker ps --filter id=<эхний 12 тэмдэгт>`-ээр олно.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "nexus-prometheus"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 13
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "nexus-prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (id) (rate(container_cpu_usage_seconds_total{id=~\"/system.slice/docker-.*\"}[$__rate_interval]))",
-          "legendFormat": "{{id}}",
-          "range": true,
-          "instant": false,
-          "refId": "A",
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "mode": "none",
-              "group": "A"
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0,
-          "noValue": "Хэмжигдэхгүй байна"
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "transformations": [
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*docker-(.{12}).*",
-            "renamePattern": "$1"
-          }
-        }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Контейнер бүрийн санах ой",
-      "description": "working set нь RSS биш: кэш хассан, OOM killer-ийн харагддаг тоо. Контейнерийг ID-гаар нэрлэсэн, нэрээр нь биш. Docker 29 нь containerd snapshotter ашигладаг тул cAdvisor контейнерийн нэрийг Docker-оос уншиж чадахгүй — containerd-аас уншихад ID л ирдэг. Аль контейнер болохыг `docker ps --filter id=<эхний 12 тэмдэгт>`-ээр олно.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "nexus-prometheus"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 13
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "nexus-prometheus"
-          },
-          "editorMode": "code",
-          "expr": "sum by (id) (container_memory_working_set_bytes{id=~\"/system.slice/docker-.*\"})",
-          "legendFormat": "{{id}}",
-          "range": true,
-          "instant": false,
-          "refId": "A",
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "bytes",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "mode": "none",
-              "group": "A"
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0,
-          "noValue": "Хэмжигдэхгүй байна"
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "transformations": [
-        {
-          "id": "renameByRegex",
-          "options": {
-            "regex": ".*docker-(.{12}).*",
-            "renamePattern": "$1"
-          }
-        }
-      ]
-    },
-    {
-      "type": "row",
-      "title": "Postgres ба Redis",
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 21
       },
       "collapsed": false,
       "panels": []
@@ -862,9 +629,9 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 8,
+        "w": 12,
         "x": 0,
-        "y": 22
+        "y": 13
       },
       "targets": [
         {
@@ -929,9 +696,9 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 8,
-        "x": 8,
-        "y": 22
+        "w": 12,
+        "x": 12,
+        "y": 13
       },
       "targets": [
         {
@@ -998,85 +765,6 @@
           "sort": "desc"
         }
       }
-    },
-    {
-      "type": "timeseries",
-      "title": "Redis — санах ой ба клиент",
-      "description": "128mb-ийн таазтай, allkeys-lru. Тааздаа хүрэх нь хэвийн — Redis энд кэш, хадгалалт биш.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "nexus-prometheus"
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 16,
-        "y": 22
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "nexus-prometheus"
-          },
-          "editorMode": "code",
-          "expr": "redis_memory_used_bytes",
-          "legendFormat": "санах ой",
-          "range": true,
-          "instant": false,
-          "refId": "A",
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "bytes",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": true,
-            "stacking": {
-              "mode": "none",
-              "group": "A"
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "min": 0,
-          "noValue": "Хэмжигдэхгүй байна"
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true,
-          "calcs": [
-            "mean",
-            "max"
-          ]
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      }
-    },
-    {
-      "type": "row",
-      "title": "Лог",
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 29
-      },
-      "collapsed": false,
-      "panels": []
     }
   ],
   "links": [
