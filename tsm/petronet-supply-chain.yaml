@@ -44,11 +44,16 @@ steps:
     capture:
       tank_id: id
 
+  # Жагсаалтаар шалгана: нэг баазын GET зам байхгүй. `depots.0` нь энэ
+  # байгууллага зөвхөн тестийнх бөгөөд ажиллуулалт бүр өөрийгөө цэвэрлэдэг
+  # учир тодорхой. Өмнөх унасан ажиллуулалт үлдэгдэл орхисон бол энэ мөр
+  # унана — тэр нь зөв: бохир байгууллагыг чимээгүй өнгөрөх ёсгүй.
   - name: Шинэ сав хоосон эхэлсэн эсэх
-    path: /api/v1/petro/depots/${depot_id}
+    path: /api/v1/petro/depots
     expect:
       json:
-        current_liters: 0
+        count: "1"
+        depots.0.current_liters: "0"
 
   - name: ШТС бүртгэх
     method: POST
@@ -83,10 +88,10 @@ steps:
       status: [200, 201]
 
   - name: Савны үлдэгдэл нэмэгдсэн эсэх
-    path: /api/v1/petro/depots/${depot_id}
+    path: /api/v1/petro/depots
     expect:
       json:
-        current_liters: 30000
+        depots.0.current_liters: "30000"
 
   - name: ШТС рүү хуваарилах
     method: POST
@@ -107,10 +112,10 @@ steps:
       trip_id: trip_id
 
   - name: Баазаас гарсан литр хасагдсан эсэх
-    path: /api/v1/petro/depots/${depot_id}
+    path: /api/v1/petro/depots
     expect:
       json:
-        current_liters: 18000
+        depots.0.current_liters: "18000"
 
   - name: ШТС дээр хүлээн авах
     method: POST

@@ -13,7 +13,7 @@ steps:
     expect:
       status: 200
     capture:
-      period_id: 0.id
+      period_id: periods.0.id
 
   - name: Үеийн урьдчилсан бөглөлт
     path: /api/v1/petro/report/periods/${period_id}/prefill

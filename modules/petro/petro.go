@@ -290,6 +290,8 @@ func (m *Module) RegisterRoutes(r chi.Router, tenantAuthMiddleware func(http.Han
 		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
 			Post("/depots", m.handleCreateDepot)
 		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
+			Delete("/depots/{id}", m.handleDeleteDepot)
+		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
 			Post("/depots/{id}/tanks", m.handleCreateTank)
 		fr.With(nexus.RequirePermission(m.perms, "petro.manage")).
 			Patch("/depots/{id}/tanks/{tankId}", m.handleUpdateTank)

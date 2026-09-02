@@ -474,3 +474,60 @@ func TestTheGaugeCannotSetTheLevel(t *testing.T) {
 		t.Fatalf("the reading was not recorded: %+v", tank)
 	}
 }
+
+// TestAnEmptyBaseCanBeRemovedButAUsedOneCannot is the rule behind depot
+// deletion.
+//
+// ШТС-д устгал байсан ч баазад байгаагүй нь тэгш бус байдал байв: андуурч
+// бүртгэсэн бааз бүтээгдэхүүнээр дамжуулан хэзээ ч арилахгүй. Одоо арилна —
+// гэхдээ зөвхөн ТҮҮХГҮЙ бааз. Хүлээн авалт бүртгэгдсэн бааз бол тайлангийн ул
+// мөрийн хэсэг бөгөөд түүнийг устгах нь өнгөрсөн тоог тайлбарлах боломжгүй
+// болгоно; түлштэй сав бүхий баазыг устгах нь литрийг бүртгэлээс алга болгоно.
+func TestAnEmptyBaseCanBeRemovedButAUsedOneCannot(t *testing.T) {
+	pool := openFuelPool(t)
+	acme := newCompany(t, pool, "Acme")
+
+	// Хоосон, түүхгүй бааз — арилна.
+	empty, _ := acme.base(t, 500_000)
+	rec := acme.call(t, acme.module.handleDeleteDepot, http.MethodDelete, "/depots/x", nil,
+		map[string]string{"id": empty})
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("an empty base could not be removed: %d %s", rec.Code, rec.Body.String())
+	}
+
+	// Хүлээн авалттай бааз — арилахгүй.
+	used, tank := acme.base(t, 500_000)
+	shipmentID := acme.declare(t, 10_000)
+	if cleared := acme.clear(t, shipmentID); cleared.Code != http.StatusOK {
+		t.Fatalf("clear: %d %s", cleared.Code, cleared.Body.String())
+	}
+	if got := acme.receive(t, used, tank, shipmentID, 10_000); got.Code != http.StatusCreated &&
+		got.Code != http.StatusOK {
+		t.Fatalf("receive: %d %s", got.Code, got.Body.String())
+	}
+
+	rec = acme.call(t, acme.module.handleDeleteDepot, http.MethodDelete, "/depots/x", nil,
+		map[string]string{"id": used})
+	if rec.Code != http.StatusConflict {
+		t.Fatalf("a base with a receipt was removed: %d %s", rec.Code, rec.Body.String())
+	}
+}
+
+// TestOneCompanyCannotRemoveAnothersBase closes the door the delete opens.
+//
+// Устгал нь `WHERE id = $1` — tenant_id байхгүй. Тэр нь алдаа биш, мөрийн
+// түвшний бодлого хариуцна гэсэн үг; энэ тест бодлого үнэхээр байгааг батална,
+// хэн нэгэн шүүлтүүр бичихээ санасныг биш.
+func TestOneCompanyCannotRemoveAnothersBase(t *testing.T) {
+	pool := openFuelPool(t)
+	acme := newCompany(t, pool, "Acme")
+	rival := newCompany(t, pool, "Rival")
+
+	acmeDepot, _ := acme.base(t, 500_000)
+
+	rec := rival.call(t, rival.module.handleDeleteDepot, http.MethodDelete, "/depots/x", nil,
+		map[string]string{"id": acmeDepot})
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("a company removed another company's base: %d %s", rec.Code, rec.Body.String())
+	}
+}

@@ -213,6 +213,72 @@ func (m *Module) handleCreateDepot(w http.ResponseWriter, r *http.Request) {
 	nexus.JSON(w, http.StatusCreated, depot)
 }
 
+// handleDeleteDepot removes a base that has not been used.
+//
+// ШТС-д устгал байсан ч баазад байгаагүй нь тэгш бус байдал байв: андуурч
+// бүртгэсэн бааз — буруу нэр, давхардсан бичлэг — бүтээгдэхүүнээр дамжуулан
+// хэзээ ч арилахгүй. Зохицуулагч түүнийг түдгэлзүүлж чадах ч эзэмшигч
+// байгууллага өөрийн алдааг өөрөө засаж чадахгүй байлаа.
+//
+// Хамгаалалт нь ШТС-ынхтай ижил зарчим: ТҮҮХТЭЙ зүйлийг устгахгүй. Хүлээн
+// авалт бүртгэгдсэн, эсвэл рейс гарсан бааз бол тайлангийн ул мөрийн нэг хэсэг
+// бөгөөд түүнийг устгах нь өнгөрсөн тоог тайлбарлах боломжгүй болгоно. Түлш
+// байгаа сав ч мөн адил: хоосон биш савтай баазыг устгах нь литрийг бүртгэлээс
+// алга болгоно.
+func (m *Module) handleDeleteDepot(w http.ResponseWriter, r *http.Request) {
+	claims, err := nexus.UserFromContext(r.Context())
+	if err != nil {
+		nexus.Error(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	tenantID, ok := nexus.RequireWorkspace(w, r)
+	if !ok {
+		return
+	}
+	depotID := chi.URLParam(r, "id")
+	if !isUUID(depotID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
+
+	var receipts, trips, fuelled int
+	if err := m.db.QueryRow(r.Context(), `
+		SELECT (SELECT COUNT(*)::int FROM petro_depot_receipts WHERE depot_id = $1),
+		       (SELECT COUNT(*)::int FROM petro_dispatch_trips
+		         WHERE from_depot_id = $1 AND status <> 'cancelled'),
+		       (SELECT COUNT(*)::int FROM petro_depot_tanks
+		         WHERE depot_id = $1 AND current_liters > 0)`,
+		depotID).Scan(&receipts, &trips, &fuelled); err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "баазыг шалгаж чадсангүй")
+		return
+	}
+	if receipts > 0 || trips > 0 {
+		nexus.Error(w, http.StatusConflict,
+			"энэ бааз хүлээн авалт эсвэл рейстэй байна — устгахын оронд төлөвийг нь хаалттай болго")
+		return
+	}
+	if fuelled > 0 {
+		nexus.Error(w, http.StatusConflict, "савнуудад түлш байна — эхлээд хоослоно уу")
+		return
+	}
+
+	// Савууд нь баазтайгаа хамт явна: хоосон, түүхгүй сав нь баазаас гадуур
+	// утгагүй бөгөөд түүнийг үлдээх нь эзэнгүй мөр үлдээнэ.
+	tag, err := m.db.Exec(r.Context(), `DELETE FROM petro_depots WHERE id = $1`, depotID)
+	if err != nil {
+		nexus.Error(w, http.StatusInternalServerError, "баазыг устгаж чадсангүй")
+		return
+	}
+	if tag.RowsAffected() == 0 {
+		nexus.Error(w, http.StatusNotFound, "бааз олдсонгүй")
+		return
+	}
+
+	nexus.Audit(r.Context(), tenantID, claims.UserID, "petro.depot.deleted", depotID, nil)
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // TankDraft registers a vessel.
 //
 // No opening level. A tank enters the system empty and fills through receipts,
