@@ -90,7 +90,7 @@ export default function LoginPage(){const router=useRouter();const {t}=useI18n()
             асууж байна гэсэн үг — тэр үед ч гэсэн карт нэгэн ижил харагдана. */}
         <div className="signin-card__asker">
           <strong>{asker?.client_name||t("auth.view.platform_name")}</strong>
-          <span>{t("auth.signin.asker_note")}</span>
+          <span>{t(asker ? "auth.signin.asker_note" : "auth.signin.self_note")}</span>
         </div>
         <hr className="signin-card__rule"/>
 

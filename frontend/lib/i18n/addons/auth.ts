@@ -47,9 +47,23 @@ export const auth = {
   // Нэгдсэн нэвтрэлтийн карт. Толгой мөр нь "хэн асууж байна"-г хэлнэ:
   // authorization хүсэлтээс ирсэн бол тухайн аппын нэр, эс бөгөөс платформ өөрөө.
   "auth.view.platform_name": { mn: "{brand}", en: "{brand}" },
+  // Тайлбар мөр нь ДЭЭРХ нэрийн үргэлжлэл — тиймээс нэрийг дахин бичихгүй.
+  //
+  // Урьд нь хоёулаа `{brand}` байсан бөгөөд хоёр зүйл буруу гарч байв. Гадны
+  // апп асуугаагүй үед карт нь «PetroNet System / PetroNet System — нэгдсэн
+  // нэвтрэлтээр нэвтрэх гэж байна» гэж нэг нэрийг хоёр удаа бичээд өөрийгөө
+  // өөртөө тайлбарлана. Гадны апп асуусан үед бүр дор: дээр нь Grafana гэж
+  // бичээд доор нь PetroNet System нэвтрэх гэж байна гэнэ — хоёр мөр өөр
+  // өөр зүйлийг нэрлэсэн, өгүүлбэр нь худал.
   "auth.signin.asker_note": {
-    mn: "{brand} — нэгдсэн нэвтрэлтээр нэвтрэх гэж байна",
-    en: "{brand} — signing you in through the unified login",
+    mn: "{brand}-ийн нэгдсэн нэвтрэлтээр нэвтрэхийг хүсэж байна",
+    en: "wants to sign you in through the {brand} unified login",
+  },
+  // Платформ өөрөө асууж байгаа үед: нэр нь дээр нэгэнт бичигдсэн тул энэ мөр
+  // юу болж байгааг л хэлнэ.
+  "auth.signin.self_note": {
+    mn: "Нэгдсэн нэвтрэлт",
+    en: "Unified sign-in",
   },
   "auth.signin.title": { mn: "Нэвтрэх", en: "Sign in" },
   "auth.signin.lede": { mn: "eID Mongolia App-аар нэвтрэх", en: "Sign in with the eID Mongolia app" },
