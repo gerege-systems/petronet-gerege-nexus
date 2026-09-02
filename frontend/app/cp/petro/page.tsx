@@ -82,7 +82,7 @@ export default function ControlPlaneFuelPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Шатахууны харагдац</h1>
             <p className="mt-0.5 text-sm text-slate-500">
-              Суулгац дээрх эрхлэгч бүрийн бүртгэлээс нэгтгэсэн дүр зураг. Зөвхөн унших.
+              Систем дээрх эрхлэгч бүрийн бүртгэлээс нэгтгэсэн дүр зураг. Зөвхөн унших.
             </p>
           </div>
         </div>

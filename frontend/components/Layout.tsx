@@ -215,11 +215,11 @@ export default function Layout({children}:{children:React.ReactNode}){
   // push биш replace: push үлдээвэл Back дарахад дөнгөж сая гарсан хамгаалалттай
   // хуудас руу буцаж, тэндээс 401 аваад яг тэр нэвтрэх дэлгэц рүү шидэгдэнэ.
   //
-  // Холбоосон суулгац дээр гарах нь энд дуусдаггүй: провайдер өөрийн session-ээ
+  // Холбоосон систем дээр гарах нь энд дуусдаггүй: провайдер өөрийн session-ээ
   // хэвээр барьж байгаа тул "гарлаа" гээд "нэвтрэх" дарахад шууд буцаж ороход
   // хүн гарсан гэж үзэхгүй. Тиймээс сервер end_session_url буцаавал хөтчийг
   // тийш нь илгээнэ — провайдер өөрийнхөө session-ийг хааж, бүртгэлтэй
-  // post-logout хаягаар нь энэ суулгац руу буцаана.
+  // post-logout хаягаар нь энэ систем руу буцаана.
   async function logout(){let endSession="";try{const res=await api.logout();endSession=res.end_session_url||""}catch{}resetAccess();forgetTenants();if(endSession)window.location.assign(endSession);else router.replace("/")}
   const brandTitle=selected?.name||(t("web.label.platform"));
   // A home is a workspace and gets this shell, minus the screens that are about

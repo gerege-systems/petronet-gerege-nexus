@@ -13,16 +13,16 @@ export const urtuu = {
     mn: "Дээд шатны болон харьяа байгууллагатай холбогдох суваг: холбоос, хүсэлтийн кодууд.",
     en: "The channel to the superior and subordinate organisations: links and request codes.",
   },
-  "urtuu.view.identity": { mn: "Энэ суулгацын мөр", en: "This installation's identity" },
+  "urtuu.view.identity": { mn: "Энэ системийн мөр", en: "This installation's identity" },
   "urtuu.view.identity_hint": {
     mn: "Харьяа байгууллага энэ түлхүүрээр таны илгээсэн дугтуйг шалгана. Түлхүүр солигдвол одоо байгаа холбоосууд дахин байгуулагдана.",
     en: "A subordinate organisation verifies your envelopes with this key. Changing it means every existing link has to be established again.",
   },
-  "urtuu.view.installation_id": { mn: "Суулгацын ID", en: "Installation id" },
+  "urtuu.view.installation_id": { mn: "Системийн ID", en: "Installation id" },
   "urtuu.view.public_key": { mn: "Нийтийн түлхүүр", en: "Public key" },
 
   "urtuu.message.disabled": {
-    mn: "Энэ суулгац дээр Өртөө тохируулагдаагүй байна: URTUU_SIGNING_KEY тавигдаагүй тул холбоос үүсгэх боломжгүй.",
+    mn: "Энэ систем дээр Өртөө тохируулагдаагүй байна: URTUU_SIGNING_KEY тавигдаагүй тул холбоос үүсгэх боломжгүй.",
     en: "Өртөө is not configured on this installation: URTUU_SIGNING_KEY is unset, so no link can be established.",
   },
   "urtuu.message.no_links": { mn: "Холбоос алга", en: "No links yet" },

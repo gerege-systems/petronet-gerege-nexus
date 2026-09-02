@@ -11,7 +11,7 @@ export const storefront = {
   "storefront.view.title_lead": { mn: "Байгууллагадаа хэрэгтэй", en: "Everything an organisation runs," },
   "storefront.view.title_highlight": { mn: "аппуудаа сонгоно уу", en: "one app at a time" },
   "storefront.view.lede": {
-    mn: "{brand} дээр ажилладаг аппуудын албан ёсны каталог. Апп бүр гарын үсэгтэй manifest-тэй ирдэг тул суулгац бүр юуг суулгаж байгаагаа шалгаж чадна.",
+    mn: "{brand} дээр ажилладаг аппуудын албан ёсны каталог. Апп бүр гарын үсэгтэй manifest-тэй ирдэг тул систем бүр юуг суулгаж байгаагаа шалгаж чадна.",
     en: "The official catalogue of applications that run on {brand}. Every app arrives with a signed manifest, so an instance can verify what it is installing.",
   },
   "storefront.action.browse": { mn: "Каталогийг үзэх", en: "Browse the catalogue" },
@@ -24,7 +24,7 @@ export const storefront = {
   "storefront.view.catalogue_eyebrow": { mn: "КАТАЛОГ", en: "CATALOGUE" },
   "storefront.view.catalogue_title": { mn: "Нийтлэгдсэн аппууд", en: "Published applications" },
   "storefront.view.catalogue_lede": {
-    mn: "Суулгацын администратор эдгээрийг Апп дэлгүүрээсээ шууд суулгана. Хувилбар бүр гарын үсэгтэй каталогоор тараагддаг.",
+    mn: "Системийн администратор эдгээрийг Апп дэлгүүрээсээ шууд суулгана. Хувилбар бүр гарын үсэгтэй каталогоор тараагддаг.",
     en: "An instance administrator installs these from their own App Store screen. Every version is distributed through the signed catalogue.",
   },
   "storefront.category.other": { mn: "Бусад", en: "Other" },

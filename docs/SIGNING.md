@@ -49,7 +49,7 @@ documents.read    documents.sign    documents.manage
 nexus.Signer   // Enabled() bool; SignDigest(...); SignDocument(...)
 ```
 
-eID бүртгэлгүй суулгац ч рэйл авна: тэр нь `Enabled() false` гэж хариулна —
+eID бүртгэлгүй систем ч рэйл авна: тэр нь `Enabled() false` гэж хариулна —
 энэ бол үнэн байдал, мөн модулийн асуух ёстой асуулт.
 
 Обёртка байгаагийн шалтгаан: `eidsign`-ийн төрлүүд энд зогсоно. Өөр репод

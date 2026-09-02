@@ -117,12 +117,12 @@ export const auth = {
   },
   "auth.message.error_password": { mn: "Нэвтрэх боломжгүй байна", en: "Could not sign in" },
 
-  // Энэ суулгац өөрөө биш, өөр SSO провайдер таньдаг үе. {provider} нь тухайн
+  // Энэ систем өөрөө биш, өөр SSO провайдер таньдаг үе. {provider} нь тухайн
   // провайдерийн нэр — орчуулгын мөрөнд үлдээж, дэлгэц дээр орлуулна.
   "auth.sso.checking": { mn: "Нэвтрэх аргыг тодруулж байна…", en: "Working out how to sign you in…" },
   "auth.sso.redirecting": { mn: "{provider} рүү шилжиж байна…", en: "Taking you to {provider}…" },
   "auth.sso.lede": {
-    mn: "Энэ суулгац хэн болохыг тань {provider} дээр баталгаажуулна. Тэнд нэвтэрсэн бол дахин асуухгүй.",
+    mn: "Энэ систем хэн болохыг тань {provider} дээр баталгаажуулна. Тэнд нэвтэрсэн бол дахин асуухгүй.",
     en: "This deployment confirms who you are at {provider}. If you are already signed in there, you will not be asked again.",
   },
   "auth.sso.card_title": { mn: "{provider}-ээр нэвтэрнэ", en: "Sign in through {provider}" },

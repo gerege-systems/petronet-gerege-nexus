@@ -790,7 +790,7 @@ docker compose -f deploy/docker-compose.monitoring.yml \
 4. Гараар ажиллуулж алдааг нь хар:
    `sudo sh -c '. /etc/default/nexus-backup && /usr/local/bin/nexus-backup.sh'`
 
-Тохируулаагүй суулгац дээр ч энэ дуугарна, зориудаар: хуулбар өөр газар
+Тохируулаагүй систем дээр ч энэ дуугарна, зориудаар: хуулбар өөр газар
 байхгүй гэдэг нь чимээгүй өнгөрөх ёсгүй баримт. Тохируулах бол
 `deploy/.env.backups.example`.
 

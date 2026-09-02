@@ -18,7 +18,7 @@ export function brandFromEnv(env: NodeJS.ProcessEnv = process.env): Brand {
     maskableIconUrl: assetURL(text(env.BRAND_MASKABLE_ICON_URL)),
     // Хоёр нэрийн дараа л платформын гарын авлага руу унана.
     //
-    // `SERVICE_URL_DOCS` нь энэ жагсаалтад байгаа нь чимэг биш: суулгац
+    // `SERVICE_URL_DOCS` нь энэ жагсаалтад байгаа нь чимэг биш: систем
     // өөрийн баримтын хаягийг аль хэдийн тэнд бичсэн байдаг (нүүр хуудасны
     // үйлчилгээний картууд түүнийг уншина), харин толгойн «Баримт бичиг» нь
     // `BRAND_DOCS_URL`-ыг уншиж байв. Нэг хаягийг хоёр нэрээр асуух нь

@@ -371,7 +371,7 @@ export const documents = {
   "contracts.field.home_user": { mn: "Хэрэглэгчийн ID", en: "User ID" },
   "contracts.field.home_tenant": { mn: "Байгууллагын ID", en: "Organisation ID" },
   "contracts.field.home_tenant_hint": {
-    mn: "Энэ суулгац дээрх байгууллагын UUID. Тэд өөрсдийн «Ирсэн гэрээ» дотроос харна.",
+    mn: "Энэ систем дээрх байгууллагын UUID. Тэд өөрсдийн «Ирсэн гэрээ» дотроос харна.",
     en: "The UUID of an organisation on this platform. The contract appears in their own incoming list.",
   },
   "contracts.field.full_name": { mn: "Овог нэр", en: "Full name" },

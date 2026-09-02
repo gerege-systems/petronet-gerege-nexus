@@ -269,7 +269,7 @@ func New(p nexus.Platform) *Module {
 Каталог: `catalog/apps.json`, `catalog/manifests/<slug>.json`, ба хувилбарын
 түүхээ `catalog/chronicle/<slug>.json`-д. Образ нь энэ репогийн каталогийг
 цөмийнхтэй нийлүүлдэг — бинарь дотор байгаа аппыг каталог нэрлээгүй бол
-суулгац асахаас татгалзана.
+систем асахаас татгалзана.
 
 Дэлгэрэнгүй заавар:
 [`MODULE_AUTHORING_GUIDE.md`](https://github.com/gerege-systems/open-gerege-nexus/blob/main/docs/MODULE_AUTHORING_GUIDE.md).

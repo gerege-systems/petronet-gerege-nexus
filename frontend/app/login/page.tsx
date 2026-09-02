@@ -33,12 +33,12 @@ const SSO_ERRORS:Record<string,TranslationKey>={no_account:"auth.sso.error_no_ac
  *
  * Хоёр дахь нь илүү чухал: нийтэд нээлттэй нэвтрэх дэлгэц бүр зочин болгонд
  * ажиллаж магадгүй админы нэр, нууц үгийн таамгийг бэлэн бичээд өгч байсан.
- * Демо суулгацад тохирох байсан ч бүх суулгацад тохирохгүй, мөн демо гэдгийг
+ * Демо системд тохирох байсан ч бүх системд тохирохгүй, мөн демо гэдгийг
  * энэ дэлгэц мэдэх ч аргагүй.
  */
 export default function LoginPage(){const router=useRouter();const {t}=useI18n();const brand=useBrand();const [next,setNext]=useState("/profile"),[admin,setAdmin]=useState(false),[email,setEmail]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState("");
   // undefined = хараахан асуугаагүй. Энэ ялгаа чухал: асуухаас өмнө eID
-  // хэлбэрийг зурчихвал холбоосон суулгац дээр хүн энд нэвтэрч болно гэж
+  // хэлбэрийг зурчихвал холбоосон систем дээр хүн энд нэвтэрч болно гэж
   // хэсэг хугацаанд итгэж, дараа нь өөр рүү шилжсэн нь будлиантай.
   const [sso,setSSO]=useState<{enabled:boolean;provider_name?:string;start_url?:string;local_login:boolean;google?:{enabled:boolean;start_url?:string};access_mode?:"public"|"private"}|undefined>();
   // Хэн асууж байна. Зөвхөн authorization хүсэлтээс ирсэн үед л утгатай, ба
@@ -48,7 +48,7 @@ export default function LoginPage(){const router=useRouter();const {t}=useI18n()
 
   useEffect(()=>{const requested=new URLSearchParams(location.search).get("next");setNext(safeReturnPath(requested));
     const failed=new URLSearchParams(location.search).get("sso_error");if(failed)setError(t(SSO_ERRORS[failed]||"auth.sso.error_generic"));
-    // Алдаагаа өөрөө барина: тохиргоо ирэхгүй бол энэ суулгац өөрөө нэвтрүүлдэг
+    // Алдаагаа өөрөө барина: тохиргоо ирэхгүй бол энэ систем өөрөө нэвтрүүлдэг
     // гэж үзнэ — эс бөгөөс API-гийн түр саатал нэвтрэх дэлгэцийг хоослоно.
     void api.ssoConfig().then(setSSO).catch(()=>setSSO({enabled:false,local_login:true,google:{enabled:false}}))},[t]);
 
@@ -74,7 +74,7 @@ export default function LoginPage(){const router=useRouter();const {t}=useI18n()
 
   const federated=sso?.enabled===true;
   const provider=sso?.provider_name||"";
-  // Холбоосон, орон нутгийн нэвтрэлтгүй суулгац дээр энэ дэлгэц бол зөвхөн
+  // Холбоосон, орон нутгийн нэвтрэлтгүй систем дээр энэ дэлгэц бол зөвхөн
   // дамжуулах цэг. Алдаа гарсан үед л энд үлдэж, юу болсныг хэлнэ.
   const redirecting=federated&&!sso?.local_login&&!error;
   const showLocal=!!sso&&(!federated||sso.local_login);

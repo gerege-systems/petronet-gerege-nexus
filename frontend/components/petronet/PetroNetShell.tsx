@@ -19,7 +19,7 @@ import { useI18n } from "@/lib/i18n";
 export default function PetroNetShell({children}: {children: ReactNode}) {
   const brand = useBrand();
   const {t} = useI18n();
-  // Өөрийн нэрээр зогсож буй суулгац доор нь юу байгааг хэлнэ; цөм өөрөө бол
+  // Өөрийн нэрээр зогсож буй систем доор нь юу байгааг хэлнэ; цөм өөрөө бол
   // хэлэх зүйлгүй — «Nexus, Nexus дээр суурилсан» гэсэн мөр өөрийгөө өөртөө
   // тайлбарлана.
   const rebranded = brand.name !== DEFAULT_BRAND.name;

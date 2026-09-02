@@ -5,7 +5,7 @@
 export const setup = {
   "setup.view.title": { mn: "Анхны тохиргоо", en: "First-run setup" },
   "setup.view.subtitle": {
-    mn: "Энэ суулгацад байгууллага хараахан алга. Эхний байгууллага, түүнийг ажиллуулах админыг үүсгэе.",
+    mn: "Энэ системд байгууллага хараахан алга. Эхний байгууллага, түүнийг ажиллуулах админыг үүсгэе.",
     en: "This deployment has no organisation yet. Let us open the first one and the administrator who runs it.",
   },
   "setup.view.step_organisation": { mn: "Байгууллага", en: "Organisation" },
@@ -56,13 +56,13 @@ export const setup = {
   },
   "setup.message.password_mismatch": { mn: "Хоёр нууц үг таарахгүй байна.", en: "The two passwords are not the same." },
   "setup.message.not_required": {
-    mn: "Энэ суулгац аль хэдийн тохируулагдсан байна.",
+    mn: "Энэ систем аль хэдийн тохируулагдсан байна.",
     en: "This deployment has already been set up.",
   },
   "setup.field.token": { mn: "Тохиргооны токен", en: "Setup token" },
   "setup.action.use_token": { mn: "Үргэлжлүүлэх", en: "Continue" },
   "setup.message.token_missing": {
-    mn: "Энэ суулгацыг нээх токеныг сервер асахдаа лог руугаа нэг удаа бичсэн байгаа. Тэр мөрөөс хуулж энд буулгана уу.",
+    mn: "Энэ системийг нээх токеныг сервер асахдаа лог руугаа нэг удаа бичсэн байгаа. Тэр мөрөөс хуулж энд буулгана уу.",
     en: "The token that opens this deployment was written once to the server's log at boot. Copy it from that line and paste it here.",
   },
 

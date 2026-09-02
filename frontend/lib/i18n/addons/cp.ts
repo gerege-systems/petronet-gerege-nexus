@@ -284,7 +284,7 @@ export const cp = {
     en: "Fetches the latest app catalogue from the registry and updates the deployment.",
   },
   "cp.message.no_monitoring": {
-    mn: "Энэ суулгацад PROMETHEUS_URL тохируулаагүй тул хэмжүүрийн хэсэг хоосон байна. docs/OPERATIONS.md-г үз.",
+    mn: "Энэ системд PROMETHEUS_URL тохируулаагүй тул хэмжүүрийн хэсэг хоосон байна. docs/OPERATIONS.md-г үз.",
     en: "PROMETHEUS_URL is not set on this deployment, so the metric panels are empty. See docs/OPERATIONS.md.",
   },
   "cp.message.no_alerts": { mn: "Идэвхтэй дохио алга.", en: "Nothing is alerting." },
@@ -448,12 +448,12 @@ export const cp = {
   "cp.message.enrolled": { mn: "Баталгаажлаа. Тэр хүн одоо нэвтэрч чадна.", en: "Enrolled. They can sign in now." },
   "cp.message.passwords_differ": { mn: "Хоёр нууц үг таарахгүй байна.", en: "The two passwords are not the same." },
 
-  // Tenant удирдлага — консолын гурав дахь апп: энэ суулгац дээрх
+  // Tenant удирдлага — консолын гурав дахь апп: энэ систем дээрх
   // байгууллагууд, тэдний эрх, тэдэнд суусан аппууд.
   "cp.app.tenants": { mn: "Tenant удирдлага", en: "Tenant management" },
-  "cp.group.entitlements": { mn: "Эрх ба суулгац", en: "Entitlements" },
+  "cp.group.entitlements": { mn: "Эрх ба систем", en: "Entitlements" },
   "cp.section.quotas": { mn: "Квот", en: "Limits" },
-  "cp.section.installations": { mn: "Аппын суулгац", en: "Installations" },
+  "cp.section.installations": { mn: "Аппын систем", en: "Installations" },
   "cp.hint.quotas": {
     mn: "Аль байгууллагад ямар хязгаар тавигдсаныг нэг дор. Хязгаарыг байгууллагынх нь хуудаснаас, шалтгаантайгаар л тавина.",
     en: "Which limits are set where, in one place. Setting one stays on the organisation's own page, with a reason.",
@@ -500,7 +500,7 @@ export const cp = {
   "cp.group.people": { mn: "Хэрэглэгч", en: "People" },
   "cp.section.people": { mn: "Бүх хэрэглэгч", en: "Everybody" },
   "cp.hint.people": {
-    mn: "Энэ суулгац дээр бүртгэлтэй бүх хүн. Дэмжлэгийн дэлгэц нэг хүнийг хайдаг; энэ нь хүн амын тухай асуултад хариулна.",
+    mn: "Энэ систем дээр бүртгэлтэй бүх хүн. Дэмжлэгийн дэлгэц нэг хүнийг хайдаг; энэ нь хүн амын тухай асуултад хариулна.",
     en: "Everybody with an account here. The help desk finds one person; this answers the questions about the population.",
   },
   "cp.metric.people": { mn: "Нийт бүртгэл", en: "Accounts" },
@@ -549,7 +549,7 @@ export const cp = {
   // Гурван хэсэг: hero-гийн гарчиг хоёр мөрөөс хэтрэхгүй байх ёстой — дөрөв
   // болмогц нэвтрэх карт доошоо түлхэгдэж, нэвтрэх гэж ирсэн хүн гүйлгэх
   // шаардлагатай болно. «Операторын» гэдэг үг eyebrow дээр аль хэдийн бий.
-  "cp.landing.title_lead": { mn: "Суулгацыг", en: "The console that" },
+  "cp.landing.title_lead": { mn: "Системийг", en: "The console that" },
   "cp.landing.title_highlight": { mn: "удирдах", en: "runs" },
   "cp.landing.title_tail": { mn: "консол", en: "the deployment" },
   "cp.landing.lede": {

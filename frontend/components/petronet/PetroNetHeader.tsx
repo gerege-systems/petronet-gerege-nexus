@@ -23,7 +23,7 @@ import {useI18n} from "@/lib/i18n";
  * болдог байв.
  *
  * Баримт бичиг нь цорын ганц гадагш гарах холбоос — тиймээс шинэ таб, `noopener`.
- * Хаяг нь энэ суулгацынх (`BRAND_DOCS_URL`).
+ * Хаяг нь энэ системийнх (`BRAND_DOCS_URL`).
  */
 export default function PetroNetHeader() {
   const brand = useBrand();

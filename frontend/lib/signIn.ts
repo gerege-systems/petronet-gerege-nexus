@@ -1,8 +1,8 @@
 /**
- * Энэ суулгац хүнийг өөрөө таидаг уу, эсвэл өөр газар таидаг уу.
+ * Энэ систем хүнийг өөрөө таидаг уу, эсвэл өөр газар таидаг уу.
  *
  * Landing page-ийн hero нь eID-ийн картыг өөртөө агуулдаг — платформ өөрөө
- * нэвтрүүлдэг бол зөв зүйл. SSO клиент болсон суулгацад тэр карт худал:
+ * нэвтрүүлдэг бол зөв зүйл. SSO клиент болсон системд тэр карт худал:
  * `/api/v1/auth/eid/*` нь `requireLocalLogin`-ий цаана байдаг тул 403
  * хариулна. Зочин регистрийн дугаараа бичээд, товч дараад, юу ч болохгүй.
  *
@@ -32,7 +32,7 @@ export async function localSignInEnabledOnServer(): Promise<boolean> {
     });
     if (!res.ok) return true;
     const cfg = (await res.json()) as { enabled?: boolean; local_login?: boolean };
-    // Federation унтраалттай суулгац бол дотоод нэвтрэлт нь цорын ганц зам,
+    // Federation унтраалттай систем бол дотоод нэвтрэлт нь цорын ганц зам,
     // `local_login` юу ч гэж хэлсэн бай.
     return !(cfg.enabled === true && cfg.local_login === false);
   } catch {
