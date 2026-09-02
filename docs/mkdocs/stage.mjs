@@ -1,9 +1,9 @@
 /**
  * Assemble an MkDocs tree from the repository's own Markdown.
  *
- * docs.gerege.mn is built with MkDocs and Material for MkDocs, and this site is
- * built the same way so the two read as one set of documentation rather than
- * two products that happen to share a company.
+ * docs.gerege.mn is built with MkDocs and Material for MkDocs, and these sites
+ * are built the same way so they read as one set of documentation rather than
+ * products that happen to share a company.
  *
  * The page list is NOT duplicated here. It is imported from ./pages.mjs,
  * which already decides what is publishable, what it is called, and which group
@@ -11,26 +11,49 @@
  * one nobody is looking at.
  *
  * MkDocs reads a single docs_dir, and half of these files live at the
- * repository root (README, CHANGELOG, SECURITY…). So the tree is staged into
+ * repository root (README, SECURITY…). So the tree is staged into
  * build/docs rather than pointed at in place, and the links between pages are
  * rewritten to match.
+ *
+ * # Хоёр сайт, нэг угсрагч
+ *
+ *   node stage.mjs         → docs.petronet.mn  (бүтээгдэхүүний баримт)
+ *   node stage.mjs plan    → plan.petronet.mn  (төслийн баримт)
+ *
+ * Ялгаа нь гурав: аль хуудсууд, аль загвар, хаана бичих. Бусад бүхэн —
+ * холбоос дахин бичих, орчуулга, nav угсрах — хоёуланд нь ижил. Хоёр дахь
+ * сайт болгонд энэ 200 мөрийг хуулбарлах нь хоёр дахь хуулбар нь чимээгүй
+ * хоцрох гэсэн үг.
  */
 import {mkdir, readFile, writeFile, rm, cp} from "node:fs/promises";
 import {existsSync} from "node:fs";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
-import {PAGES} from "./pages.mjs";
+import {PAGES, PLAN_PAGES} from "./pages.mjs";
+
+const SITES = {
+  docs: {pages: PAGES, template: "mkdocs.template.yml", out: "build"},
+  plan: {pages: PLAN_PAGES, template: "mkdocs.plan.yml", out: "build-plan"},
+};
+
+const name = process.argv[2] || "docs";
+const site = SITES[name];
+if (!site) {
+  console.error(`unknown site: ${name} (have ${Object.keys(SITES).join(", ")})`);
+  process.exit(1);
+}
+const PUBLISHED = site.pages;
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, "../..");
-const out = path.join(here, "build");
+const out = path.join(here, site.out);
 const docsDir = path.join(out, "docs");
 
 // A page's source path → the slug it is published under. Used to rewrite the
 // links between documents: `docs/OPERATIONS.md` in the source becomes
 // `operations.md` here, and a link that still points at the old path would 404
 // on a site whose files have been renamed.
-const bySource = new Map(PAGES.map((p) => [p.src, p]));
+const bySource = new Map(PUBLISHED.map((p) => [p.src, p]));
 
 /**
  * Which files are translations of which page.
@@ -149,7 +172,7 @@ await rm(out, {recursive: true, force: true});
 await mkdir(docsDir, {recursive: true});
 
 const groups = new Map();
-for (const page of PAGES) {
+for (const page of PUBLISHED) {
   const source = path.join(repo, page.src);
   if (!existsSync(source)) {
     console.error(`missing: ${page.src}`);
@@ -187,8 +210,8 @@ const nav = [...groups].map(([group, items]) => {
   return `  - ${JSON.stringify(group)}:\n${lines.join("\n")}`;
 }).join("\n");
 
-const template = await readFile(path.join(here, "mkdocs.template.yml"), "utf8");
+const template = await readFile(path.join(here, site.template), "utf8");
 await writeFile(path.join(out, "mkdocs.yml"), template.replace("# {{NAV}}", `nav:\n${nav}`));
 
 const inNav = [...groups.values()].reduce((n, g) => n + g.length, 0);
-console.log(`staged ${inNav} pages + ${PAGES.length - inNav} translations`);
+console.log(`staged ${name}: ${inNav} pages + ${PUBLISHED.length - inNav} translations`);

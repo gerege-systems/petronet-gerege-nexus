@@ -1,5 +1,5 @@
 /**
- * Public documentation manifest.
+ * Publication manifests — one per site.
  *
  * Data only, and the one place the published site's shape is decided: stage.mjs
  * builds both the MkDocs tree and its navigation from this list, so a page that
@@ -15,11 +15,8 @@ export const PAGES = [
   {src: "docs/README_RU.md", slug: "overview-ru", title: "Обзор", group: "Танилцуулга", lang: "ru"},
   {src: "docs/README_ES.md", slug: "overview-es", title: "Resumen", group: "Танилцуулга", lang: "es"},
 
-  {src: "docs/DEPLOYMENT.md", slug: "deployment", title: "Энэ суулгац", group: "Танилцуулга"},
+  {src: "docs/DEPLOYMENT.md", slug: "deployment", title: "PetroNet System", group: "Танилцуулга"},
 
-  {src: "docs/system-requirements.md", slug: "requirements", title: "Системийн шаардлага", group: "Төсөл"},
-  {src: "docs/PLAN.md", slug: "plan", title: "Хөгжүүлэлтийн төлөвлөгөө", group: "Төсөл"},
-  {src: "docs/BENCHMARKS.md", slug: "benchmarks", title: "Дэлхийн жишиг", group: "Төсөл"},
 
   {src: "docs/README.md", slug: "documents", title: "Баримтын индекс", group: "Платформ"},
   {src: "docs/ARCHITECTURE.md", slug: "architecture", title: "Архитектур", group: "Платформ"},
@@ -43,3 +40,23 @@ export const PAGES = [
   {src: "docs/CODE_OF_CONDUCT_EN.md", slug: "code-of-conduct-en", title: "Code of conduct (EN)", group: "Төслийн журам"},
 ];
 
+
+/**
+ * plan.petronet.mn — төслийн баримт.
+ *
+ * Яагаад тусдаа сайт вэ: docs.petronet.mn нь **бүтээгдэхүүнийг** тайлбарладаг —
+ * архитектур, модуль, ажиллагаа, гарын авлага. Эдгээр нь өөр асуултад
+ * хариулна: захиалагч юу шаардсан, бид юуг хэзээ барих вэ, дэлхий үүнийг
+ * хэрхэн шийдсэн бэ. Тэр хоёр нь өөр уншигч, өөр амьдралын мөчлөгтэй —
+ * төлөвлөгөө сар бүр өөрчлөгддөг бол ажиллагааны баримт кодтойгоо хамт
+ * хөдөлдөг — тиймээс нэг цэсэнд хольсон нь хоёуланд нь саад болдог байв.
+ *
+ * `petronet-plan.md` энд БАЙХГҮЙ. Тэр нь дотоод баримт (`classification:
+ * internal`) бөгөөд репод байгаа ч нийтлэгдэхгүй: жагсаалтад байхгүй хуудас
+ * нийтлэгдэхгүй гэсэн дүрэм нь энэ файлын гол зорилго.
+ */
+export const PLAN_PAGES = [
+  {src: "plan/system-requirements.md", slug: "index", title: "Системийн шаардлага", group: "Шаардлага"},
+  {src: "plan/PLAN.md", slug: "plan", title: "Хөгжүүлэлтийн төлөвлөгөө", group: "Төлөвлөгөө"},
+  {src: "plan/BENCHMARKS.md", slug: "benchmarks", title: "Дэлхийн жишиг", group: "Төлөвлөгөө"},
+];

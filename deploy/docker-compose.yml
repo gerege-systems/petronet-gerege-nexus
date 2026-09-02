@@ -447,6 +447,18 @@ services:
     volumes:
       - ../docs/mkdocs/build/site:/usr/share/nginx/html:ro
 
+  # Төслийн баримт — захиалагчийн шаардлага, хөгжүүлэлтийн төлөвлөгөө, жишиг.
+  # docs-оос тусдаа сайт байгаа нь хоёр өөр уншигч, хоёр өөр амьдралын
+  # мөчлөгтэйгээс: төлөвлөгөө сар бүр өөрчлөгддөг, ажиллагааны баримт кодтойгоо
+  # хамт хөдөлдөг. Угсрах нь `sh docs/mkdocs/build.sh plan`.
+  plan:
+    <<: *static-site
+    container_name: gerege_petronet_plan
+    ports:
+      - "127.0.0.1:3023:80"
+    volumes:
+      - ../docs/mkdocs/build-plan/site:/usr/share/nginx/html:ro
+
   backups:
     <<: *static-site
     container_name: gerege_petronet_backups

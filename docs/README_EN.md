@@ -6,7 +6,7 @@
 products across Mongolia into one data flow, watches it in real time, and gives
 the regulator, the fuel companies and the driver the same numbers. It is built
 for the Mineral Resources and Petroleum Authority (MRPAM) and replaces the
-current **mpetro** system — see the [system requirements](system-requirements.md).
+current **mpetro** system — see the [system requirements](https://plan.petronet.mn/).
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -110,7 +110,7 @@ where and in whose custody it appeared.
 
 Not a plan — a record of what is in the repository, with tests, run against a
 real PostgreSQL. The full list, and what comes next, is in
-[the development plan](PLAN.md).
+[the development plan](https://plan.petronet.mn/plan/).
 
 - Registry of depots and stations, plate numbers, status, XYP verification
 - Product reference with JODI classification, seven grades
@@ -249,9 +249,9 @@ Report vulnerabilities as described in [`SECURITY.md`](../SECURITY.md).
 | Document | Description |
 | --- | --- |
 | [Documentation hub](README.md) | Every document and translation |
-| [System requirements](system-requirements.md) | What the customer asked for |
-| [Development plan](PLAN.md) | What is built, what comes next, and the acceptance criteria |
-| [Benchmarks](BENCHMARKS.md) | How other countries solved this, and what failed |
+| [System requirements](https://plan.petronet.mn/) | What the customer asked for |
+| [Development plan](https://plan.petronet.mn/plan/) | What is built, what comes next, and the acceptance criteria |
+| [Benchmarks](https://plan.petronet.mn/benchmarks/) | How other countries solved this, and what failed |
 | [This deployment](DEPLOYMENT.md) | Hostnames, ports, backups — only this host |
 | [Architecture](ARCHITECTURE.md) | The planes, the schemas, how data is isolated |
 | [Writing a module](MODULES.md) | The `pkg/nexus` contract |

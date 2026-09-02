@@ -4,7 +4,7 @@
 
 **PetroNet** 把蒙古国石油产品的进口、储存、配送与零售汇入一条数据流，实时监控，
 并让监管机构、燃料企业和司机看到同一组数字。系统为矿产资源与石油管理局（AMGTG）
-建设，将取代现行的 **mpetro** 系统 —— 参见[系统需求](system-requirements.md)。
+建设，将取代现行的 **mpetro** 系统 —— 参见[系统需求](https://plan.petronet.mn/)。
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -99,7 +99,7 @@
 ## 已经完成的部分
 
 这不是计划，而是仓库中已有内容的清单：有测试，并在真实的 PostgreSQL 上运行过。
-完整列表与后续安排见[开发计划](PLAN.md)。
+完整列表与后续安排见[开发计划](https://plan.petronet.mn/plan/)。
 
 - 油库与加油站登记、车牌、状态、通过 XYP 的核验
 - 产品字典，采用 JODI 分类，七个牌号
@@ -229,9 +229,9 @@ CI 在每次 push 和 pull request 上运行两者，并构建两个 Docker 镜�
 | 文档 | 说明 |
 | --- | --- |
 | [文档中心](README.md) | 全部文档与译文 |
-| [系统需求](system-requirements.md) | 客户提出了什么要求 |
-| [开发计划](PLAN.md) | 已完成什么、接下来做什么、验收标准 |
-| [国际实践](BENCHMARKS.md) | 其他国家如何解决，哪些失败了 |
+| [系统需求](https://plan.petronet.mn/) | 客户提出了什么要求 |
+| [开发计划](https://plan.petronet.mn/plan/) | 已完成什么、接下来做什么、验收标准 |
+| [国际实践](https://plan.petronet.mn/benchmarks/) | 其他国家如何解决，哪些失败了 |
 | [本次部署](DEPLOYMENT.md) | 主机名、端口、备份——仅限本主机 |
 | [架构](ARCHITECTURE.md) | 平面、schema、数据如何隔离 |
 | [编写模块](MODULES.md) | `pkg/nexus` 契约 |

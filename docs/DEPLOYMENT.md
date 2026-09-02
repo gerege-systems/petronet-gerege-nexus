@@ -1,4 +1,4 @@
-# Энэ суулгац
+# PetroNet System
 
 Платформын бусад баримт цөмийн зан төлөвийг тайлбарладаг. Энэ нэг нь өөр
 асуултад хариулна: **энэ** хост дээр юу хаана ажиллаж байна, ямар хаалга
@@ -17,6 +17,7 @@
 | `monitor.petronet.mn` | Grafana | Prometheus + хоёр exporter |
 | `dwh.petronet.mn` | Дата агуулахын зураглал | Статик, өөрийн контейнер |
 | `docs.petronet.mn` | Энэ баримт | Статик, MkDocs |
+| `plan.petronet.mn` | Төслийн баримт — шаардлага, төлөвлөгөө, жишиг | Статик, MkDocs |
 | `backups.petronet.mn` | Нөөцлөлтийн тайлбар | Статик, өөрийн контейнер |
 
 Хоёр урсгал өөр origin дээр байгаа нь гоо зүйн биш: cookie нь hostname-аар
@@ -110,7 +111,7 @@ gunzip -c /var/backups/petronet/petronet-<огноо>.sql.gz \
 ## Ажиглалт
 
 Prometheus гурван зорилт цуглуулна: энэ бүтээгдэхүүний API, хостын
-`node_exporter`, ба энэ суулгацын сангийн `postgres_exporter`. Grafana нь
+`node_exporter`, ба PetroNet System-ийн сангийн `postgres_exporter`. Grafana нь
 `monitor.petronet.mn` дээр, хоёр самбартай.
 
 Консолын «Платформын эрүүл мэнд» дэлгэц ижил Prometheus-аас уншина. Хөршийн

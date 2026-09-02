@@ -177,8 +177,8 @@ export const website = {
   },
   "website.map.full": { mn: "Бүтэн дэлгэцээр нээх", en: "Open the full map" },
 
-  // ─── Энэ суулгацын хаягууд ────────────────────────────────────────────────
-  "website.service.eyebrow": { mn: "ЭНЭ СУУЛГАЦ", en: "THIS DEPLOYMENT" },
+  // ─── PetroNet System-ийн хаягууд ────────────────────────────────────────────────
+  "website.service.eyebrow": { mn: "PETRONET SYSTEM", en: "PETRONET SYSTEM" },
   "website.service.title": { mn: "Платформын хажууд юу ажиллаж байна вэ", en: "What runs beside the platform" },
   "website.service.lede": {
     mn: "PetroNet бол нэг хаяг биш. Консол, дата агуулах, нөөцлөлт, хяналт, баримт бичиг тус бүр өөрийн хаягтай. Эхнийх нь бидний биш — иргэнийг таних үндэсний дэд бүтэц.",

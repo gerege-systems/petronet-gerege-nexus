@@ -7,7 +7,7 @@ distribution et la vente au détail des produits pétroliers en Mongolie, le
 surveille en temps réel, et donne au régulateur, aux compagnies pétrolières et
 à l'automobiliste les mêmes chiffres. Le système est construit pour l'Autorité
 des ressources minérales et du pétrole (AMGTG) et remplace le système **mpetro**
-actuel — voir les [exigences système](system-requirements.md).
+actuel — voir les [exigences système](https://plan.petronet.mn/).
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -115,7 +115,7 @@ moment, le lieu et la garde sous laquelle il est apparu.
 
 Ce n'est pas un plan mais un relevé de ce qui se trouve dans le dépôt, testé et
 exécuté sur un vrai PostgreSQL. La liste complète et la suite sont dans le
-[plan de développement](PLAN.md).
+[plan de développement](https://plan.petronet.mn/plan/).
 
 - Registre des dépôts et des stations, plaques, statut, vérification via XYP
 - Référentiel produits avec classification JODI, sept qualités
@@ -258,9 +258,9 @@ Signalez les vulnérabilités comme décrit dans [`SECURITY.md`](../SECURITY.md)
 | Document | Description |
 | --- | --- |
 | [Centre de documentation](README.md) | Tous les documents et traductions |
-| [Exigences système](system-requirements.md) | Ce que le client a demandé |
-| [Plan de développement](PLAN.md) | Ce qui est fait, la suite, et les critères d'acceptation |
-| [Références internationales](BENCHMARKS.md) | Comment d'autres pays ont résolu cela, et ce qui a échoué |
+| [Exigences système](https://plan.petronet.mn/) | Ce que le client a demandé |
+| [Plan de développement](https://plan.petronet.mn/plan/) | Ce qui est fait, la suite, et les critères d'acceptation |
+| [Références internationales](https://plan.petronet.mn/benchmarks/) | Comment d'autres pays ont résolu cela, et ce qui a échoué |
 | [Ce déploiement](DEPLOYMENT.md) | Noms d'hôtes, ports, sauvegardes — cet hôte uniquement |
 | [Architecture](ARCHITECTURE.md) | Les plans, les schémas, l'isolation des données |
 | [Écrire un module](MODULES.md) | Le contrat `pkg/nexus` |

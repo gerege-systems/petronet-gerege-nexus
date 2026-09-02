@@ -7,7 +7,7 @@ la distribución y la venta minorista de productos petrolíferos en Mongolia, la
 vigila en tiempo real y ofrece al regulador, a las compañías de combustible y al
 conductor las mismas cifras. El sistema se construye para la Autoridad de
 Recursos Minerales y Petróleo (AMGTG) y sustituye al sistema **mpetro** actual —
-véanse los [requisitos del sistema](system-requirements.md).
+véanse los [requisitos del sistema](https://plan.petronet.mn/).
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -112,7 +112,7 @@ dónde y bajo la custodia de quién apareció.
 
 No es un plan, sino un registro de lo que hay en el repositorio, con pruebas y
 ejecutado contra un PostgreSQL real. La lista completa y lo que viene después
-están en el [plan de desarrollo](PLAN.md).
+están en el [plan de desarrollo](https://plan.petronet.mn/plan/).
 
 - Registro de depósitos y estaciones, matrículas, estado, verificación por XYP
 - Catálogo de productos con clasificación JODI, siete grados
@@ -257,9 +257,9 @@ Informe de vulnerabilidades según se describe en [`SECURITY.md`](../SECURITY.md
 | Documento | Descripción |
 | --- | --- |
 | [Centro de documentación](README.md) | Todos los documentos y traducciones |
-| [Requisitos del sistema](system-requirements.md) | Qué pidió el cliente |
-| [Plan de desarrollo](PLAN.md) | Qué está hecho, qué viene y los criterios de aceptación |
-| [Referencias internacionales](BENCHMARKS.md) | Cómo lo resolvieron otros países y qué falló |
+| [Requisitos del sistema](https://plan.petronet.mn/) | Qué pidió el cliente |
+| [Plan de desarrollo](https://plan.petronet.mn/plan/) | Qué está hecho, qué viene y los criterios de aceptación |
+| [Referencias internacionales](https://plan.petronet.mn/benchmarks/) | Cómo lo resolvieron otros países y qué falló |
 | [Este despliegue](DEPLOYMENT.md) | Nombres de host, puertos, copias — solo este host |
 | [Arquitectura](ARCHITECTURE.md) | Los planos, los esquemas, el aislamiento de datos |
 | [Escribir un módulo](MODULES.md) | El contrato `pkg/nexus` |

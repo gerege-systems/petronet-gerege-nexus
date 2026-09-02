@@ -5,5 +5,6 @@ brand/
 *.pdf
 .DS_Store
 
-# MkDocs-ийн угсралт: гаралт нь артефакт, эх сурвалж нь docs/*.md
+# MkDocs-ийн угсралт: гаралт нь артефакт, эх сурвалж нь docs/*.md ба plan/*.md
 docs/mkdocs/build/
+docs/mkdocs/build-plan/
