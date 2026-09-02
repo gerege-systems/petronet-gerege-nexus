@@ -65,3 +65,38 @@ jobs:
       - name: docker build
         working-directory: ${{ github.workspace }}
         run: docker build -t petronet-web:ci frontend
+
+  scenarios:
+    name: Тест сценари
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.26"
+
+      # Түлхэхийн өмнө YAML нь зөв эсэхийг эндээс шалгана. PR дээр нууц байхгүй
+      # тул түлхэхгүй — гэхдээ эвдэрсэн сценари main руу орох ёсгүй, ба тэр нь
+      # нууц шаарддаггүй шалгалт.
+      - name: tsm суулгах
+        run: go install github.com/gerege-systems/tsm-gerege-mn@latest
+
+      # main дээр, нууц тавигдсан үед л түлхэнэ. Сценари бол аппын өмч тул
+      # тэдгээр TSM руу гараар биш, кодтойгоо хамт очно: шинэ API зам нэмсэн
+      # PR merge болмогц түүний сценари ажиллах байрандаа очсон байна.
+      - name: TSM руу түлхэх
+        if: github.ref == 'refs/heads/main' && vars.TSM_URL != ''
+        env:
+          TSM_URL: ${{ vars.TSM_URL }}
+          TSM_PASSWORD: ${{ secrets.TSM_PASSWORD }}
+        run: tsm push tsm/
+
+      # Утааны сценари нь юу ч үүсгэдэггүй тул байрлуулалт бүрийн дараа
+      # ажиллуулах нь аюулгүй. Өгөгдөл үүсгэдэг сценариудыг CI ажиллуулахгүй:
+      # тэдгээр нь продакшн дээр бичдэг бөгөөд тэр шийдвэр хүнийх.
+      - name: Утааны сценари
+        if: github.ref == 'refs/heads/main' && vars.TSM_URL != ''
+        env:
+          TSM_URL: ${{ vars.TSM_URL }}
+          TSM_PASSWORD: ${{ secrets.TSM_PASSWORD }}
+        run: tsm run petronet-smoke petronet
