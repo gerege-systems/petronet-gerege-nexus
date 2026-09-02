@@ -1,4 +1,4 @@
-# PetroNet Eco System
+# PetroNet System
 
 **La plataforma integrada de vigilancia y gestión de combustibles de Mongolia**
 
@@ -8,6 +8,12 @@ vigila en tiempo real y ofrece al regulador, a las compañías de combustible y 
 conductor las mismas cifras. El sistema se construye para la Autoridad de
 Recursos Minerales y Petróleo (AMGTG) y sustituye al sistema **mpetro** actual —
 véanse los [requisitos del sistema](https://plan.petronet.mn/).
+
+PetroNet System **no es una aplicación, es un ecosistema**. Un conductor, una
+estación, una compañía de combustible y el regulador hacen cuatro trabajos
+distintos, y cada uno tiene una plataforma construida para el suyo. Debajo,
+todos comparten un mismo conjunto de datos, una misma identidad y un mismo
+rastro de auditoría.
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -35,6 +41,7 @@ véanse los [requisitos del sistema](https://plan.petronet.mn/).
 
 - [El problema](#el-problema)
 - [Qué hace la plataforma](#qué-hace-la-plataforma)
+- [El ecosistema](#el-ecosistema)
 - [La decisión de diseño](#la-decisión-de-diseño)
 - [Cadena de custodia](#cadena-de-custodia)
 - [Lo que ya existe](#lo-que-ya-existe)
@@ -78,6 +85,22 @@ vales salen con una ventana horaria. El resto del tiempo supervisa: seguimiento
 de impuestos, precios, calidad y existencias, conciliación automática
 importación–almacenamiento–venta, previsión de demanda y alertas sobre la
 reserva estratégica.
+
+## El ecosistema
+
+| Plataforma | Para quién | Qué lleva |
+| --- | --- | --- |
+| Plataforma ciudadana | Conductores y ciudadanos | La estación más cercana, sus grados, su nivel, el derecho diario y el vale. La identidad viene de eID |
+| Portal de empresas | Compañías de combustible | Registro de depósitos y estaciones, existencias en tanques, y el flujo para presentar y corregir cada periodo |
+| Centro de mando del regulador | AMGTG e inspectores | Agregado nacional diario, días de existencias, huecos de cobertura, desviaciones de conciliación y alertas |
+| TPV y agente de borde en estación | Estaciones de servicio | Surtidores, tanques, turnos, cobro y recibos sobre una base local: la venta no se detiene con la red |
+| Almacén y analítica | Analistas y dirección | Alimentado a diario desde los sistemas operativos, limpiado, modelado en lenguaje de negocio, con BI y previsión |
+| Consola y observabilidad | Operadores | Organizaciones, permisos y auditoría tras su propio inicio de sesión, junto a métricas, alertas y copias |
+
+Debajo de todo: un solo binario de Go, una sola base y una sola identidad —
+aquí ecosistema significa muchos espacios de trabajo, no muchos servidores.
+Hacia fuera se conecta con la aduana, el registro estatal, e-Barimt, eID y los
+medidores de nivel instalados en campo.
 
 ## La decisión de diseño
 

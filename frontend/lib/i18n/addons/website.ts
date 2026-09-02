@@ -48,8 +48,8 @@ export const website = {
   "website.hero.title_lead": { mn: "Литр бүрийн замыг", en: "Every litre's journey," },
   "website.hero.title_accent": { mn: "нэг урсгалаар.", en: "in one flow." },
   "website.hero.lede": {
-    mn: "PetroNet импортын гэрээнээс түгээгүүрийн хошуу хүртэлх хөдөлгөөнийг холбож, нөөц, эрэлт, түгээлтийг таамгаар биш бодит хэмжилтээр удирдана.",
-    en: "PetroNet links every movement from the import contract to the pump nozzle, so stock, demand and distribution are managed from measurements rather than guesswork.",
+    mn: "PetroNet System бол нэг програм биш — импортын гэрээнээс түгээгүүрийн хошуу хүртэлх хөдөлгөөнийг нэг өгөгдлийн урсгалд холбодог, хоорондоо холбогдсон хэд хэдэн платформын экосистем.",
+    en: "PetroNet System is not one application. It is an ecosystem of connected platforms that carry every movement — from the import contract to the pump nozzle — through one flow of data.",
   },
   "website.hero.proof_stock": { mn: "Бодит нөөц", en: "Measured stock" },
   "website.hero.proof_offline": { mn: "Офлайн ажиллагаа", en: "Works offline" },
@@ -91,7 +91,7 @@ export const website = {
   "website.statement.link": { mn: "Хуваарилалт хэрхэн ажиллах вэ", en: "How allocation works" },
 
   // ─── Таван ажлын орон зай ─────────────────────────────────────────────────
-  "website.cap.eyebrow": { mn: "Нэг платформ · Таван ажлын орон зай", en: "One platform · five workspaces" },
+  "website.cap.eyebrow": { mn: "Гинжин хэлхээ · Таван ажлын орон зай", en: "The chain · five workspaces" },
   "website.cap.title": { mn: "Шатахууны бүтэн гинжин хэлхээ", en: "The whole fuel chain" },
   "website.cap.lede": {
     mn: "Зөвхөн танилцуулга биш — оролцогч бүр өөрийн ажил, мэдээлэл, шийдвэрийн орон зайтай ажиллаж буй систем.",
@@ -128,6 +128,48 @@ export const website = {
   },
   "website.cap.rollout_meta": { mn: "5 үе шат", en: "Five phases" },
 
+
+  // ─── Экосистемийн бүрэлдэхүүн ─────────────────────────────────────────────
+  // «Экосистем» гэдэг нь энд зүйрлэл биш, бүтэц: оролцогч тус бүр өөрийн
+  // платформтой, тэдгээр нь нэг өгөгдлийн урсгал, нэг танилт, нэг аудитын
+  // мөрийг хуваалцана. Нэг том програмыг таван нэрээр дуудаж байгаа хэрэг биш.
+  "website.parts.eyebrow": { mn: "Нэг экосистем · Олон платформ", en: "One ecosystem · many platforms" },
+  "website.parts.title": { mn: "Оролцогч бүр өөрийн платформтой", en: "Each participant has a platform of their own" },
+  "website.parts.lede": {
+    mn: "Жолооч, ШТС, аж ахуйн нэгж, зохицуулагч дөрвүүлээ өөр өөр ажилтай. Тэдгээрийг нэг дэлгэцэнд шахах нь дөрвүүлээ таагүй байх зам. Оронд нь платформ тус бүр өөрийн ажилд зориулагдаж, доор нь нэг өгөгдөл, нэг танилт, нэг аудитын мөрийг хуваалцана.",
+    en: "A driver, a station, a fuel company and the regulator are doing four different jobs. Forcing them into one screen makes it worse for all four. Instead each platform is built for its own work, and underneath they share one set of data, one identity and one audit trail.",
+  },
+  "website.parts.citizen_title": { mn: "Иргэний платформ", en: "The citizen platform" },
+  "website.parts.citizen_body": {
+    mn: "Ойрын ШТС, түлшний төрөл, нөөцийн түвшин, өдрийн эрх ба ваучер. eID-ээр танина — нууц үг хадгалахгүй.",
+    en: "The nearest station, its grades, how full it is, the daily entitlement and the voucher. Identity comes from eID; no password is kept.",
+  },
+  "website.parts.company_title": { mn: "Аж ахуйн нэгжийн портал", en: "The fuel company portal" },
+  "website.parts.company_body": {
+    mn: "Агуулах, ШТС-ын объектын бүртгэл, савны үлдэгдэл, үеийн тайлан ирүүлэх ба засварлах урсгал.",
+    en: "Depot and station registry, tank balances, and the flow for filing and correcting each reporting period.",
+  },
+  "website.parts.regulator_title": { mn: "Зохицуулагчийн Command Center", en: "The regulator's command centre" },
+  "website.parts.regulator_body": {
+    mn: "Улсын өдрийн нэгтгэл, хоногийн нөөц, хамрах хүрээний цоорхой, тулгалтын зөрүү, дохиолол.",
+    en: "The national daily aggregate, days of stock, coverage gaps, reconciliation discrepancies and alerts.",
+  },
+  "website.parts.station_title": { mn: "ШТС-ын POS ба ирмэгийн агент", en: "Station POS and edge agent" },
+  "website.parts.station_body": {
+    mn: "Хошуу, сав, ээлж, төлбөр, баримт. Локал өгөгдлийн сантай — интернэт тасарсан ч борлуулалт зогсохгүй.",
+    en: "Nozzles, tanks, shifts, payment and receipts, over a local database: the sale does not stop when the network does.",
+  },
+  "website.parts.data_title": { mn: "Дата агуулах ба аналитик", en: "Warehouse and analytics" },
+  "website.parts.data_body": {
+    mn: "Үйл ажиллагааны системүүдээс өдөр бүр татаж, цэвэрлэж, бизнесийн хэлээр загварчилсан агуулах. Дээр нь BI ба прогноз.",
+    en: "Fed daily from the operational systems, cleaned and modelled in business language, with BI and forecasting on top.",
+  },
+  "website.parts.ops_title": { mn: "Консол ба ажиглалт", en: "Console and observability" },
+  "website.parts.ops_body": {
+    mn: "Байгууллага, эрх, аудит — тусдаа нэвтрэлт, тусдаа cookie. Хажууд нь хэмжүүр, дохиолол, нөөцлөлт.",
+    en: "Organisations, permissions and audit behind their own sign-in and cookie, beside metrics, alerts and backups.",
+  },
+
   // ─── Хоёр горим ───────────────────────────────────────────────────────────
   // Энэ хэсэг нэг л асуултад хариулна: хямрал өнгөрвөл яах вэ. Хариулт нь
   // хямралын хэрэгслийг нураахгүй, өөр ажилд эргүүлнэ.
@@ -149,8 +191,8 @@ export const website = {
   "website.modes.normal_3": { mn: "Хэрэглээний прогноз ба стратегийн нөөцийн дохиолол", en: "Demand forecasting and strategic-reserve alerts" },
 
   // ─── Экосистем ────────────────────────────────────────────────────────────
-  "website.eco.label": { mn: "Нэгдсэн экосистем", en: "One ecosystem" },
-  "website.eco.title": { mn: "Өгөгдөл тусдаа системд түгжигдэхгүй.", en: "The data stops being locked in separate systems." },
+  "website.eco.label": { mn: "Гадаад холболт", en: "Outside connections" },
+  "website.eco.title": { mn: "Экосистем нь энэ хаягаар дуусахгүй.", en: "The ecosystem does not end at this hostname." },
   "website.eco.lede": {
     mn: "PetroNet төрийн болон бизнесийн одоо байгаа системүүдийг сольж устгахгүй — баталгаатай өгөгдлийн нэг урсгалд холбоно.",
     en: "PetroNet does not replace the state and business systems already in use. It joins them into one verified flow.",
@@ -177,8 +219,8 @@ export const website = {
   },
   "website.map.full": { mn: "Бүтэн дэлгэцээр нээх", en: "Open the full map" },
 
-  // ─── PetroNet Eco System-ийн хаягууд ────────────────────────────────────────────────
-  "website.service.eyebrow": { mn: "PETRONET ECO SYSTEM", en: "PETRONET ECO SYSTEM" },
+  // ─── PetroNet System-ийн хаягууд ────────────────────────────────────────────────
+  "website.service.eyebrow": { mn: "PETRONET SYSTEM", en: "PETRONET SYSTEM" },
   "website.service.title": { mn: "Платформын хажууд юу ажиллаж байна вэ", en: "What runs beside the platform" },
   "website.service.lede": {
     mn: "PetroNet бол нэг хаяг биш. Консол, дата агуулах, нөөцлөлт, хяналт, баримт бичиг тус бүр өөрийн хаягтай. Эхнийх нь бидний биш — иргэнийг таних үндэсний дэд бүтэц.",

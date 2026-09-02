@@ -1,4 +1,4 @@
-# PetroNet Eco System
+# PetroNet System
 
 Платформын бусад баримт цөмийн зан төлөвийг тайлбарладаг. Энэ нэг нь өөр
 асуултад хариулна: **энэ** хост дээр юу хаана ажиллаж байна, ямар хаалга
@@ -111,7 +111,7 @@ gunzip -c /var/backups/petronet/petronet-<огноо>.sql.gz \
 ## Ажиглалт
 
 Prometheus гурван зорилт цуглуулна: энэ бүтээгдэхүүний API, хостын
-`node_exporter`, ба PetroNet Eco System-ийн сангийн `postgres_exporter`. Grafana нь
+`node_exporter`, ба PetroNet System-ийн сангийн `postgres_exporter`. Grafana нь
 `monitor.petronet.mn` дээр, хоёр самбартай.
 
 Консолын «Платформын эрүүл мэнд» дэлгэц ижил Prometheus-аас уншина. Хөршийн

@@ -3,16 +3,21 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   BarChart3,
+  Building2,
   Check,
   ChevronRight,
   CircleGauge,
+  Database,
   Fuel,
+  Gauge,
+  Landmark,
   MapPinned,
   PackageCheck,
   QrCode,
   RadioTower,
   Route,
   ShieldCheck,
+  Smartphone,
   Warehouse,
 } from "lucide-react";
 
@@ -55,6 +60,15 @@ const CAPABILITIES = [
   {href: "/vouchers",  index: "03", icon: QrCode,      title: "website.cap.vouchers_title",  body: "website.cap.vouchers_body",  meta: "website.cap.vouchers_meta"},
   {href: "/oversight", index: "04", icon: ShieldCheck, title: "website.cap.oversight_title", body: "website.cap.oversight_body", meta: "website.cap.oversight_meta"},
   {href: "/rollout",   index: "05", icon: RadioTower,  title: "website.cap.rollout_title",   body: "website.cap.rollout_body",   meta: "website.cap.rollout_meta"},
+] as const;
+
+const PARTS = [
+  {icon: Smartphone,  title: "website.parts.citizen_title",   body: "website.parts.citizen_body"},
+  {icon: Building2,   title: "website.parts.company_title",   body: "website.parts.company_body"},
+  {icon: Landmark,    title: "website.parts.regulator_title", body: "website.parts.regulator_body"},
+  {icon: Fuel,        title: "website.parts.station_title",   body: "website.parts.station_body"},
+  {icon: Database,    title: "website.parts.data_title",      body: "website.parts.data_body"},
+  {icon: Gauge,       title: "website.parts.ops_title",       body: "website.parts.ops_body"},
 ] as const;
 
 const INTEGRATIONS = [
@@ -140,6 +154,25 @@ export default async function PetroNetHome() {
               <Link href="/vouchers" className="pn-text-link">
                 <Translated k="website.statement.link" /> <ArrowRight />
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="pn-section pn-section--soft" id="ecosystem">
+          <div className="pn-container">
+            <SectionHeading
+              label={<Translated k="website.parts.eyebrow" />}
+              title={<Translated k="website.parts.title" />}
+              body={<Translated k="website.parts.lede" />}
+            />
+            <div className="pn-feature-grid">
+              {PARTS.map(({icon: Icon, title, body}) => (
+                <article className="pn-feature-card" key={title}>
+                  <div className="pn-feature-card__icon"><Icon /></div>
+                  <h3><Translated k={title} /></h3>
+                  <p><Translated k={body} /></p>
+                </article>
+              ))}
             </div>
           </div>
         </section>

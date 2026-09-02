@@ -1,4 +1,4 @@
-# PetroNet Eco System
+# PetroNet System
 
 **Mongolia's integrated fuel monitoring and management platform**
 
@@ -7,6 +7,11 @@ products across Mongolia into one data flow, watches it in real time, and gives
 the regulator, the fuel companies and the driver the same numbers. It is built
 for the Mineral Resources and Petroleum Authority (MRPAM) and replaces the
 current **mpetro** system — see the [system requirements](https://plan.petronet.mn/).
+
+PetroNet System is **not one application — it is an ecosystem**. A driver, a
+station, a fuel company and the regulator are doing four different jobs, and
+each has a platform built for that job. Underneath, all of them share one set
+of data, one identity and one audit trail.
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -34,6 +39,7 @@ current **mpetro** system — see the [system requirements](https://plan.petrone
 
 - [The problem](#the-problem)
 - [What the platform does](#what-the-platform-does)
+- [The ecosystem](#the-ecosystem)
 - [The design decision](#the-design-decision)
 - [Chain of custody](#chain-of-custody)
 - [What already exists](#what-already-exists)
@@ -76,6 +82,21 @@ quotas change in minutes, priority classes keep their reserve, vouchers go out
 with a time window. The rest of the time it supervises: tax, price, quality and
 stock monitoring, automatic import-to-sale reconciliation, demand forecasting
 and strategic-reserve alerts.
+
+## The ecosystem
+
+| Platform | For whom | What it carries |
+| --- | --- | --- |
+| Citizen platform | Drivers and citizens | The nearest station, its grades, how full it is, the daily entitlement and the voucher. Identity comes from eID |
+| Company portal | Fuel companies | Depot and station registry, tank balances, and the flow for filing and correcting each reporting period |
+| Regulator's command centre | MRPAM and inspectors | The national daily aggregate, days of stock, coverage gaps, reconciliation discrepancies and alerts |
+| Station POS and edge agent | Filling stations | Nozzles, tanks, shifts, payment and receipts, over a local database: the sale does not stop when the network does |
+| Warehouse and analytics | Analysts and management | Fed daily from the operational systems, cleaned and modelled in business language, with BI and forecasting on top |
+| Console and observability | Operators | Organisations, permissions and audit behind their own sign-in, beside metrics, alerts and backups |
+
+Under all of them sit one Go binary, one database and one identity: an ecosystem
+here means many workspaces, not many servers. Outward it connects to customs,
+the state registry, e-Barimt, eID and the tank gauges in the field.
 
 ## The design decision
 

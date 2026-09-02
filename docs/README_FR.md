@@ -1,4 +1,4 @@
-# PetroNet Eco System
+# PetroNet System
 
 **La plateforme intégrée de surveillance et de gestion des carburants de Mongolie**
 
@@ -8,6 +8,12 @@ surveille en temps réel, et donne au régulateur, aux compagnies pétrolières 
 à l'automobiliste les mêmes chiffres. Le système est construit pour l'Autorité
 des ressources minérales et du pétrole (AMGTG) et remplace le système **mpetro**
 actuel — voir les [exigences système](https://plan.petronet.mn/).
+
+PetroNet System n'est **pas une application, c'est un écosystème**. Un
+automobiliste, une station, une compagnie pétrolière et le régulateur font
+quatre métiers différents, et chacun dispose d'une plateforme bâtie pour le
+sien. En dessous, tous partagent un même jeu de données, une même identité et
+une même piste d'audit.
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -35,6 +41,7 @@ actuel — voir les [exigences système](https://plan.petronet.mn/).
 
 - [Le problème](#le-problème)
 - [Ce que fait la plateforme](#ce-que-fait-la-plateforme)
+- [L'écosystème](#lécosystème)
 - [La décision de conception](#la-décision-de-conception)
 - [Chaîne de traçabilité](#chaîne-de-traçabilité)
 - [Ce qui existe déjà](#ce-qui-existe-déjà)
@@ -81,6 +88,22 @@ réserve, les bons partent avec une fenêtre horaire. Le reste du temps, elle
 surveille : fiscalité, prix, qualité et stocks, rapprochement automatique
 importation–stockage–vente, prévision de la demande et alertes sur la réserve
 stratégique.
+
+## L'écosystème
+
+| Plateforme | Pour qui | Ce qu'elle porte |
+| --- | --- | --- |
+| Plateforme citoyenne | Automobilistes et citoyens | La station la plus proche, ses carburants, son niveau, le droit journalier et le bon. L'identité vient d'eID |
+| Portail des compagnies | Compagnies pétrolières | Registre des dépôts et des stations, niveaux des cuves, dépôt et correction des déclarations de chaque période |
+| Centre de commandement du régulateur | AMGTG et inspecteurs | Agrégat national quotidien, jours de stock, lacunes de couverture, écarts de rapprochement et alertes |
+| POS et agent de bord en station | Stations-service | Pistolets, cuves, postes, paiement et reçus sur une base locale : la vente ne s'arrête pas avec le réseau |
+| Entrepôt et analytique | Analystes et direction | Alimenté chaque jour depuis les systèmes opérationnels, nettoyé, modélisé en langage métier, avec BI et prévision |
+| Console et observabilité | Exploitants | Organisations, droits et audit derrière leur propre connexion, à côté des métriques, alertes et sauvegardes |
+
+Sous l'ensemble : un seul binaire Go, une seule base, une seule identité — ici
+écosystème veut dire beaucoup d'espaces de travail, pas beaucoup de serveurs.
+Vers l'extérieur, il se relie à la douane, au registre d'État, à e-Barimt, à eID
+et aux jaugeurs installés sur le terrain.
 
 ## La décision de conception
 
