@@ -1,0 +1,36 @@
+name: PetroNet — тайлангийн урсгал
+description: |
+  ААН тайлангаа ирүүлж, зохицуулагч дараалалдаа хараад шийдвэрлэх зам. Энэ нь
+  захиалагчийн гол шаардлага (§3.2 М3) бөгөөд одоогийн кодын хамгийн гүн хэсэг.
+
+  Зөвхөн УНШИНА, шийдвэр гаргахгүй: батлах ба буцаах нь дөрвөн нүдний дүрэмтэй
+  бөгөөд роботоор шийдвэрлүүлэх нь тэр дүрмийн утгыг үгүй хийнэ. Сценари нь
+  зам бүр хариу өгч байгааг, бүтэц нь хүлээгдсэн хэлбэртэй байгааг шалгана.
+auth: tenant
+steps:
+  - name: Тайлангийн үеүүд
+    path: /api/v1/petro/report/periods
+    expect:
+      status: 200
+    capture:
+      period_id: 0.id
+
+  - name: Үеийн урьдчилсан бөглөлт
+    path: /api/v1/petro/report/periods/${period_id}/prefill
+    expect:
+      status: 200
+
+  - name: Excel загвар татагдаж байна уу
+    path: /api/v1/petro/report/periods/${period_id}/template.xlsx
+    expect:
+      status: 200
+
+  - name: Ирүүлсэн тайлангийн жагсаалт
+    path: /api/v1/petro/report/submissions
+    expect:
+      status: 200
+
+  - name: Бодлогын утгууд
+    path: /api/v1/petro/policy
+    expect:
+      status: 200

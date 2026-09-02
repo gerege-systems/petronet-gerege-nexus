@@ -1,0 +1,42 @@
+name: PetroNet — хилийн ачилт
+description: |
+  Импортын мэдүүлгээс эхэлдэг тал: ачилт бүртгэж, төлвөөр нь урагшлуулж,
+  жагсаалтад гарч байгааг шалгана.
+
+  Хилийн ачилт нь баазын хүлээн авалтаас ӨМНӨХ алхам — гинжин хэлхээний
+  эхлэл нь гаалийн мэдүүлэг, савны түвшин биш.
+auth: tenant
+steps:
+  - name: Ачилт бүртгэх
+    method: POST
+    path: /api/v1/petro/shipments
+    body:
+      declaration_no: "TSM-${run}"
+      border_port: "Сүхбаатар"
+      origin_country: "RU"
+      exporter: "TSM Export"
+      fuel_type: "ai92"
+      declared_liters: 60000
+      declared_tons: 44.7
+      wagons: 4
+      convoy_code: "TSM-CONVOY-${run}"
+      note: "TSM тест — хилийн ачилт"
+    expect:
+      status: [200, 201]
+    capture:
+      shipment_id: id
+
+  - name: Жагсаалтад гарсан эсэх
+    path: /api/v1/petro/shipments
+    expect:
+      status: 200
+      contains: "TSM-${run}"
+
+  - name: Төлөв урагшлуулах
+    method: POST
+    path: /api/v1/petro/shipments/${shipment_id}/status
+    body:
+      status: "cleared"
+      note: "TSM — гаалийн бүрдүүлэлт"
+    expect:
+      status: [200, 201, 204]

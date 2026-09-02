@@ -1,0 +1,138 @@
+name: PetroNet — нийлүүлэлтийн гинж
+description: |
+  Өгөгдөл цуглуулах гол сценари: бааз → сав → хүлээн авалт → хуваарилалт →
+  ШТС-ын хүлээн авалт → борлуулалт. Нэг литр гинжин хэлхээгээр дамжиж,
+  хоёр талын үлдэгдэл өөрчлөгдөж байгааг шалгана.
+
+  ЗҮГЭЭР НЭГ ҮҮСГЭДЭГГҮЙ: алхам бүр өмнөхийнхөө үр дүнг ашиглана, тиймээс
+  дунд нь тасарвал дараагийнх нь ажиллахгүй. Тэр нь зорилготой — гинж тасарсныг
+  «бүх алхам ногоон» гэж хэлдэг сценари юуг ч шалгахгүй.
+
+  Үүсгэсэн бүх бичлэг `TSM` угтвартай нэртэй бөгөөд буцаалттай: амжилттай
+  ажиллуулалт өөрийгөө цэвэрлэнэ.
+auth: tenant
+steps:
+  - name: Бааз бүртгэх
+    method: POST
+    path: /api/v1/petro/depots
+    body:
+      name: "TSM бааз ${run}"
+      brand: "TSM"
+      aimag: "Улаанбаатар"
+      district: "Баянзүрх"
+      address: "TSM тестийн хаяг"
+      has_rail_siding: true
+      rail_station_code: "TSM-${run}"
+    expect:
+      status: [200, 201]
+    capture:
+      depot_id: id
+    undo:
+      method: DELETE
+      path: /api/v1/petro/depots/${depot_id}
+
+  - name: Баазад сав нэмэх
+    method: POST
+    path: /api/v1/petro/depots/${depot_id}/tanks
+    body:
+      tank_no: "T-1"
+      tank_type: "vertical"
+      fuel_type: "ai92"
+      capacity_liters: 50000
+    expect:
+      status: [200, 201]
+    capture:
+      tank_id: id
+
+  - name: Шинэ сав хоосон эхэлсэн эсэх
+    path: /api/v1/petro/depots/${depot_id}
+    expect:
+      json:
+        current_liters: 0
+
+  - name: ШТС бүртгэх
+    method: POST
+    path: /api/v1/petro/stations
+    body:
+      name: "TSM ШТС ${run}"
+      brand: "TSM"
+      brand_label: "TSM тест"
+      aimag: "Улаанбаатар"
+      district: "Баянзүрх"
+      address: "TSM тестийн ШТС"
+      total_pumps: 4
+      active_pumps: 4
+    expect:
+      status: [200, 201]
+    capture:
+      station_id: id
+    undo:
+      method: DELETE
+      path: /api/v1/petro/stations/${station_id}
+
+  - name: Баазад түлш хүлээн авах
+    method: POST
+    path: /api/v1/petro/depots/${depot_id}/receipts
+    body:
+      tank_id: "${tank_id}"
+      liters: 30000
+      temperature_c: 12.5
+      density_kg_m3: 745
+      note: "TSM — хилийн хүлээн авалт"
+    expect:
+      status: [200, 201]
+
+  - name: Савны үлдэгдэл нэмэгдсэн эсэх
+    path: /api/v1/petro/depots/${depot_id}
+    expect:
+      json:
+        current_liters: 30000
+
+  - name: ШТС рүү хуваарилах
+    method: POST
+    path: /api/v1/petro/depots/${depot_id}/dispatch
+    body:
+      tank_id: "${tank_id}"
+      to_station_id: "${station_id}"
+      liters: 12000
+      tanker_plate: "TSM-${run}"
+      driver_name: "TSM жолооч"
+      driver_phone: "99000000"
+      seal_no: "SEAL-${run}"
+      trip_code: "TSM-TRIP-${run}"
+      open_movement: true
+    expect:
+      status: [200, 201]
+    capture:
+      trip_id: trip_id
+
+  - name: Баазаас гарсан литр хасагдсан эсэх
+    path: /api/v1/petro/depots/${depot_id}
+    expect:
+      json:
+        current_liters: 18000
+
+  - name: ШТС дээр хүлээн авах
+    method: POST
+    path: /api/v1/petro/trips/${trip_id}/receive
+    body:
+      liters: 12000
+      note: "TSM — ШТС-ын хүлээн авалт"
+    expect:
+      status: [200, 201]
+
+  - name: ШТС-ын хүлээн авалтын түүхэнд гарсан эсэх
+    path: /api/v1/petro/stations/${station_id}/receipts
+    expect:
+      status: 200
+      contains: "12000"
+
+  - name: Борлуулалт бүртгэх
+    method: POST
+    path: /api/v1/petro/stations/${station_id}/sales
+    body:
+      fuel_type: "ai92"
+      liters: 40
+      note: "TSM — түгээлт"
+    expect:
+      status: [200, 201]

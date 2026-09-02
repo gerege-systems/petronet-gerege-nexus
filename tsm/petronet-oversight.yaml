@@ -1,0 +1,40 @@
+name: PetroNet — зохицуулагчийн дэлгэц
+description: |
+  Зохицуулагчийн харах бүх зам хариу өгч байгаа эсэх. Бүгд УНШИХ — энэ сценари
+  юу ч үүсгэдэггүй, юуг ч батлахгүй.
+
+  Өдрийн нэгтгэлийг дахин тооцох нь ганц бичих үйлдэл боловч тэр нь өгөгдөл
+  үүсгэдэггүй: байгаа өгөгдлөөс нэгтгэлээ дахин бодно. Хуваарьт ажил үүнийг
+  өдөр бүр хийдэг тул гараар нэг удаа хийх нь давхардал биш.
+auth: tenant
+steps:
+  - name: Хяналтын самбар
+    path: /api/v1/petro/oversight/dashboard
+    expect:
+      status: 200
+
+  - name: Хамрах хүрээний цоорхой
+    path: /api/v1/petro/oversight/gaps
+    expect:
+      status: 200
+
+  - name: Тулгалт
+    path: /api/v1/petro/oversight/reconciliation
+    expect:
+      status: 200
+
+  - name: Хянах дараалал
+    path: /api/v1/petro/oversight/queue
+    expect:
+      status: 200
+
+  - name: Техникийн тооллогын нэгтгэл
+    path: /api/v1/petro/census/summary
+    expect:
+      status: 200
+
+  - name: Өдрийн нэгтгэлийг дахин тооцох
+    method: POST
+    path: /api/v1/petro/oversight/daily/refresh
+    expect:
+      status: [200, 202, 204]

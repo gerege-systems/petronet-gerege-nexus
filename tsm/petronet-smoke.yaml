@@ -1,0 +1,37 @@
+name: PetroNet — утаа
+description: |
+  Хамгийн хямд шалгалт, нэвтрэлтгүй. Платформ хариу өгч байна уу, шатахууны
+  нийтийн хоёр зам амьд байна уу, консол нийтийн хостоор нээгдэхгүй байна уу.
+
+  Энэ сценари юу ч үүсгэдэггүй тул продакшн дээр ажиллуулах нь аюулгүй —
+  цэвэрлэх зүйл ч байхгүй.
+auth: none
+steps:
+  - name: Платформ хариу өгч байна
+    path: /api/v1/setup/status
+    expect:
+      status: 200
+
+  - name: Нэвтрэлтийн тохиргоо
+    path: /api/v1/auth/sso/config
+    capture:
+      access_mode: access_mode
+
+  # bbox нь заавал: зам нь бүх ШТС-ыг нэг дор өгдөггүй. Энд Монгол Улсыг
+  # бүтнээр нь хамарсан хайрцаг — нийтийн зураг улсын хэмжээнд ажиллах ёстой.
+  - name: Нийтийн ШТС-ын жагсаалт
+    path: /api/v1/petro/public/stations?bbox=87.7,41.5,119.9,52.2
+    expect:
+      status: 200
+
+  - name: Нийтийн өдрийн нэгтгэл
+    path: /api/v1/petro/public/daily
+    expect:
+      status: 200
+
+  - name: Консол нийтийн хаягаар нээгдэхгүй байх ёстой
+    method: POST
+    path: /api/platform/v1/session
+    body: {email: "tsm@invalid.local", password: "x", code: "000000"}
+    expect:
+      status: [403, 404]

@@ -1,0 +1,68 @@
+name: PetroNet — хөдөлгөөн ба зөрүү
+description: |
+  Мөрдлөгийн гол механизм: хоёр цэгийн хооронд хөдөлгөөн нээж, ирсэн литрийг
+  мэдүүлснээс ЗӨРҮҮТЭЙ хаана. Зөрүү нь алдаа биш — систем түүнийг тэмдэглэж,
+  тулгалтад гаргаж чадаж байгаа эсэх нь энэ сценарийн асуулт.
+
+  Тэгш хэмтэй хоёр бааз үүсгэдэг нь санаатай: хөдөлгөөн нь ШТС биш, аль ч хоёр
+  цэгийн хооронд явна.
+auth: tenant
+steps:
+  - name: Гарах бааз
+    method: POST
+    path: /api/v1/petro/depots
+    body: {name: "TSM гарах бааз ${run}", brand: "TSM", aimag: "Дархан-Уул", district: "Дархан"}
+    expect: {status: [200, 201]}
+    capture: {from_id: id}
+    undo:
+      method: DELETE
+      path: /api/v1/petro/depots/${from_id}
+
+  - name: Очих бааз
+    method: POST
+    path: /api/v1/petro/depots
+    body: {name: "TSM очих бааз ${run}", brand: "TSM", aimag: "Дорнод", district: "Хэрлэн"}
+    expect: {status: [200, 201]}
+    capture: {to_id: id}
+    undo:
+      method: DELETE
+      path: /api/v1/petro/depots/${to_id}
+
+  - name: Хөдөлгөөн нээх
+    method: POST
+    path: /api/v1/petro/movements
+    body:
+      from_kind: "depot"
+      from_id: "${from_id}"
+      to_kind: "depot"
+      to_id: "${to_id}"
+      product_code: "ai92"
+      declared_liters: 25000
+      temperature_c: 14
+      density_kg_m3: 748
+      due_hours: 24
+      note: "TSM — хөдөлгөөний тест"
+    expect:
+      status: [200, 201]
+    capture:
+      movement_id: id
+
+  - name: Нээлттэй хөдөлгөөн жагсаалтад байгаа эсэх
+    path: /api/v1/petro/movements
+    expect:
+      status: 200
+      contains: "${movement_id}"
+
+  - name: Зөрүүтэй хаах
+    method: POST
+    path: /api/v1/petro/movements/${movement_id}/receive
+    body:
+      liters: 24850
+      note: "TSM — 150 литрийн зөрүү зориудаар"
+    expect:
+      status: [200, 201]
+
+  - name: Тулгалтад зөрүү харагдаж байна уу
+    path: /api/v1/petro/oversight/reconciliation
+    expect:
+      status: 200
