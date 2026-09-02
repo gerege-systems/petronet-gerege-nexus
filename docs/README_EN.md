@@ -1,27 +1,12 @@
 # PetroNet System
 
-**Integrated Digital Operations Platform**
+**Mongolia's integrated fuel monitoring and management platform**
 
-**PetroNet System** is an open-source modular platform that connects services,
-operations, systems, and data across public and private organizations. It is
-**Mongolian-first** and integrates directly with Mongolia's national digital
-infrastructure (DAN, E-ID, XYP / ХУР).
-
-*Nexus* is the connection point: where organizations, services, workflows,
-systems, users and data meet. The platform itself is not tied to one sector —
-the modules running on it are what make a deployment specific.
-
-Modules compile into a single Go binary, while a PostgreSQL-backed app
-store decides which apps are active per tenant — module separation without the
-network hops or operational cost of microservices.
-
-**Language policy: Mongolian plus the six official languages of the United
-Nations** — Arabic, Chinese, English, French, Russian, Spanish. Seven in total.
-Mongolian is the source. This product overview exists in all seven languages;
-individual technical documents do not necessarily do so. The UI has Mongolian
-and English source dictionaries plus Arabic, Chinese, French, Russian, and
-Spanish overlays; missing overlay strings fall back to English. See the
-[translation guide](TRANSLATION.md).
+**PetroNet** collects the import, storage, distribution and retail of petroleum
+products across Mongolia into one data flow, watches it in real time, and gives
+the regulator, the fuel companies and the driver the same numbers. It is built
+for the Mineral Resources and Petroleum Authority (MRPAM) and replaces the
+current **mpetro** system — see the [system requirements](system-requirements.md).
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -42,316 +27,245 @@ Spanish overlays; missing overlay strings fall back to English. See the
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.26-00ADD8.svg)](https://go.dev)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg)](https://nextjs.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](../CONTRIBUTING.md)
 
 ---
 
 ## Contents
 
-- [Authors](#authors)
-- [Core capabilities](#core-capabilities)
-- [Business applications](#business-applications)
+- [The problem](#the-problem)
+- [What the platform does](#what-the-platform-does)
+- [The design decision](#the-design-decision)
+- [Chain of custody](#chain-of-custody)
+- [What already exists](#what-already-exists)
+- [How it is built](#how-it-is-built)
 - [Repository layout](#repository-layout)
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
-- [API overview](#api-overview)
-- [Testing and quality gates](#testing-and-quality-gates)
+- [Deployment](#deployment)
+- [Testing](#testing)
 - [Security](#security)
 - [Documentation index](#documentation-index)
 
 ---
 
-## Authors
+## The problem
 
-| Contributor | Role |
-| --- | --- |
-| **Gerege Systems Development Team** ([@gerege-systems](https://github.com/gerege-systems)) | Architecture, platform core |
-| **Gemini AI** | Code generation, documentation |
-| **Claude AI** | Code analysis, security audit |
+Mongolia has more than 200 fuel companies, over 110 storage depots and more than
+1,500 filling stations. Their data lives in two systems that do not talk to each
+other, and most of it is typed in **by hand**, once or twice a week.
 
----
+There is no single place that can answer, right now, how many litres of which
+grade are where. So national reserves are managed by estimate, and when supply
+tightens the only instruments left are blunt ones — odd-and-even plate days, a
+flat ₮50,000 cap per fill, queues.
 
-## Core capabilities
+That is not only a supply problem. It is an information problem, and information
+problems are the kind software can actually solve.
 
-### 1. High-performance modular monolith
+## What the platform does
 
-- **Compile-time Go app modules** — core carries only `sso_clients`.
-  Product distributions register their modules through the public `pkg/nexus`
-  contract in the final binary, where they are invoked in-process.
-- **Per-tenant app store** — application entitlements, menus and RBAC are driven
-  from PostgreSQL (`app_installations`).
-- **Dependency resolver** — recursive resolution over a directed acyclic graph
-  with cycle detection and semver constraint checking.
-- **Catalog sync** — production fetches a signed catalog from
-  `APP_CATALOG_URL`; development/offline mode falls back to
-  `catalog/apps.json`, and metadata is reconciled into `platform.apps`.
+| | | Public page |
+| --- | --- | --- |
+| 1 | **Chain of custody** — import contract → customs → laboratory → terminal → transport → station tank → nozzle → customer. Every litre is traceable back to the batch it came from. | [`/supply`](https://petronet.mn/supply) |
+| 2 | **Station POS** — a driver layer that speaks to dispensers and tank gauges of any make, from a modern forecourt controller down to a pulse counter, and keeps selling when the network is gone. | [`/stations`](https://petronet.mn/stations) |
+| 3 | **Vouchers** — entitlements minted only from fuel that has physically arrived, then allocated by proximity, need and time waited. | [`/vouchers`](https://petronet.mn/vouchers) |
+| 4 | **State oversight** — stock, price, quality, tax and discrepancy on one board, over an audit trail that cannot be rewritten. | [`/oversight`](https://petronet.mn/oversight) |
 
-### 2. Cloud-native resilience and multiple replicas
+It runs in two modes on one set of rails. In a crisis it rations: limits and
+quotas change in minutes, priority classes keep their reserve, vouchers go out
+with a time window. The rest of the time it supervises: tax, price, quality and
+stock monitoring, automatic import-to-sale reconciliation, demand forecasting
+and strategic-reserve alerts.
 
-| Module | Purpose |
-| --- | --- |
-| `internal/kernel/resilience/loadshedder.go` | Sheds load with `503` + `Retry-After` under pressure |
-| `internal/kernel/cache/bus.go` | Redis-backed invalidation across replicas, with a local fallback |
-| `internal/kernel/memo/memo.go` | Short-TTL, prefix-invalidated local cache for authorisation decisions |
-| `internal/kernel/async/async.go` | Named goroutines with panic recovery and stack logging |
+## The design decision
 
-### 3. National digital infrastructure
+> **A voucher is not a promise. It is a reserved litre.**
 
-- **XYP — State Information Exchange** (`internal/workspace/identity/gerege/xyp.go`): citizen civil
-  registration (`WS100101`) and legal entity verification (`WS100201`).
-- **National E-ID and DAN** ([`developer.gerege.mn`](https://developer.gerege.mn),
-  [`eidmongolia.mn`](https://eidmongolia.mn)) — PKI digital signature, mobile
-  OTP, bank SSO and biometric face verification.
-- **Built-in OAuth2 / OIDC provider**
-  (`/.well-known/openid-configuration`) issuing client-credentials tokens to
-  third-party systems.
-- **Email verification** (`internal/workspace/emailverify`) — one shared flow for proving
-  an address, called in process by every app module. The mail is sent by the
-  hosted service (`enigma.mn`), so the platform holds no mailbox credential and
-  owns no sender address; the verification is recorded when the person comes
-  back, and that return works exactly once. Visible under Settings → Email
-  verification.
+A voucher comes into existence only after fuel has physically entered a
+station's tank and the automatic tank gauge has confirmed the level rise.
 
-> **Note.** Mock mode for E-ID, DAN and XYP is a development convenience only.
-> With `ENVIRONMENT=production` it is disabled automatically, so a fabricated
-> registration number can never authenticate.
+Two things follow. The system can never promise more than it holds, so the
+queue has nothing to form around. And a station that does not report its
+deliveries generates no vouchers, so nobody is sent to it — compliance is
+enforced by the design rather than by an inspector.
 
-### 4. AI copilot and analytics
+## Chain of custody
 
-- **AI assistant** (`internal/workspace/ai/copilot.go`) — intent-classified conversation
-  wired to live tenant data.
-- **Stock forecast endpoint** (`internal/workspace/ai/handlers.go`) — delegates to
-  an enabled distribution's `stock_forecast` capability and returns `404` when
-  no module provides it.
+| Stage | What is recorded | Where it comes from |
+| --- | --- | --- |
+| Import | Contract, supplier, grade, tonnage, Incoterms, price, expected date | Importer portal / API |
+| Border | Declaration number, HS code, duties, crossing point | Customs |
+| Quality | Octane, density, sulphur, water, laboratory certificate | Accredited laboratory |
+| Metrology | Observed litres, temperature, density → **litres at 15 °C** | ASTM D1250 / API MPMS 11.1 |
+| Terminal | Tank, capacity, level, free capacity, strategic-reserve transfers | Tank gauges |
+| Transport | Tanker, driver, loaded volume, destination, GPS track, e-seal | Carrier module |
+| Station | Received volume, level rise, discrepancy, receiving staff | Tank gauge + confirmation |
+| Nozzle | Totalizer, per-transaction litres and amount, shift readings | Forecourt controller |
+| Customer | Entitlement, voucher, redemption, receipt, VAT | PetroNet + e-Barimt |
 
----
+Each node reconciles against the one before it, so a discrepancy names when,
+where and in whose custody it appeared.
 
-## Business applications
+## What already exists
 
-This base repository ships exactly one app in `catalog/apps.json`. Product
-distributions register their own modules and migrations through `pkg/nexus`;
-their apps must not be read as features included in this repository.
+Not a plan — a record of what is in the repository, with tests, run against a
+real PostgreSQL. The full list, and what comes next, is in
+[the development plan](PLAN.md).
 
-| # | Application | ID | Route | Description |
-| --- | --- | --- | --- | --- |
-| 1 | SSO Clients | `io.gerege.nexus.sso_clients` | `/sso-clients` | OAuth2 clients for systems that sign people in through this platform |
+- Registry of depots and stations, plate numbers, status, XYP verification
+- Product reference with JODI classification, seven grades
+- Regulator permissions, with a row-level policy behind them
+- Policy as data — limits, tolerances, deadlines, changeable without a release
+- Station technical inventory (classes A–D)
+- Reporting periods, submissions, lines and conclusions
+- Validation rules — balance, continuity, capacity, deviation, metrology
+- 15 °C volume correction (ASTM D1250 / API MPMS 11.1)
+- Report versioning and a hash chain over it
+- Excel template export and import
+- Review workflow — approve, return, four-eyes
+- Movements, with plate number, closing state and discrepancy
+- National daily aggregate, coverage, days of stock remaining
+- Missing-data detection and a coverage-gap report
+- Reconciliation ΔA–ΔE
+- Seven reports as Excel and CSV, scheduled and emailed
+- Open data: the daily national aggregate at `/api/v1/petro/public/daily`
+- The company reporting screen and the regulator screen
 
-Routes only open once the app is installed and enabled for the tenant; otherwise
-the gate returns `403 Forbidden`.
+## How it is built
 
----
+PetroNet is a **Level 2 distribution** of the
+[Gerege Nexus](https://github.com/gerege-systems/open-gerege-nexus) platform.
+There is no core code in this repository — one line of `go.mod` is the whole of
+it. What lives here is the fuel business logic (`modules/petro/`) and the map,
+operator screens and public pages built for it (`frontend/`).
+
+The module registers its own routes, menus, permissions and migrations through
+the public `pkg/nexus` contract and compiles into a single Go binary. Identity,
+tenancy, RBAC, SSO, reporting and the audit trail come from the platform and are
+not rewritten here.
+
+The deployment authenticates people itself: its own sign-in, its own OIDC
+issuer, its own database. Citizens are identified through
+[eID Mongolia](https://eidmongolia.mn) rather than a password this system would
+have to keep.
 
 ## Repository layout
 
 ```
-backend/
-  cmd/api/            HTTP API server (+ demo seeder)
-  cmd/migrate/        Goose migration runner
-  db/migrations/      SQL migrations
-  internal/
-    kernel/           Plane-neutral technical primitives
-    tenant/           Work performed for one organisation
-    platform/         Operations for the whole deployment
-    apps/             Modules carried by this distribution
-  pkg/
-    nexus/            Public SDK and contracts for external modules
-    platform/         Composition root for both planes
-frontend/             Next.js 16 (App Router) web client
-catalog/              App store catalog and manifests
-deploy/               Production Dockerfile, Nginx config
-docs/                 Documentation and translations
+main.go                   Registers the petro module and starts the platform host
+modules/petro/            The fuel module: registry, reports, oversight, vouchers
+  migrations/             This module's SQL, one history
+cmd/petro-import/         Importer for the existing mpetro data
+catalog/                  App catalogue, manifests and version chronicle
+frontend/                 Next.js web client — public site, map, operator screens
+deploy/                   Dockerfile, compose stack, monitoring, backup scripts
+nginx/                    The six vhosts this deployment answers on
+docs/                     This documentation, in seven languages
 ```
-
----
 
 ## Getting started
 
-### Prerequisites
-
-- Go 1.26+
-- Node.js 20+
-- PostgreSQL 16+ (or Docker Compose)
-
-### 1. Docker Compose
+Prerequisites: Go 1.26+, Node.js 20+, PostgreSQL 16+ (or Docker).
 
 ```bash
-docker compose up -d
+# Everything at once
+docker compose -f deploy/docker-compose.yml up -d
+
+# Or the API on its own
+go run .
+
+# And the web client
+cd frontend && npm ci && npm run dev
 ```
 
-Migrations run as a dedicated one-shot `migrate` service before the API starts.
+The web client answers on [http://localhost:3000](http://localhost:3000).
 
-### 2. Manual
-
-**Backend:**
+A deployment with no organisation yet sends every visitor to `/setup`. The token
+that wizard asks for is written to the API log once, at boot:
 
 ```bash
-cd backend
-go mod download
-DATABASE_URL="postgres://postgres:postgrespassword@localhost:5432/platform_db?sslmode=disable" \
-  go run ./cmd/migrate up
-go run ./cmd/api
+docker logs gerege_petronet_backend 2>&1 | grep -i "setup token"
 ```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm ci
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-### Demo credentials
-
-| Field | Value |
-| --- | --- |
-| Email | `admin@example.com` |
-| Password | `Password123!` |
-| Tenant | `Demo Corporation` (`slug: demo`) |
-
-The demo account is only seeded outside production. In production it is created
-only when `SEED_DEMO_DATA=true` is set explicitly.
-
----
-
-## Automated deployment
-
-Every push to `main` runs [`deploy.yml`](../.github/workflows/deploy.yml):
-
-1. Build and push the backend and frontend images to GHCR (`:latest` and `:<sha>`).
-2. Copy `docker-compose.prod.yml` to the server.
-3. Write the server `.env` from GitHub secrets and pull the images.
-4. Run migrations to completion, then swap the API and frontend over.
-5. Probe `/health` and `/ready`, printing container logs and failing the run if
-   the rollout is unhealthy.
-
-Deploy manually from Actions → *Deploy to Production* → **Run workflow**,
-optionally pinning an image tag.
-
-Required repository secrets:
-
-| Secret | Required | Description |
-| --- | --- | --- |
-| `DEPLOY_SSH_KEY` | Yes | Private key of the deploy user. Without it the rollout is skipped |
-| `POSTGRES_PASSWORD` | Yes | Database password on the server |
-| `SSO_DEFAULT_CLIENT_SECRET` | Yes | Mandatory for the built-in OAuth2 client in production |
-| `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_PORT` | No | Default to `petronet.mn` / `deploy` / `22` |
-| `PUBLIC_ORIGIN` | No | Defaults to `https://petronet.mn` |
-
-> The production domain is `petronet.mn`, which replaced
-> `openerp.gerege.mn` in the PetroNet System rename. `PUBLIC_ORIGIN` defines CORS,
-> the OIDC issuer and the eID callback in one place, so moving it carries DNS,
-> the TLS certificate and every client that pinned the issuer along with it.
-
-The server needs Docker only — no source tree and no Go/Node toolchain. See
-[`deploy/.env.prod.example`](../deploy/.env.prod.example) for the values.
-
----
 
 ## Configuration
 
-See [`.env.example`](../.env.example) for the complete list.
+The complete list is in [`.env.example`](../.env.example). The values that
+decide how a deployment behaves:
 
-| Variable | Default | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | localhost | PostgreSQL connection string |
-| `PORT` | `8080` | API listen port |
-| `ENVIRONMENT` | `development` | `production` enables hardened defaults |
-| `APP_CATALOG_PATH` | `catalog/apps.json` | App store catalog path |
-| `ALLOWED_ORIGINS` | `http://localhost:3000` | CORS allow-list |
-| `TRUST_PROXY_HEADERS` | `false` | Whether to trust `X-Forwarded-For` |
-| `SEED_DEMO_DATA` | on outside production | Create the demo account |
-| `SSO_DEFAULT_CLIENT_SECRET` | — | Required in production |
-| `EID_MOCK_MODE` / `DAN_MOCK_MODE` / `XYP_MOCK_MODE` | on outside production | Mock national integrations |
+| Variable | Description |
+| --- | --- |
+| `PUBLIC_ORIGIN` | Where this instance answers. Defines CORS, the OIDC issuer and the eID callback in one place |
+| `PETRONET_POSTGRES_PASSWORD` | This stack's own database |
+| `SSO_DEFAULT_CLIENT_SECRET` | The platform refuses to start in production without it |
+| `BRAND_*` | The deployment's name, description, colours and icons |
+| `SERVICE_URL_*` | The addresses of the console, warehouse, backups, monitoring and documentation. Only the ones set are drawn on the front page |
+| `EID_RP_UUID` / `EID_RP_SECRET` | The eID relying-party pair. Without them eID sign-in is unavailable |
+| `CONTROL_PLANE_HOST` | The hostname the operator console answers on, and nowhere else |
+| `PROMETHEUS_URL` | Where the console reads platform health from |
 
----
+## Deployment
 
-## API overview
-
-| Method | Path | Description |
-| --- | --- | --- |
-| `GET` | `/health`, `/ready` | Liveness and readiness probes |
-| `GET` | `/metrics` | Prometheus metrics |
-| `POST` | `/api/v1/auth/login` | Email and password login |
-| `POST` | `/api/v1/auth/eid/login` | National E-ID login |
-| `POST` | `/api/v1/auth/dan/login` | DAN gateway login |
-| `POST` | `/api/v1/auth/logout` | Revoke the session |
-| `GET` | `/api/v1/menus` | Menus for the tenant's enabled apps |
-| `GET` | `/api/v1/store/apps` | App store listing |
-| `POST` | `/api/v1/store/apps/{slug}/install` | Install an app (admin) |
-| `POST` | `/api/v1/verify/send` | Ask the hosted service for an email verification link |
-| `GET` | `/api/v1/verify/landed` | Receive somebody who confirmed — good exactly once |
-| `GET` | `/api/platform/v1/email-verifications` | Verification ledger and service health (console) |
-| `POST` | `/oauth2/token` | OAuth2 client credentials token |
-
-Session tokens travel either in the HttpOnly cookie or as
-`Authorization: Bearer <token>`.
-
----
-
-## Testing and quality gates
+The production host carries `/opt/petronet/` — `src/` (this repository), `.env`
+(chmod 600) and `brand/`. Updating is two commands:
 
 ```bash
-# Backend unit tests with the race detector
-cd backend && go test -race ./...
-
-# Static analysis
-cd backend && go vet ./... && golangci-lint run
-
-# Vulnerability scan
-cd backend && govulncheck ./...
-
-# Frontend build
-cd frontend && npm run build
+cd /opt/petronet/src && git pull && ./deploy.sh
 ```
 
-CI runs lint, tests, the frontend build, the Docker image build, govulncheck and
-gosec on every push and pull request.
+`deploy.sh` builds both the backend and the web image from this repository, so
+the API, the map and the operator screens always ship at one revision.
 
----
+Six hostnames stand beside each other: the platform (`petronet.mn`), the
+operator console (`admin.`), monitoring (`monitor.`), the warehouse map
+(`dwh.`), this documentation (`docs.`) and the backup notes (`backups.`). What
+each is, and the traps in the nginx configuration, are in
+[this deployment's document](DEPLOYMENT.md).
+
+## Testing
+
+```bash
+go vet ./... && go test -race ./...     # Go: unit and PostgreSQL integration
+cd frontend && npm test && npm run build
+```
+
+CI runs both on every push and pull request, and builds both Docker images.
 
 ## Security
 
-- Session tokens are 256-bit random values; only their SHA-256 digest is stored.
-- Passwords are hashed with bcrypt and login attempts are rate limited per IP.
-- Installing, enabling or disabling apps and registering integrations require
-  tenant administrator rights.
-- OAuth2 client authentication uses constant-time comparison.
+- Session tokens are random 256-bit values; only their SHA-256 digest is stored.
+- Passwords are hashed with bcrypt, and sign-in attempts are rate limited.
+- Tenant data is isolated by a database role, a tenant context and row-level
+  security on the declared tables. The regulator's reach is a policy in SQL, not
+  a check in a handler.
+- Report versions are chained by hash, so an approved submission cannot be
+  edited without the chain saying so.
+- The operator console has its own identity, cookie, audit trail and database
+  role, and answers only on `CONTROL_PLANE_HOST`.
 
 Report vulnerabilities as described in [`SECURITY.md`](../SECURITY.md).
-
----
 
 ## Documentation index
 
 | Document | Description |
 | --- | --- |
-| [Documentation hub](README.md) | Index of every document and translation |
-| [Architecture](ARCHITECTURE.md) | The two planes, the three schemas, how data is isolated |
-| [Writing a module](MODULES.md) | The `pkg/nexus` contract, and how an app reaches a deployment |
-| [Translation](TRANSLATION.md) | Language policy, and adding a language with Gemini |
-| [Contributing](../CONTRIBUTING.md) | Contribution workflow |
-| [Security policy](../SECURITY.md) | Reporting vulnerabilities |
-| [Code of conduct](../CODE_OF_CONDUCT.md) | Community standards |
-| [Changelog](../CHANGELOG.md) | Release history |
-
----
-
-## Credits and inspiration
-
-1. **[snykk/go-rest-boilerplate](https://github.com/snykk/go-rest-boilerplate)**
-   by **[@snykk](https://github.com/snykk)** — Go REST API foundations.
-2. **[Odoo](https://github.com/odoo/odoo)** — modular app store and dependency
-   model.
-3. **[go-zero](https://github.com/zeromicro/go-zero)** — cloud-native resilience
-   engine.
+| [Documentation hub](README.md) | Every document and translation |
+| [System requirements](system-requirements.md) | What the customer asked for |
+| [Development plan](PLAN.md) | What is built, what comes next, and the acceptance criteria |
+| [Benchmarks](BENCHMARKS.md) | How other countries solved this, and what failed |
+| [This deployment](DEPLOYMENT.md) | Hostnames, ports, backups — only this host |
+| [Architecture](ARCHITECTURE.md) | The planes, the schemas, how data is isolated |
+| [Writing a module](MODULES.md) | The `pkg/nexus` contract |
+| [Operations](OPERATIONS.md) | Deployment, monitoring, backup and restore |
+| [Runbooks](RUNBOOKS.md) | When something breaks |
+| [Translation](TRANSLATION.md) | The language policy and the generator |
+| [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md) · [Code of conduct](../CODE_OF_CONDUCT.md) | Project conduct |
 
 ---
 
 ## License
 
-Copyright (c) 2026 **Gerege Systems Development Team, Gerege Nomadica Foundation**. Distributed under the Apache 2.0 License — see
+Copyright (c) 2026 **Gerege Systems Development Team, Gerege Nomadica
+Foundation**. Distributed under the Apache 2.0 License — see
 [`LICENSE`](../LICENSE).
 
 Flag icons by [Flaticon](https://www.flaticon.com/)

@@ -16,6 +16,7 @@
 
 import { expect, test } from "vitest";
 
+import { PUBLIC_NAV } from "@/lib/publicNav";
 import { isPublicPath } from "@/lib/publicRoutes";
 
 test("the sign-in area is public, all of it", () => {
@@ -41,17 +42,18 @@ test("the screens that create a session are public, because they run before one"
   expect(isPublicPath("/impersonate")).toBe(true);
 });
 
-test("the front door and its menu are public", () => {
+test("the front door is public", () => {
   expect(isPublicPath("/")).toBe(true);
-  for (const section of ["/architecture", "/platform", "/trust"]) {
-    expect(isPublicPath(section), section).toBe(true);
-  }
 });
 
+// Цэс нь энэ жагсаалтын эх сурвалж (lib/publicNav.ts) — тиймээс шалгалт нь
+// хатуу бичсэн хуулбартай биш, цэстэй өөртэй нь тулгана: хуудас нэмэхэд
+// нэг л газар засагдана.
 test("PetroNet's citizen and product pages are public", () => {
-  for (const path of ["/map", "/supply", "/stations", "/vouchers", "/oversight", "/rollout"]) {
-    expect(isPublicPath(path), path).toBe(true);
+  for (const {href} of PUBLIC_NAV) {
+    expect(isPublicPath(href), href).toBe(true);
   }
+  expect(PUBLIC_NAV.map((item) => item.href)).toContain("/map");
 });
 
 test("the console is drawn without the tenant shell, and holds its own session", () => {

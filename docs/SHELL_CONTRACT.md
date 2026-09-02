@@ -29,7 +29,7 @@ Native бүрхүүл (Swift, C#, Kotlin) ба web app хоёрын хоорон
 эсвэл `false` буцаана; `data-shell` атрибут `<html>` дээр огт тавигдахгүй.
 
 Web талын хэрэгжилт: [`frontend/lib/shell.ts`](../frontend/lib/shell.ts).
-Бүрхүүлийн талын хэрэгжилтүүд: [`native-apps/`](../native-apps).
+Бүрхүүлийн талын хэрэгжилтүүд: [`native-apps/`](https://github.com/gerege-systems/open-gerege-nexus/tree/main/native-apps).
 
 ---
 
@@ -86,12 +86,12 @@ Let's Encrypt гэрчилгээнд багтана.
 > өгвөл апп `A server with the specified hostname could not be found` гэж
 > унаж, нэвтрэх боломжгүй болно — энэ нь нэг удаа тохиолдсон. Дараалал ба
 > тухайн платформын яг аль мөрийг солихыг
-> [`native-apps/shared/device_lines.json`](../native-apps/shared/device_lines.json)-ы
+> [`native-apps/shared/device_lines.json`](https://github.com/gerege-systems/open-gerege-nexus/blob/main/native-apps/shared/device_lines.json)-ы
 > `$provisioning` заана.
 
 Шугам бүр өөрийн host дээрээ `/api/v1`-ээ **мөн** үйлчилнэ; nginx тэдгээрийг
 бүгдийг НЭГ ижил API upstream руу дамжуулна
-([`deploy/nginx/device-lines.petronet.mn.conf`](../deploy/nginx/device-lines.petronet.mn.conf)).
+(шугамын vhost — цөмийн репогийн [`deploy/nginx/`](https://github.com/gerege-systems/open-gerege-nexus/tree/main/deploy/nginx); энэ суулгац дээр шугам хараахан асаагаагүй тул `nginx/`-д тийм файл байхгүй).
 Шугам нь тусдаа origin өгөхийн тулд байгаа болохоос тусдаа сервис өгөхийн тулд
 биш.
 
@@ -138,7 +138,7 @@ session cookie нь `SameSite=Strict` хэвээр ажиллаж, CORS prefligh
 
 Бүртгэлүүд — шугам нэмэхэд **гурвуулыг** нь өөрчилнө:
 
-- [`native-apps/shared/device_lines.json`](../native-apps/shared/device_lines.json) — native талын эх сурвалж
+- [`native-apps/shared/device_lines.json`](https://github.com/gerege-systems/open-gerege-nexus/blob/main/native-apps/shared/device_lines.json) — native талын эх сурвалж
 - [`frontend/lib/deviceLine.ts`](../frontend/lib/deviceLine.ts) — web талын хуулбар
 - `DEVICE_LINE_ORIGINS` ба nginx vhost — deploy тал
 
@@ -392,7 +392,7 @@ payload-ыг шууд дамжуулна.
 
 ## 9. Бүрхүүлийн одоогийн байдал
 
-Хэрэгжилтүүд нь [`native-apps/`](../native-apps) доторх Swift/AppKit ба
+Хэрэгжилтүүд нь [`native-apps/`](https://github.com/gerege-systems/open-gerege-nexus/tree/main/native-apps) доторх Swift/AppKit ба
 C#/.NET сууриас эхэлнэ; Kotlin/Android суурь мөн энд нэмэгдэнэ. Linux нь PWA.
 
 | Зүйл | Утга |

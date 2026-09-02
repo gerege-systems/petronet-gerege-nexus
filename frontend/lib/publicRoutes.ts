@@ -1,4 +1,4 @@
-import { SECTION_PATHS } from "./landing";
+import { PUBLIC_NAV } from "./publicNav";
 
 /**
  * Which addresses the workspace shell may draw without a session.
@@ -30,14 +30,10 @@ import { SECTION_PATHS } from "./landing";
  */
 export const PUBLIC_ROUTES = [
   "/",
-  // PetroNet's product surface and citizen map are part of the public front
-  // door. A driver looking for a station has no workspace session to present.
-  "/map",
-  "/supply",
-  "/stations",
-  "/vouchers",
-  "/oversight",
-  "/rollout",
+  // Нийтийн сайтын цэс өөрөө — тусад нь бичсэн хуулбар биш. Жолооч ШТС хайхдаа
+  // ажлын мужийн session барьж яваагүй бөгөөд цэсэнд байгаа хаяг энд байхгүй
+  // бол тэр хүн өөрийн дарсан холбоосноосоо нэвтрэх дэлгэц рүү шидэгдэнэ.
+  ...PUBLIC_NAV.map((item) => item.href),
   "/login",
   "/setup",
   "/auth/eid/callback",
@@ -72,16 +68,14 @@ export const PUBLIC_ROUTES = [
  * holds no tenant session, and redirects the console to the platform's login
  * screen before it can draw its own.
  *
- * The landing page's menu items are pages of their own now, and they are as
- * public as the page they were carved out of. Left out, the shell asked
- * /api/v1/me for a visitor who has no session, took the 401 and redirected the
- * front door's own menu to a sign-in screen.
+ * Нийтийн сайтын цэсний зүйл бүр (`components/petronet/nav.ts`) дээрх
+ * жагсаалтад байх ёстой. Орхигдсон нэг нь session байхгүй зочноос /api/v1/me
+ * асууж, 401 аваад нүүрний өөрийнх нь цэсийг нэвтрэх дэлгэц рүү шиднэ.
  */
 export function isPublicPath(path: string): boolean {
   return (
     PUBLIC_ROUTES.includes(path) ||
     path.startsWith("/login/") ||
-    SECTION_PATHS.includes(path) ||
     path.startsWith("/line/") ||
     path === "/cp" ||
     path.startsWith("/cp/")

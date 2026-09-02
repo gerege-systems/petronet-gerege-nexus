@@ -2,7 +2,8 @@ import type {Metadata} from "next";
 import {BadgeCheck, FileText, TestTube2, Thermometer, Truck, Warehouse} from "lucide-react";
 
 import PetroNetShell from "../../components/petronet/PetroNetShell";
-import {FeatureGrid, FlowRail, PageCTA, PageHero, SectionHeading} from "../../components/petronet/ui";
+import {FlowRail} from "../../components/petronet/FlowRail";
+import {FeatureGrid, PageCTA, PageHero, SectionHeading} from "../../components/petronet/ui";
 
 export const metadata: Metadata = {title: "Нийлүүлэлтийн урсгал · PetroNet"};
 

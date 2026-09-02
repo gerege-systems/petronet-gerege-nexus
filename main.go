@@ -9,19 +9,18 @@
 // at petronet.mn.
 //
 // There is no core code in this repository — go.mod's one line is the whole of
-// it. What will live here is this product's own apps, under modules/, and the
-// repository is Level 2 from the first commit precisely so that adding the
-// first of them is a change to this file rather than a migration of the
-// deployment (docs/ECOSYSTEM_GIT_STRATEGY.md, §1).
+// it. This product's own apps live under modules/, and the repository is
+// Level 2 precisely so that adding one is a change to this file rather than a
+// migration of the deployment (docs/ECOSYSTEM_GIT_STRATEGY.md, §1).
 //
 // It identifies people itself: no SSO_CLIENT_ISSUER, its own sign-in, its own
 // database. That is a deployment decision and nothing in this file knows about
 // it — see deploy/docker-compose.yml.
 //
-// It carries no app modules yet. A platform that boots with zero business apps
-// is the ecosystem's baseline test, not a placeholder state: sign-in, tenants,
-// the store and the rails are the platform's and are all here. Modules go in
-// the Options.Modules callback and nowhere else — logic written in this file
+// It carries one module, petro: the registry of depots and stations, the
+// chain of custody from import to nozzle, the reporting periods the regulator
+// reads, and the citizen entitlements on top of them. Modules go in the
+// Options.Modules callback and nowhere else — logic written in this file
 // instead of in a module is logic no other deployment can have and no test can
 // reach.
 package main

@@ -1,36 +1,13 @@
 import type {ReactNode} from "react";
 import Link from "next/link";
-import {ArrowRight, Check, Fuel, Ship, TestTube2, Truck, Warehouse} from "lucide-react";
+import {ArrowRight, Check, Fuel} from "lucide-react";
 
-export function SectionHeading({label, title, body, inverse = false}: {label: string; title: string; body?: string; inverse?: boolean}) {
+export function SectionHeading({label, title, body, inverse = false}: {label: ReactNode; title: ReactNode; body?: ReactNode; inverse?: boolean}) {
   return (
     <div className={`pn-section-heading${inverse ? " is-inverse" : ""}`}>
       <span>{label}</span>
       <h2>{title}</h2>
       {body ? <p>{body}</p> : null}
-    </div>
-  );
-}
-
-export function FlowRail({compact = false}: {compact?: boolean}) {
-  const steps = [
-    [Ship, "Импорт", "Гэрээ · Ачилт"],
-    [TestTube2, "Хил", "Гааль · Чанар"],
-    [Warehouse, "Терминал", "Сав · Нөөц"],
-    [Truck, "Тээвэр", "GPS · Цахим лац"],
-    [Fuel, "ШТС", "Сав · Хошуу"],
-    [Check, "Түгээлт", "Баримт · Тулгалт"],
-  ] as const;
-
-  return (
-    <div className={`pn-flow-rail${compact ? " is-compact" : ""}`}>
-      {steps.map(([Icon, title, body], index) => (
-        <div className="pn-flow-step" key={title}>
-          <span className="pn-flow-step__icon"><Icon /></span>
-          <span><b>{title}</b><small>{body}</small></span>
-          {index < steps.length - 1 ? <i className="pn-flow-step__line"><em /></i> : null}
-        </div>
-      ))}
     </div>
   );
 }

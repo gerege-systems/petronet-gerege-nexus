@@ -1,16 +1,10 @@
 # PetroNet System
 
-**一体化数字运营平台**
+**蒙古国燃料监测与管理一体化平台**
 
-**PetroNet System** 是一个开源的模块化平台，用于连接公共与私营机构的服务、业务运营、
-系统与数据。平台以**蒙古语为默认语言**，并直接对接蒙古国国家数字基础设施
-（DAN、E-ID、XYP / ХУР）。
-
-*Nexus* 意为连接点：机构、服务、工作流、系统、用户与数据在此交汇。平台本身不限定
-行业——真正决定一次部署形态的，是运行其上的模块。
-
-各模块编译进同一个 Go 二进制文件，由基于 PostgreSQL 的应用商店决定每个租户
-启用哪些应用——既保留模块边界，又不引入微服务的网络开销与运维复杂度。
+**PetroNet** 把蒙古国石油产品的进口、储存、配送与零售汇入一条数据流，实时监控，
+并让监管机构、燃料企业和司机看到同一组数字。系统为矿产资源与石油管理局（AMGTG）
+建设，将取代现行的 **mpetro** 系统 —— 参见[系统需求](system-requirements.md)。
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -31,267 +25,227 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.26-00ADD8.svg)](https://go.dev)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg)](https://nextjs.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](../CONTRIBUTING.md)
 
 ---
 
 ## 目录
 
-- [作者](#作者)
-- [核心能力](#核心能力)
-- [业务应用](#业务应用)
+- [问题](#问题)
+- [平台做什么](#平台做什么)
+- [核心设计](#核心设计)
+- [监管链](#监管链)
+- [已经完成的部分](#已经完成的部分)
+- [如何构建](#如何构建)
 - [仓库结构](#仓库结构)
 - [快速开始](#快速开始)
-- [配置项](#配置项)
-- [API 概览](#api-概览)
-- [测试与质量门禁](#测试与质量门禁)
+- [配置](#配置)
+- [部署](#部署)
+- [测试](#测试)
 - [安全](#安全)
 - [文档索引](#文档索引)
 
 ---
 
-## 作者
+## 问题
 
-| 贡献者 | 职责 |
-| --- | --- |
-| **Gerege Systems Development Team** ([@gerege-systems](https://github.com/gerege-systems)) | 架构与平台核心 |
-| **Gemini AI** | 代码生成与文档 |
-| **Claude AI** | 代码分析与安全审计 |
+蒙古国有 200 多家燃料企业、110 多个油库和 1500 多座加油站。它们的数据分散在两套
+互不相通的系统里，而且大部分是每周一到两次**手工录入**的。
 
----
+没有任何一个地方能立刻回答：此刻哪个牌号、多少升、在什么位置。于是国家储备只能
+凭估算管理；一旦供应收紧，剩下的就只有粗糙的手段——单双号、每次加油 ₮50,000 的
+统一上限，以及排队。
 
-## 核心能力
+这不只是供应问题，更是信息问题——而信息问题正是软件真正能解决的那一类。
 
-### 1. 高性能模块化单体架构
+## 平台做什么
 
-- **编译期 Go 应用模块** —— 核心仅携带 `sso_clients`。产品 distribution
-  通过公开 `pkg/nexus` contract 将模块注册到最终二进制，并在进程内调用。
-- **租户级应用商店** —— 应用权限、菜单与 RBAC 由 PostgreSQL
-  （`app_installations`）动态驱动。
-- **依赖解析引擎** —— 基于有向无环图（DAG）的递归解析，支持环检测与 semver
-  约束校验。
-- **目录同步** —— production 从 `APP_CATALOG_URL` 获取签名目录；开发/离线
-  模式回退到 `catalog/apps.json`，并将 metadata 同步到 `platform.apps`。
+| | | 公开页面 |
+| --- | --- | --- |
+| 1 | **监管链**——进口合同 → 海关 → 化验 → 油库 → 运输 → 加油站油罐 → 油枪 → 用户。每一升都能追溯到它所属的批次。 | [`/supply`](https://petronet.mn/supply) |
+| 2 | **加油站 POS**——一层驱动，能与任何厂商的加油机和液位仪对话，从现代前庭控制器到脉冲计数器；断网时照常营业。 | [`/stations`](https://petronet.mn/stations) |
+| 3 | **代金券**——只有实际到货的燃料才会生成额度，再按距离、需求和等待时长分配。 | [`/vouchers`](https://petronet.mn/vouchers) |
+| 4 | **国家监管**——库存、价格、质量、税收与差异集中在一块看板上，底下是不可改写的审计链。 | [`/oversight`](https://petronet.mn/oversight) |
 
-### 2. 云原生韧性与多副本
+同一套基础设施有两种运行模式。危机时它负责配给：限额与配额几分钟内可调，优先类别
+保有专属储备，代金券带时间窗发放。平时它负责监管：税收、价格、质量与库存监控，
+"进口—储存—销售"自动对账，需求预测与战略储备预警。
 
-| 模块 | 用途 |
-| --- | --- |
-| `internal/kernel/resilience/loadshedder.go` | 过载时返回 `503` 与 `Retry-After` |
-| `internal/kernel/cache/bus.go` | 基于 Redis 的跨副本失效通知，并支持本地回退 |
-| `internal/kernel/memo/memo.go` | 用于授权决策的短 TTL、按前缀失效的本地缓存 |
-| `internal/kernel/async/async.go` | 带 panic 恢复与堆栈日志的命名 goroutine |
+## 核心设计
 
-### 3. 国家数字基础设施集成
+> **代金券不是承诺，而是已预留的一升油。**
 
-- **XYP 国家信息交换系统**（`internal/workspace/identity/gerege/xyp.go`）：公民户籍登记
-  （`WS100101`）与法人主体核验（`WS100201`）。
-- **国家 E-ID 与 DAN**（[`developer.gerege.mn`](https://developer.gerege.mn)、
-  [`eidmongolia.mn`](https://eidmongolia.mn)）—— PKI 数字签名、手机 OTP、
-  银行 SSO 与人脸生物识别。
-- **内置 OAuth2 / OIDC 提供方**
-  （`/.well-known/openid-configuration`），为第三方系统签发 client credentials
-  令牌。
-- **电子邮件验证**（`internal/workspace/emailverify`）——统一的地址验证流程，平台内所有应用
-  模块在进程内直接调用。邮件由托管服务（`enigma.mn`）发送，因此平台不保存任何
-  邮箱凭据、也不拥有发件地址；用户回到平台时记录验证，且该回访仅可使用一次。可在
-  “设置 → 电子邮件验证”中查看。
+只有当燃料实际进入加油站油罐、且自动液位仪确认液位上升之后，代金券才会产生。
 
-> **注意。** E-ID、DAN 与 XYP 的 mock 模式仅用于开发环境。当
-> `ENVIRONMENT=production` 时会自动关闭，伪造的登记号无法完成认证。
+由此得出两点。系统永远不会承诺超过它拥有的量，队伍也就没有形成的理由；而不上报
+到货的加油站不会产生任何代金券，也就没有人被指引过去——合规由设计强制执行，而不
+靠检查员。
 
-### 4. AI 助手与业务分析
+## 监管链
 
-- **AI 助手**（`internal/workspace/ai/copilot.go`）—— 连接租户实时数据的意图分类对话。
-- **库存预测端点**（`internal/workspace/ai/handlers.go`）——委托给已启用
-  distribution 的 `stock_forecast` capability；没有提供方时返回 `404`。
+| 环节 | 记录什么 | 来源 |
+| --- | --- | --- |
+| 进口 | 合同、供应商、牌号、吨位、贸易术语、价格、预计日期 | 进口商门户 / API |
+| 口岸 | 报关单号、HS 编码、税费、口岸 | 海关 |
+| 质量 | 辛烷值、密度、硫、水分、化验证书 | 认可实验室 |
+| 计量 | 观测升数、温度、密度 → **15 °C 下的升数** | ASTM D1250 / API MPMS 11.1 |
+| 油库 | 油罐、容量、液位、余量、划入国家储备的数量 | 液位仪 |
+| 运输 | 油罐车、司机、装载量、目的地、GPS 轨迹、电子铅封 | 承运方模块 |
+| 加油站 | 接收量、液位上升、差异、接收人员 | 液位仪 + 人工确认 |
+| 油枪 | 累计表、每笔交易的升数与金额、班次读数 | 前庭控制器 |
+| 用户 | 额度、代金券、核销、票据、增值税 | PetroNet + e-Barimt |
 
----
+每个环节都与上一个环节对账，因此差异会直接指出它出现的时间、地点和责任方。
 
-## 业务应用
+## 已经完成的部分
 
-此基础仓库的 `catalog/apps.json` 中仅包含一个应用。产品 distribution
-通过 `pkg/nexus` 注册各自的模块和 migration；这些应用不属于本仓库已提供的功能。
+这不是计划，而是仓库中已有内容的清单：有测试，并在真实的 PostgreSQL 上运行过。
+完整列表与后续安排见[开发计划](PLAN.md)。
 
-| # | 应用 | ID | 路由 | 说明 |
-| --- | --- | --- | --- | --- |
-| 1 | SSO 客户端 | `io.gerege.nexus.sso_clients` | `/sso-clients` | 通过本平台登录用户的系统所用的 OAuth2 客户端注册 |
+- 油库与加油站登记、车牌、状态、通过 XYP 的核验
+- 产品字典，采用 JODI 分类，七个牌号
+- 监管机构权限，背后是行级安全策略
+- 策略即数据——限额、容差、期限，无需发版即可修改
+- 加油站技术台账（A–D 类）
+- 报告期、报送、明细行与结论
+- 校验规则——平衡、连续性、容量、偏差、计量
+- 15 °C 体积换算（ASTM D1250 / API MPMS 11.1）
+- 报告版本管理及其上的哈希链
+- Excel 模板的导出与导入
+- 审核流程——批准、退回、四眼原则
+- 出入库记录，含车牌、关闭状态与差异
+- 全国日汇总、覆盖率、可用天数
+- 缺报数据检测与覆盖缺口报告
+- ΔA–ΔE 对账
+- 七种报表，Excel 与 CSV，可定时并邮件发送
+- 开放数据：`/api/v1/petro/public/daily` 的全国日汇总
+- 企业报送界面与监管机构界面
 
-只有当应用在该租户下安装并启用后路由才会开放，否则网关返回 `403 Forbidden`。
+## 如何构建
 
----
+PetroNet 是 [Gerege Nexus](https://github.com/gerege-systems/open-gerege-nexus)
+平台的**二级发行版**。本仓库不含内核代码——`go.mod` 里的一行就是全部。这里存放的
+是燃料业务逻辑（`modules/petro/`），以及为它构建的地图、运营界面和公开页面
+（`frontend/`）。
+
+模块通过公开的 `pkg/nexus` 契约注册自己的路由、菜单、权限和迁移，并编译进同一个
+Go 二进制。身份、租户、RBAC、SSO、报表和审计链来自平台，不在此重写。
+
+该部署自行完成身份认证：自有登录、自有 OIDC issuer、自有数据库。公民通过
+[eID Mongolia](https://eidmongolia.mn) 识别，而不是靠一个本系统必须保管的密码。
 
 ## 仓库结构
 
 ```
-backend/
-  cmd/api/            HTTP API 服务（含 demo seeder）
-  cmd/migrate/        Goose 迁移执行器
-  db/migrations/      SQL 迁移脚本
-  internal/
-    kernel/           两个平面共享的技术原语
-    tenant/           单个组织范围内的工作
-    platform/         整个 deployment 的运维
-    apps/             本 distribution 携带的模块
-  pkg/
-    nexus/            外部模块的公共 SDK 与 contract
-    platform/         两个平面的 composition root
-frontend/             Next.js 16（App Router）Web 客户端
-catalog/              应用商店目录与 manifest
-deploy/               生产 Dockerfile 与 Nginx 配置
-docs/                 文档与翻译
+main.go                   注册 petro 模块并启动平台宿主
+modules/petro/            燃料模块：登记、报表、监管、代金券
+  migrations/             该模块的 SQL，单一历史
+cmd/petro-import/         现有 mpetro 数据的导入工具
+catalog/                  应用目录、清单与版本编年
+frontend/                 Next.js 前端——公开站点、地图、运营界面
+deploy/                   Dockerfile、compose 栈、监控、备份脚本
+nginx/                    本次部署对外的六个虚拟主机
+docs/                     本文档，七种语言
 ```
-
----
 
 ## 快速开始
 
-### 环境要求
-
-- Go 1.26+
-- Node.js 20+
-- PostgreSQL 16+（或 Docker Compose）
-
-### 1. Docker Compose
+前置条件：Go 1.26+、Node.js 20+、PostgreSQL 16+（或 Docker）。
 
 ```bash
-docker compose up -d
+# 一次全部启动
+docker compose -f deploy/docker-compose.yml up -d
+
+# 或只启动 API
+go run .
+
+# 以及前端
+cd frontend && npm ci && npm run dev
 ```
 
-迁移由独立的一次性 `migrate` 服务执行，完成后 API 才会启动。
+前端在 [http://localhost:3000](http://localhost:3000) 上响应。
 
-### 2. 手动运行
-
-**后端：**
+尚未创建组织的部署会把所有访客送往 `/setup`。向导所需的令牌在启动时向 API 日志
+写入一次：
 
 ```bash
-cd backend
-go mod download
-DATABASE_URL="postgres://postgres:postgrespassword@localhost:5432/platform_db?sslmode=disable" \
-  go run ./cmd/migrate up
-go run ./cmd/api
+docker logs gerege_petronet_backend 2>&1 | grep -i "setup token"
 ```
 
-**前端：**
+## 配置
 
-```bash
-cd frontend
-npm ci
-npm run dev
-```
+完整列表见 [`.env.example`](../.env.example)。决定部署行为的关键值：
 
-打开 [http://localhost:3000](http://localhost:3000)。
-
-### 演示账号
-
-| 字段 | 值 |
+| 变量 | 说明 |
 | --- | --- |
-| 邮箱 | `admin@example.com` |
-| 密码 | `Password123!` |
-| 租户 | `Demo Corporation`（`slug: demo`） |
+| `PUBLIC_ORIGIN` | 本实例对外地址。在一处同时定义 CORS、OIDC issuer 与 eID 回调 |
+| `PETRONET_POSTGRES_PASSWORD` | 本栈自己的数据库 |
+| `SSO_DEFAULT_CLIENT_SECRET` | 生产环境缺少它平台拒绝启动 |
+| `BRAND_*` | 部署的名称、描述、配色与图标 |
+| `SERVICE_URL_*` | 控制台、数据仓库、备份、监控与文档的地址。首页只绘制已配置的那些 |
+| `EID_RP_UUID` / `EID_RP_SECRET` | eID 依赖方凭据。缺少则无法使用 eID 登录 |
+| `CONTROL_PLANE_HOST` | 运营控制台唯一应答的主机名 |
+| `PROMETHEUS_URL` | 控制台读取平台健康状况的来源 |
 
-演示账号仅在非生产环境创建；生产环境下必须显式设置 `SEED_DEMO_DATA=true`。
+## 部署
 
----
-
-## 配置项
-
-完整列表见 [`.env.example`](../.env.example)。
-
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `DATABASE_URL` | localhost | PostgreSQL 连接串 |
-| `PORT` | `8080` | API 监听端口 |
-| `ENVIRONMENT` | `development` | `production` 启用安全加固默认值 |
-| `APP_CATALOG_PATH` | `catalog/apps.json` | 应用商店目录路径 |
-| `ALLOWED_ORIGINS` | `http://localhost:3000` | CORS 白名单 |
-| `TRUST_PROXY_HEADERS` | `false` | 是否信任 `X-Forwarded-For` |
-| `SEED_DEMO_DATA` | 非生产环境默认开启 | 创建演示账号 |
-| `SSO_DEFAULT_CLIENT_SECRET` | — | 生产环境必填 |
-| `EID_MOCK_MODE` / `DAN_MOCK_MODE` / `XYP_MOCK_MODE` | 非生产环境默认开启 | 国家系统 mock 模式 |
-
----
-
-## API 概览
-
-| 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| `GET` | `/health`、`/ready` | 存活与就绪探针 |
-| `GET` | `/metrics` | Prometheus 指标 |
-| `POST` | `/api/v1/auth/login` | 邮箱密码登录 |
-| `POST` | `/api/v1/auth/eid/login` | 国家 E-ID 登录 |
-| `POST` | `/api/v1/auth/dan/login` | DAN 网关登录 |
-| `POST` | `/api/v1/auth/logout` | 注销会话 |
-| `GET` | `/api/v1/menus` | 租户已启用应用的菜单 |
-| `GET` | `/api/v1/store/apps` | 应用商店列表 |
-| `POST` | `/api/v1/store/apps/{slug}/install` | 安装应用（管理员） |
-| `POST` | `/api/v1/verify/send` | 向托管服务申请电子邮件验证链接 |
-| `GET` | `/api/v1/verify/landed` | 接收已确认地址的用户——仅可使用一次 |
-| `GET` | `/api/platform/v1/email-verifications` | 验证记录与服务状态（控制台）|
-| `POST` | `/oauth2/token` | OAuth2 client credentials 令牌 |
-
-会话令牌通过 HttpOnly Cookie 或 `Authorization: Bearer <token>` 传递。
-
----
-
-## 测试与质量门禁
+生产主机上有 `/opt/petronet/`——`src/`（本仓库）、`.env`（chmod 600）和
+`brand/`。更新只需两条命令：
 
 ```bash
-# 后端单元测试（开启竞态检测）
-cd backend && go test -race ./...
-
-# 静态分析
-cd backend && go vet ./... && golangci-lint run
-
-# 漏洞扫描
-cd backend && govulncheck ./...
-
-# 前端构建
-cd frontend && npm run build
+cd /opt/petronet/src && git pull && ./deploy.sh
 ```
 
-CI 在每次 push 与 pull request 上运行 lint、测试、前端构建、Docker 镜像构建、
-govulncheck 与 gosec。
+`deploy.sh` 从本仓库同时构建后端与前端镜像，因此 API、地图和运营界面始终以同一个
+修订版发布。
 
----
+六个主机名并列存在：平台（`petronet.mn`）、运营控制台（`admin.`）、监控
+（`monitor.`）、数据仓库图（`dwh.`）、本文档（`docs.`）与备份说明
+（`backups.`）。它们各自是什么，以及 nginx 配置中的陷阱，见
+[本部署文档](DEPLOYMENT.md)。
+
+## 测试
+
+```bash
+go vet ./... && go test -race ./...     # Go：单元测试与 PostgreSQL 集成测试
+cd frontend && npm test && npm run build
+```
+
+CI 在每次 push 和 pull request 上运行两者，并构建两个 Docker 镜像。
 
 ## 安全
 
-- 会话令牌为 256 位随机值，数据库中仅保存其 SHA-256 摘要。
-- 密码使用 bcrypt 哈希，登录接口按 IP 限流。
-- 安装、启用、停用应用以及注册集成需要租户管理员权限。
-- OAuth2 客户端认证采用常量时间比较。
+- 会话令牌是随机的 256 位值；只存储其 SHA-256 摘要。
+- 密码使用 bcrypt 哈希，登录尝试受频率限制。
+- 租户数据由数据库角色、租户上下文和已声明表上的行级安全隔离。监管机构的可见
+  范围是 SQL 中的策略，而不是处理器里的一次判断。
+- 报告版本以哈希相连，已批准的报送无法在链上不留痕迹地被修改。
+- 运营控制台拥有独立的身份、cookie、审计链和数据库角色，且只在
+  `CONTROL_PLANE_HOST` 上应答。
 
-漏洞报告流程见 [`SECURITY.md`](../SECURITY.md)。
-
----
+漏洞请按 [`SECURITY.md`](../SECURITY.md) 所述方式报告。
 
 ## 文档索引
 
 | 文档 | 说明 |
 | --- | --- |
-| [文档中心](README.md) | 全部文档与翻译索引 |
-| [架构](ARCHITECTURE.md) | 两个平面、三个模式、数据隔离 |
-| [编写模块](MODULES.md) | `pkg/nexus` 契约，以及应用如何抵达部署 |
-| [贡献指南](../CONTRIBUTING.md) | 贡献流程 |
-| [安全策略](../SECURITY.md) | 漏洞报告 |
-| [行为准则](../CODE_OF_CONDUCT.md) | 社区规范 |
-| [变更日志](../CHANGELOG.md) | 版本历史 |
-
----
-
-## 致谢与灵感来源
-
-1. **[snykk/go-rest-boilerplate](https://github.com/snykk/go-rest-boilerplate)**
-   （作者 **[@snykk](https://github.com/snykk)**）—— Go REST API 基础架构。
-2. **[Odoo](https://github.com/odoo/odoo)** —— 模块化应用商店与依赖模型。
-3. **[go-zero](https://github.com/zeromicro/go-zero)** —— 云原生韧性引擎。
+| [文档中心](README.md) | 全部文档与译文 |
+| [系统需求](system-requirements.md) | 客户提出了什么要求 |
+| [开发计划](PLAN.md) | 已完成什么、接下来做什么、验收标准 |
+| [国际实践](BENCHMARKS.md) | 其他国家如何解决，哪些失败了 |
+| [本次部署](DEPLOYMENT.md) | 主机名、端口、备份——仅限本主机 |
+| [架构](ARCHITECTURE.md) | 平面、schema、数据如何隔离 |
+| [编写模块](MODULES.md) | `pkg/nexus` 契约 |
+| [运维](OPERATIONS.md) | 部署、监控、备份与恢复 |
+| [应急手册](RUNBOOKS.md) | 出问题时怎么办 |
+| [翻译](TRANSLATION.md) | 语言政策与生成器 |
+| [参与贡献](../CONTRIBUTING.md) · [安全](../SECURITY.md) · [行为准则](../CODE_OF_CONDUCT.md) | 项目规范 |
 
 ---
 
 ## 许可证
 
-Copyright (c) 2026 **Gerege Systems Development Team, Gerege Nomadica Foundation**。基于 Apache 2.0 许可证发布，详见 [`LICENSE`](../LICENSE)。
+Copyright (c) 2026 **Gerege Systems Development Team, Gerege Nomadica
+Foundation**。依 Apache 2.0 许可证分发——见 [`LICENSE`](../LICENSE)。
 
 国旗图标来自 [Flaticon](https://www.flaticon.com/)
 （[署名](assets/icons/ATTRIBUTION.md)）。

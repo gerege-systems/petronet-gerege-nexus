@@ -1,210 +1,174 @@
 /**
- * website — The public landing page: what the platform is, before anyone
- * signs in.
+ * website — The public site: what PetroNet is, before anyone signs in.
+ *
+ * Энэ бол платформын танилцуулга биш, бүтээгдэхүүнийх. petronet.mn руу орж
+ * ирсэн хүн «модульт дижитал үйлчилгээний нээлттэй цөм» хайгаагүй — жолооч
+ * хамгийн ойрын түгээгүүрээ, ШТС эзэмшигч кассаа, зохицуулагч нөөцөө хайж
+ * ирсэн. Тиймээс энд байгаа мөрүүд шатахууны гинжин хэлхээний тухай ярина;
+ * доор нь ямар платформ дээр ажиллаж байгааг `docs.petronet.mn` тайлбарлана.
  */
 export const website = {
-  // The menu follows the order of the page, so a reader who picks the first
-  // item lands near the top rather than at the bottom. Which of these appear
-  // depends on which sections the deployment renders — see lib/landing.ts.
-  "website.menu.architecture": { mn: "Архитектур", en: "Architecture" },
-  "website.menu.applications": { mn: "Аппууд", en: "Applications" },
-  "website.menu.platform": { mn: "Платформын суурь", en: "Platform" },
-  "website.menu.trust": { mn: "Аюулгүй байдал", en: "Security" },
-  "website.menu.technology": { mn: "Технологи", en: "Technology" },
-  // The section is `#features`; what it argues is that identity is the floor.
-  "website.menu.identity": { mn: "Нэвтрэлт", en: "Identity" },
-  // Leaves the product for the published documentation. The other menu items
-  // scroll within this page, so this one is marked as leaving.
+  // ─── Толгой ба хөл ────────────────────────────────────────────────────────
+  // Цэсний дараалал нь урсгалын дараалал: түлш хаанаас ирж, хаана хадгалагдаж,
+  // хэнд, ямар дүрмээр очиж, хэн хянадаг. Газрын зураг эхэлж байгаа нь
+  // аргументын хэсэг биш — олон нийтийн ирдэг цорын ганц шалтгаан.
+  "website.menu.map": { mn: "Газрын зураг", en: "Map" },
+  "website.menu.supply": { mn: "Урсгал", en: "Supply chain" },
+  "website.menu.stations": { mn: "ШТС ба POS", en: "Stations and POS" },
+  "website.menu.vouchers": { mn: "Ваучер", en: "Vouchers" },
+  "website.menu.oversight": { mn: "Хяналт", en: "Oversight" },
+  "website.menu.rollout": { mn: "Нэвтрүүлэлт", en: "Rollout" },
+  // Бүтээгдэхүүнээс гарч нийтлэгдсэн баримт руу орно. Бусад зүйл нь энэ
+  // сайтын дотор тул энэ ганцыг гарч байгаагаар нь тэмдэглэнэ.
   "website.menu.docs": { mn: "Баримт бичиг", en: "Documentation" },
   "website.menu.toggle": { mn: "Цэс", en: "Menu" },
 
+  "website.brand.tagline": { mn: "Шатахууны нэгдсэн сүлжээ", en: "The national fuel network" },
+  "website.footer.lede": {
+    mn: "Монгол Улсын шатахууны урсгал, эрэлт нийлүүлэлтийн нэгдсэн платформ.",
+    en: "Mongolia's integrated platform for fuel flow, demand and supply.",
+  },
+  "website.footer.model": { mn: "Төр–хувийн түншлэлийн дэд бүтэц", en: "Public–private partnership infrastructure" },
+
   "website.action.sign_in": { mn: "Нэвтрэх", en: "Sign in" },
+  "website.action.platform_sign_in": { mn: "Платформд нэвтрэх", en: "Sign in to the platform" },
   "website.action.eid_sign_in": { mn: "eID-ээр нэвтрэх", en: "Sign in with eID" },
   "website.action.see_features": { mn: "Боломжийг үзэх", en: "See what it does" },
+  "website.action.rollout_plan": { mn: "Нэвтрүүлэх төлөвлөгөө", en: "The rollout plan" },
+  "website.action.roadmap": { mn: "Замын зураг үзэх", en: "See the roadmap" },
 
-  // The hero headline is one sentence with a highlighted middle, so it is
-  // stored in three parts rather than as markup inside a translation. The split
-  // falls mid-phrase on purpose: what is highlighted is the claim, not a whole
-  // clause, and each language chooses its own break.
-  "website.view.hero_title_lead": { mn: "Модульт дижитал үйлчилгээний", en: "An open core for" },
-  "website.view.hero_title_highlight": { mn: "нээлттэй цөм", en: "modular digital services" },
-  "website.view.hero_title_tail": { mn: "юм", en: "on your infrastructure" },
-  "website.view.hero_lede": {
-    mn: "{brand}-ийн base repository нь identity, tenant, RBAC, SSO, апп суулгах runtime болон нэг built-in SSO Clients апп агуулна. Бизнес аппууд тусдаа product distribution-аас нэмэгдэнэ.",
-    en: "The {brand} base repository provides identity, tenancy, RBAC, SSO, the app runtime and one built-in SSO Clients app. Product distributions add business applications separately.",
+  // ─── Нүүр — эхний дэлгэц ──────────────────────────────────────────────────
+  // Гарчиг нь нэг өгүүлбэр, дунд нь тодруулсан хэсэгтэй тул орчуулгын дотор
+  // markup бичихийн оронд хоёр хэсгээр хадгална: хэл бүр өөрийн таслалтыг
+  // сонгоно.
+  "website.hero.kicker": {
+    mn: "Монгол Улсын шатахууны нэгдсэн сүлжээ",
+    en: "Mongolia's national fuel network",
   },
+  "website.hero.title_lead": { mn: "Литр бүрийн замыг", en: "Every litre's journey," },
+  "website.hero.title_accent": { mn: "нэг урсгалаар.", en: "in one flow." },
+  "website.hero.lede": {
+    mn: "PetroNet импортын гэрээнээс түгээгүүрийн хошуу хүртэлх хөдөлгөөнийг холбож, нөөц, эрэлт, түгээлтийг таамгаар биш бодит хэмжилтээр удирдана.",
+    en: "PetroNet links every movement from the import contract to the pump nozzle, so stock, demand and distribution are managed from measurements rather than guesswork.",
+  },
+  "website.hero.proof_stock": { mn: "Бодит нөөц", en: "Measured stock" },
+  "website.hero.proof_offline": { mn: "Офлайн ажиллагаа", en: "Works offline" },
+  "website.hero.proof_vendor": { mn: "Үйлдвэрлэгчээс үл хамаарна", en: "Vendor-independent" },
 
-  // Three numbers that hold still. Keep the app count in step with the base
-  // catalogue; distributions can override it with BRAND_COPY.
-  //
-  // The figures are keys rather than literals so that a deployment counting
-  // something else can say so: an identity provider shipping four modules does
-  // not have nine business applications, and a number the deployment cannot
-  // correct is a number its landing page states wrongly. Same value in every
-  // language — they are digits — but they go through `t()` so BRAND_COPY can
-  // reach them like any other line.
-  "website.stat.apps_count": { mn: "1", en: "1" },
-  "website.stat.apps": { mn: "үндсэн репод багтсан апп", en: "app included in the base repository" },
-  "website.stat.languages_count": { mn: "7", en: "7" },
-  "website.stat.languages": { mn: "хэл — монгол + НҮБ-ын 6", en: "languages: Mongolian plus the UN six" },
-  "website.stat.binary_count": { mn: "1", en: "1" },
-  "website.stat.binary": { mn: "Go API бинари", en: "Go API binary" },
+  // Хажуугийн самбарын гурван тоо. Эдгээр нь хэмжилт БИШ, зорилт — доорх
+  // «зорилтот» гэсэн мөр нь чимэг биш, тэр ялгааг хэлж байгаа юм.
+  "website.metric.latency": { mn: "Мэдээллийн саатал", en: "Data latency" },
+  "website.metric.latency_value": { mn: "< 15 мин", en: "< 15 min" },
+  "website.metric.target": { mn: "зорилтот", en: "target" },
+  "website.metric.reconcile": { mn: "Тулгалтын зөрүү", en: "Reconciliation gap" },
+  "website.metric.reconcile_note": { mn: "импорт → түгээлт", en: "import → dispensed" },
+  "website.metric.resilience": { mn: "Системийн тэсвэр", en: "Resilience" },
+  "website.metric.resilience_note": { mn: "оргил ачаалалд", en: "at peak load" },
 
-  "website.view.features_eyebrow": { mn: "IDENTITY БА ACCESS", en: "IDENTITY AND ACCESS" },
-  "website.view.features_title": {
-    mn: "Нэг серверийн identity ба access урсгал",
-    en: "One server-side identity and access flow",
-  },
-  "website.view.features_lede": {
-    mn: "{brand} нь local login, eID, federated SSO-г tenant membership, role, audit болон OIDC provider-тэй нэг server-side урсгалд холбодог.",
-    en: "{brand} connects local login, eID and federated SSO to tenant membership, roles, audit and its OIDC provider in one server-side flow.",
-  },
+  // Гинжин хэлхээний зурвас — нүүр ба /supply хоёрын аль алинд. Зургаан
+  // зогсоол, тус бүр нь юуг бүртгэдгээрээ нэрлэгдэнэ.
+  "website.rail.import": { mn: "Импорт", en: "Import" },
+  "website.rail.import_note": { mn: "Гэрээ · Ачилт", en: "Contract · loading" },
+  "website.rail.border": { mn: "Хил", en: "Border" },
+  "website.rail.border_note": { mn: "Гааль · Чанар", en: "Customs · quality" },
+  "website.rail.terminal": { mn: "Терминал", en: "Terminal" },
+  "website.rail.terminal_note": { mn: "Сав · Нөөц", en: "Tanks · stock" },
+  "website.rail.transport": { mn: "Тээвэр", en: "Transport" },
+  "website.rail.transport_note": { mn: "GPS · Цахим лац", en: "GPS · e-seal" },
+  "website.rail.station": { mn: "ШТС", en: "Station" },
+  "website.rail.station_note": { mn: "Сав · Хошуу", en: "Tanks · nozzles" },
+  "website.rail.dispensed": { mn: "Түгээлт", en: "Dispensed" },
+  "website.rail.dispensed_note": { mn: "Баримт · Тулгалт", en: "Receipt · reconciliation" },
 
-  "website.feature.instant_title": { mn: "eID нэвтрэх сувгууд", en: "eID sign-in channels" },
-  "website.feature.instant_body": {
-    mn: "Тохируулсан deployment дээр регистрийн дугаарын push, desktop QR болон mobile App2App урсгалыг backend эхлүүлж, төлвийг шалгана.",
-    en: "When a deployment is configured for eID, the backend starts and polls registration-number push, desktop QR and mobile App2App flows.",
+  // ─── Гол шийдэл ───────────────────────────────────────────────────────────
+  "website.statement.label": { mn: "Системийн гол шийдэл", en: "The design decision" },
+  "website.statement.title_lead": { mn: "Ваучер бол амлалт биш.", en: "A voucher is not a promise." },
+  "website.statement.title_accent": { mn: "Нөөцлөгдсөн литр.", en: "It is a reserved litre." },
+  "website.statement.body": {
+    mn: "ШТС-ын савд түлш бодитоор орж, ATG хэмжилтээр баталгаажсан тэр мөчид л ваучер үүснэ. Ингэснээр систем байгаа нөөцөөсөө илүү амлахгүй, жолооч хаана түлш байгааг таах шаардлагагүй болно.",
+    en: "A voucher exists only once fuel has physically entered a station's tank and the tank gauge has confirmed it. The system cannot promise more than it holds, and a driver never has to guess where the fuel is.",
   },
-  "website.feature.sso_title": { mn: "Нэг нэвтрэлт — олон систем", en: "One sign-in, many systems" },
-  "website.feature.sso_body": {
-    mn: "Built-in OAuth2/OIDC provider нь идэвхтэй platform session-ийг бүртгэлтэй redirect URI бүхий клиентүүдэд дахин ашиглах боломж олгоно.",
-    en: "The built-in OAuth2/OIDC provider can reuse an active platform session for clients with registered redirect URIs.",
-  },
-  "website.feature.passwordless_title": { mn: "Credential сервер талд үлдэнэ", en: "Credentials stay server-side" },
-  "website.feature.passwordless_body": {
-    mn: "eID RP secret болон бусад provider credential browser-д очихгүй. Session token database-д зөвхөн hash хэлбэрээр хадгалагдана.",
-    en: "The eID RP secret and other provider credentials do not reach the browser. Session tokens are stored in the database only as hashes.",
-  },
-  "website.feature.channels_title": { mn: "Апп ба вэбийн нэг урсгал", en: "One flow across app and web" },
-  "website.feature.channels_body": {
-    mn: "Web болон native shell нь backend-ийн эхлүүлэх, төлөв шалгах endpoint-уудыг ашиглана; provider credential клиентэд хадгалагдахгүй.",
-    en: "Web and native shells use backend start and status endpoints; provider credentials are not stored in either client.",
-  },
+  "website.statement.link": { mn: "Хуваарилалт хэрхэн ажиллах вэ", en: "How allocation works" },
 
-  "website.view.trust_eyebrow": { mn: "ИДЭВХТЭЙ ХАМГААЛАЛТ", en: "ACTIVE PROTECTION" },
-  "website.view.trust_title": {
-    mn: "Танилтаас эрх хүртэл нэг баталгааны гинж",
-    en: "One chain of proof, from identity to permission",
+  // ─── Таван ажлын орон зай ─────────────────────────────────────────────────
+  "website.cap.eyebrow": { mn: "Нэг платформ · Таван ажлын орон зай", en: "One platform · five workspaces" },
+  "website.cap.title": { mn: "Шатахууны бүтэн гинжин хэлхээ", en: "The whole fuel chain" },
+  "website.cap.lede": {
+    mn: "Зөвхөн танилцуулга биш — оролцогч бүр өөрийн ажил, мэдээлэл, шийдвэрийн орон зайтай ажиллаж буй систем.",
+    en: "Not a brochure: every participant has a workspace of their own, with their own data and their own decisions.",
   },
-  "website.view.trust_lede": {
-    mn: "eID identity → серверийн session → tenant membership → RBAC → OIDC client. Алхам бүр сервер талд шалгагдана.",
-    en: "eID identity → server session → tenant membership → RBAC → OIDC client. Every link is checked on the server.",
+  "website.cap.supply_title": { mn: "Нийлүүлэлтийн урсгал", en: "The supply chain" },
+  "website.cap.supply_body": {
+    mn: "Импортын гэрээ, гааль, чанарын шинжилгээ, терминал, тээврийг нэг партийн түүхээр холбоно.",
+    en: "Import contract, customs, laboratory results, terminal and transport joined into one batch history.",
   },
-  "website.trust.cookie": { mn: "httpOnly, SameSite session cookie", en: "httpOnly, SameSite session cookie" },
-  "website.trust.rbac": { mn: "Tenant-аар тусгаарласан role ба permission", en: "Roles and permissions isolated per tenant" },
-  "website.trust.allowlist": { mn: "Бүртгэлтэй OAuth2 redirect URI шалгалт", en: "Registered OAuth2 redirect URI validation" },
-  "website.trust.audit": { mn: "Login ба access audit event", en: "Login and access audit events" },
+  "website.cap.supply_meta": { mn: "17 цэгийн мөрдлөг", en: "17 tracked nodes" },
+  "website.cap.stations_title": { mn: "ШТС ба PetroNet POS", en: "Stations and PetroNet POS" },
+  "website.cap.stations_body": {
+    mn: "Сав, түгээгүүр, хошуу, ээлж, төлбөрийг үйлдвэрлэгчээс үл хамааран бодит цагт нэгтгэнэ.",
+    en: "Tanks, dispensers, nozzles, shifts and payments in real time, whoever built the forecourt.",
+  },
+  "website.cap.stations_meta": { mn: "Онлайн + офлайн", en: "Online and offline" },
+  "website.cap.vouchers_title": { mn: "Ваучер ба хуваарилалт", en: "Vouchers and allocation" },
+  "website.cap.vouchers_body": {
+    mn: "Бодитоор ирсэн түлшнээс л эрх үүсгэж, ойр байршил, хэрэгцээ, хүлээлтээр шударга хуваарилна.",
+    en: "Entitlements are minted only from fuel that has arrived, then shared out by proximity, need and time waited.",
+  },
+  "website.cap.vouchers_meta": { mn: "Нөөцлөгдсөн литр", en: "Reserved litres" },
+  "website.cap.oversight_title": { mn: "Хяналт ба ил тод байдал", en: "Oversight and transparency" },
+  "website.cap.oversight_body": {
+    mn: "Нөөц, үнэ, чанар, татвар, зөрүүг нэг самбараас хянаж, өөрчлөх боломжгүй аудитын мөр үүсгэнэ.",
+    en: "Stock, prices, quality, tax and discrepancies on one board, over an audit trail that cannot be rewritten.",
+  },
+  "website.cap.oversight_meta": { mn: "15 минутаас бага", en: "Under 15 minutes" },
+  "website.cap.rollout_title": { mn: "Нэвтрүүлэлт ба интеграц", en: "Rollout and integration" },
+  "website.cap.rollout_body": {
+    mn: "POS-оос эхэлж өгөгдөл, харагдац, ваучер, хяналт руу үе шаттай тэлэх бодит замын зураг.",
+    en: "A staged road from POS to data, visibility, vouchers and oversight — measured at every step.",
+  },
+  "website.cap.rollout_meta": { mn: "5 үе шат", en: "Five phases" },
 
-  // Key kept as-is: it is internal, and renaming it would touch every caller
-  // for no user-visible gain. The value is what reaches the screen.
-  "website.tech.erp_body": { mn: "Модульт аппууд, tenant тусгаарлалт, RBAC", en: "Modular apps, tenant isolation, RBAC" },
-  "website.tech.eid_body": { mn: "Push, QR, App2App, баталгаажсан identity", en: "Push, QR, App2App, verified identity" },
-  "website.tech.sso_body": { mn: "Холбогдсон аппууд, нэг session", en: "Connected applications, one session" },
+  // ─── Хоёр горим ───────────────────────────────────────────────────────────
+  // Энэ хэсэг нэг л асуултад хариулна: хямрал өнгөрвөл яах вэ. Хариулт нь
+  // хямралын хэрэгслийг нураахгүй, өөр ажилд эргүүлнэ.
+  "website.modes.eyebrow": { mn: "Хоёр горим · Нэг дэд бүтэц", en: "Two modes · one infrastructure" },
+  "website.modes.title": { mn: "Хямралд хуваарилна. Энгийн үед хянана.", en: "It rations in a crisis. It supervises the rest of the time." },
+  "website.modes.lede": {
+    mn: "Түр арга хэмжээ биш — тайван үед үнэ цэнээ үргэлжлүүлэн өгдөг улсын суурь дэд бүтэц.",
+    en: "Not an emergency measure: infrastructure that keeps earning its place once the emergency is over.",
+  },
+  "website.modes.crisis_tag": { mn: "ХЯМРАЛЫН ГОРИМ", en: "CRISIS MODE" },
+  "website.modes.crisis_title": { mn: "Эрэлтийг бодит нөөцөд тааруулна", en: "Demand is matched to real stock" },
+  "website.modes.crisis_1": { mn: "Лимит, квотыг 5 минутаас бага хугацаанд өөрчлөх", en: "Limits and quotas change in under five minutes" },
+  "website.modes.crisis_2": { mn: "Ойр ШТС-д цагийн цонхтой ваучер санал болгох", en: "Time-windowed vouchers at the nearest station" },
+  "website.modes.crisis_3": { mn: "Түргэн, тээвэр, хүнс, эмийн тусгай нөөц хамгаалах", en: "Reserves ring-fenced for ambulances, transport, food and medicine" },
+  "website.modes.normal_tag": { mn: "ЭНГИЙН ГОРИМ", en: "NORMAL MODE" },
+  "website.modes.normal_title": { mn: "Зах зээлийг бодит мэдээллээр хянана", en: "The market is supervised from real data" },
+  "website.modes.normal_1": { mn: "Татвар, үнэ, чанар, нөөцийн мониторинг", en: "Tax, price, quality and stock monitoring" },
+  "website.modes.normal_2": { mn: "Импорт–хадгалалт–борлуулалтын автомат тулгалт", en: "Automatic import–storage–sales reconciliation" },
+  "website.modes.normal_3": { mn: "Хэрэглээний прогноз ба стратегийн нөөцийн дохиолол", en: "Demand forecasting and strategic-reserve alerts" },
 
-  // ─── The platform itself ───────────────────────────────────────────────────
-  // Everything above this line argues for the sign-in. Everything below argues
-  // for the platform behind it, and was moved here from the documentation site,
-  // which used to make the same case in a second place that could drift.
+  // ─── Экосистем ────────────────────────────────────────────────────────────
+  "website.eco.label": { mn: "Нэгдсэн экосистем", en: "One ecosystem" },
+  "website.eco.title": { mn: "Өгөгдөл тусдаа системд түгжигдэхгүй.", en: "The data stops being locked in separate systems." },
+  "website.eco.lede": {
+    mn: "PetroNet төрийн болон бизнесийн одоо байгаа системүүдийг сольж устгахгүй — баталгаатай өгөгдлийн нэг урсгалд холбоно.",
+    en: "PetroNet does not replace the state and business systems already in use. It joins them into one verified flow.",
+  },
+  "website.eco.customs": { mn: "Гаалийн мэдүүлэг", en: "Customs declarations" },
+  "website.eco.registry": { mn: "Иргэн ба тээврийн хэрэгсэл", en: "Citizens and vehicles" },
+  "website.eco.atg": { mn: "Савны түвшин, температур", en: "Tank level and temperature" },
+  "website.eco.pump": { mn: "Хошууны гүйлгээ", en: "Nozzle transactions" },
+  "website.eco.ebarimt": { mn: "НӨАТ ба төлбөр", en: "VAT and payment" },
+  "website.eco.state": { mn: "Аудит ба тайлан", en: "Audit and reporting" },
+  "website.eco.pump_name": { mn: "Түгээгүүр", en: "Dispensers" },
+  "website.eco.state_name": { mn: "Төрийн хяналт", en: "State oversight" },
 
-  "website.arch.eyebrow": { mn: "ЯАГААД ЭНЭ АРХИТЕКТУР", en: "WHY THIS ARCHITECTURE" },
-  "website.arch.title": {
-    mn: "Нэг API процесс, тенант бүрт тусдаа суулгалт",
-    en: "One API process, separate installation state per tenant",
-  },
-  "website.arch.lede": {
-    mn: "Compile хийсэн module-ууд Go process дотор route, menu, permission, migration-аа бүртгэнэ. Аль модуль идэвхтэйг tenant бүрийн installation state шийднэ.",
-    en: "Compiled modules register routes, menus, permissions and migrations in the Go process. Each tenant's installation state decides which modules are enabled.",
-  },
-  "website.arch.modules_title": { mn: "Компиллогдсон Go модулиуд", en: "Compiled-in Go modules" },
-  "website.arch.modules_body": {
-    mn: "Модуль бүр `pkg/nexus` Go гэрээг хэрэгжүүлж нэг API бинарид компиллогдоно. Маршрут, цэс, эрх, миграцаа module өөрөө бүртгэнэ.",
-    en: "Each module implements the `pkg/nexus` Go contract and compiles into one API binary. The module registers its routes, menus, permissions and migrations.",
-  },
-  "website.arch.store_title": { mn: "Тенант бүрийн апп стор", en: "An app store for each tenant" },
-  "website.arch.store_body": {
-    mn: "Аль байгууллагад аль апп идэвхтэйг өгөгдлийн сан шийднэ. Суулгаагүй апп руу хандвал хориглоно — код нь байгаа ч хаалга нь хаалттай.",
-    en: "The database decides which apps an organisation runs. An app that is not installed refuses the request: the code is there, the door is not open.",
-  },
-  "website.arch.dag_title": { mn: "Хамаарал шийдвэрлэгч", en: "Dependency resolution" },
-  "website.arch.dag_body": {
-    mn: "Рекурсив шийдвэрлэлт, мөчлөг илрүүлэлт, хувилбарын шалгалт. Апп суулгахад түүний хамаарал бүр тохирох хувилбартайгаа хамт орно.",
-    en: "Recursive resolution with cycle detection and version checks, so installing an app brings every dependency it needs at a version that fits.",
-  },
-  "website.arch.catalog_title": { mn: "Bundled эсвэл signed remote каталог", en: "Bundled or signed remote catalogue" },
-  "website.arch.catalog_body": {
-    mn: "Default горимд release-тэй ирсэн `catalog/apps.json`-ийг уншина. `APP_CATALOG_URL` тохируулбал Ed25519 гарын үсэгтэй remote catalog-ийг шалгаж, cache болон bundled файл руу аюулгүй fallback хийнэ.",
-    en: "By default the release reads its bundled `catalog/apps.json`. With `APP_CATALOG_URL`, it verifies an Ed25519-signed remote catalogue and safely falls back to its cache or bundled file.",
-  },
+  // ─── Төгсгөлийн уриалга ───────────────────────────────────────────────────
+  "website.cta.sequence": { mn: "POS → ӨГӨГДӨЛ → ХАРАГДАЦ → ВАУЧЕР → ХЯНАЛТ", en: "POS → DATA → VISIBILITY → VOUCHERS → OVERSIGHT" },
+  "website.cta.title": { mn: "Эхний бодит үнэ цэнэ ШТС-аас эхэлнэ.", en: "The first real value starts at the station." },
 
-  "website.apps.eyebrow": { mn: "ҮНДСЭН DISTRIBUTION", en: "BASE DISTRIBUTION" },
-  "website.apps.title": { mn: "Нэг built-in апп, нэмэгдэх боломжтой платформ", en: "One built-in app, an extensible platform" },
-  "website.apps.lede": {
-    mn: "Энэ репогийн каталогт SSO клиент удирдах апп л байна. Бизнес аппуудыг тусдаа distribution репо компиллож, өөрийн каталогоор нэмдэг.",
-    en: "This repository's catalogue contains only SSO client management. Product distributions compile in business apps and publish their own catalogue.",
-  },
-  "website.apps.sso_clients": { mn: "SSO клиентүүд — OAuth2/OIDC клиент бүртгэл", en: "SSO Clients — OAuth2/OIDC client registration" },
-
-  "website.depth.eyebrow": { mn: "ПЛАТФОРМЫН СУУРЬ", en: "UNDER THE PLATFORM" },
-  "website.depth.title": {
-    mn: "Бүтээгдэхүүн болгонд дахин бичих шаардлагагүй зүйлс",
-    en: "The parts you would otherwise rewrite for every product",
-  },
-  "website.depth.lede": {
-    mn: "Эдгээр нь base runtime-д бодитоор байгаа shared capability-ууд. Гадаад provider ашигладаг хэсэг нь production credential болон тохиргоо шаарддаг.",
-    en: "These shared capabilities exist in the base runtime. Features that call external providers still require production credentials and configuration.",
-  },
-  "website.depth.resilience_title": { mn: "Хүсэлтийн хамгаалалт", en: "Request protection" },
-  "website.depth.resilience_body": {
-    mn: "Хэт олон зэрэг хүсэлтийг 503-аар хязгаарлах load shedder, гадаад дуудлагын timeout, зориулалтын retry бодлого платформд хэрэгжсэн.",
-    en: "The platform implements concurrency load shedding, outbound timeouts and operation-specific retry policies.",
-  },
-  "website.depth.gov_title": { mn: "Төрийн системийн connector", en: "State-system connectors" },
-  "website.depth.gov_body": {
-    mn: "XYP-ийн иргэн, хуулийн этгээдийн лавлагаа болон eID/ДАН identity connector код багтсан. Live үйлчилгээ нь тус бүрийн endpoint, client credential шаардана.",
-    en: "The codebase includes XYP citizen/legal-entity lookups and eID/DAN identity connectors. Live use requires each provider's endpoint and client credentials.",
-  },
-  "website.depth.security_title": { mn: "Кодонд хэрэгжсэн хамгаалалт", en: "Controls implemented in code" },
-  "website.depth.security_body": {
-    mn: "Session token hash-аар, нууц үг bcrypt-ээр хадгалагдана. Tenant хүсэлт database role, tenant context болон RLS хамгаалалттай хүснэгтүүдээр тусгаарлагдана.",
-    en: "Session tokens are hashed and passwords use bcrypt. Tenant requests are isolated with a database role, tenant context and RLS on declared tenant tables.",
-  },
-  "website.depth.ai_title": { mn: "Өөрийн өгөгдөлд холбогдсон AI", en: "AI wired to your own data" },
-  "website.depth.ai_body": {
-    mn: "Gemini түлхүүр өгвөл чат, яриа таних, унших, орчуулга ажиллана. Бизнес өгөгдөлд хандах хэрэгслийг тухайн distribution-ийн апп өөрөө бүртгэнэ.",
-    en: "With a Gemini key, chat, speech, text-to-speech and translation are available. Product apps register the tools that expose their own business data.",
-  },
-  "website.depth.i18n_title": { mn: "Долоон locale, англи fallback", en: "Seven locales with English fallback" },
-  "website.depth.i18n_body": {
-    mn: "Монгол, англи эх мөрүүд дээр НҮБ-ын бусад таван хэлний overlay нэмэгдэнэ. Орчуулга дутвал англи руу fallback хийж, CI үлдсэн цоорхойг тайлагнана.",
-    en: "Mongolian and English source strings are joined by five UN-language overlays. Missing translations fall back to English and CI reports the remaining gaps.",
-  },
-  "website.depth.observability_title": { mn: "Ажиглалт ба аудит", en: "Observability and audit" },
-  "website.depth.observability_body": {
-    mn: "Хэмжүүр, амьд ба бэлэн байдлын шалгалт, хэн юуг хэзээ өөрчилснийг бүртгэсэн ул мөр — эхний өдрөөс.",
-    en: "Metrics, liveness and readiness probes, and a trail of who changed what and when — from the first day.",
-  },
-
-  "website.message.footer_note": {
-    mn: "Apache 2.0 · Go · Next.js · PostgreSQL",
-    en: "Apache 2.0 · Go · Next.js · PostgreSQL",
-  },
-
-  // Shown only by a deployment running under its own name — see SiteFooter.
-  //
-  // Deliberately not `{brand}`: this sentence names the platform underneath,
-  // and interpolating the deployment's own name would have Gerege Salus
-  // announcing that it is powered by Gerege Salus.
-  "website.message.powered_by": {
-    mn: "Gerege Nexus дээр суурилсан",
-    en: "Powered by Gerege Nexus",
-  },
-
-  // Нэвтэрсэн хүний hero: eID картын оронд ирсэн гэрээ.
-  "website.action.my_contracts": { mn: "Надад ирсэн гэрээ", en: "My incoming contracts" },
-  "website.action.open_platform": { mn: "Платформ руу", en: "Open the platform" },
-  "website.view.hero_inbox_title": { mn: "Танд ирсэн гэрээ", en: "Contracts sent to you" },
-  "website.menu.map": { mn: "Газрын зураг", en: "Map" },
-
+  // ─── Газрын зураг ─────────────────────────────────────────────────────────
   "website.map.eyebrow": { mn: "ЯГ ОДОО", en: "RIGHT NOW" },
   "website.map.title": { mn: "Улсын шатахуун түгээх станцууд", en: "The country's filling stations" },
   "website.map.lede": {
@@ -213,11 +177,12 @@ export const website = {
   },
   "website.map.full": { mn: "Бүтэн дэлгэцээр нээх", en: "Open the full map" },
 
+  // ─── Энэ суулгацын хаягууд ────────────────────────────────────────────────
   "website.service.eyebrow": { mn: "ЭНЭ СУУЛГАЦ", en: "THIS DEPLOYMENT" },
   "website.service.title": { mn: "Платформын хажууд юу ажиллаж байна вэ", en: "What runs beside the platform" },
   "website.service.lede": {
-    mn: "Nexus бол нэг хаяг биш. Консол, дата агуулах, нөөцлөлт, хяналт, баримт бичиг тус бүр өөрийн хаягтай. Эхнийх нь бидний биш — иргэнийг таних үндэсний дэд бүтэц.",
-    en: "Nexus is not one hostname. The console, the warehouse, the backup store, the monitoring stack and the manual each answer on their own address. The first is not ours — it is the national identity infrastructure.",
+    mn: "PetroNet бол нэг хаяг биш. Консол, дата агуулах, нөөцлөлт, хяналт, баримт бичиг тус бүр өөрийн хаягтай. Эхнийх нь бидний биш — иргэнийг таних үндэсний дэд бүтэц.",
+    en: "PetroNet is not one hostname. The console, the warehouse, the backup store, the monitoring stack and the manual each answer on their own address. The first is not ours — it is the national identity infrastructure.",
   },
 
   "website.service.eid_title": { mn: "eID Mongolia", en: "eID Mongolia" },
@@ -251,6 +216,23 @@ export const website = {
     en: "Architecture, modules, identity and operations — written from the code. In seven languages.",
   },
 
+  // ─── Хөл ба нэвтэрсэн хүний нүүр ──────────────────────────────────────────
+  "website.message.footer_note": {
+    mn: "Apache 2.0 · Go · Next.js · PostgreSQL",
+    en: "Apache 2.0 · Go · Next.js · PostgreSQL",
+  },
+  // Зөвхөн өөрийн нэрээр зогсож буй суулгац доор нь юу байгааг хэлнэ. `{brand}`
+  // биш: энэ өгүүлбэр доод давхаргыг нэрлэдэг тул суулгацын нэрийг тавибал
+  // PetroNet өөрийгөө өөр дээрээ суурилсан гэж зарлана.
+  "website.message.powered_by": {
+    mn: "Gerege Nexus дээр суурилсан",
+    en: "Powered by Gerege Nexus",
+  },
+
+  // Нэвтэрсэн хүний hero: eID картын оронд ирсэн гэрээ.
+  "website.action.my_contracts": { mn: "Надад ирсэн гэрээ", en: "My incoming contracts" },
+  "website.action.open_platform": { mn: "Платформ руу", en: "Open the platform" },
+  "website.view.hero_inbox_title": { mn: "Танд ирсэн гэрээ", en: "Contracts sent to you" },
   "website.view.hero_inbox_empty": {
     mn: "Одоогоор хариу хүлээж буй гэрээ алга.",
     en: "Nothing is waiting for your signature right now.",

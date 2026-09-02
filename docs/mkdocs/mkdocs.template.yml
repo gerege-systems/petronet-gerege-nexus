@@ -11,8 +11,8 @@
 
 site_name: PetroNet System
 site_description: >-
-  PetroNet System нээлттэй эхийн платформын техникийн баримт — архитектур,
-  модуль хөгжүүлэлт, ажиллагаа, native клиентүүд.
+  PetroNet System — Монгол Улсын шатахууны нэгдсэн хяналтын платформ: системийн
+  шаардлага, хөгжүүлэлтийн төлөвлөгөө, архитектур, модуль, ажиллагаа.
 site_url: https://docs.petronet.mn/
 repo_url: https://github.com/gerege-systems/petronet-gerege-nexus
 repo_name: gerege-systems/petronet-gerege-nexus
@@ -90,7 +90,7 @@ plugins:
         - locale: en
           name: English
           build: true
-          site_description: "Technical documentation for PetroNet System, the open-source platform core — architecture, module development, operations, native clients."
+          site_description: "PetroNet System — Mongolia's integrated fuel monitoring platform: requirements, development plan, architecture, modules and operations."
           nav_translations:
             "Танилцуулга": "Introduction"
             "Платформ": "Platform"
@@ -98,6 +98,11 @@ plugins:
             "Ажиллагаа": "Operations"
             "Клиент": "Clients"
             "Төслийн журам": "Project policy"
+            "Төсөл": "Project"
+            "Системийн шаардлага": "System requirements"
+            "Хөгжүүлэлтийн төлөвлөгөө": "Development plan"
+            "Дэлхийн жишиг": "Benchmarks"
+            "Энэ суулгац": "This deployment"
             "Тойм": "Overview"
             "Баримтын индекс": "Document index"
             "Архитектур": "Architecture"
@@ -116,7 +121,7 @@ plugins:
         - locale: ar
           name: العربية
           build: true
-          site_description: "الوثائق التقنية لـ PetroNet System، نواة المنصّة مفتوحة المصدر — البنية والوحدات والتشغيل والتطبيقات الأصلية."
+          site_description: "PetroNet System — منصة متكاملة لمراقبة الوقود في منغوليا: المتطلبات وخطة التطوير والبنية والوحدات والتشغيل."
           nav_translations:
             "Танилцуулга": "مقدمة"
             "Платформ": "المنصّة"
@@ -124,6 +129,11 @@ plugins:
             "Ажиллагаа": "التشغيل"
             "Клиент": "التطبيقات"
             "Төслийн журам": "سياسات المشروع"
+            "Төсөл": "المشروع"
+            "Системийн шаардлага": "متطلبات النظام"
+            "Хөгжүүлэлтийн төлөвлөгөө": "خطة التطوير"
+            "Дэлхийн жишиг": "المقارنات الدولية"
+            "Энэ суулгац": "هذه العملية"
             "Тойм": "نظرة عامة"
             "Баримтын индекс": "فهرس الوثائق"
             "Архитектур": "البنية المعمارية"
@@ -142,7 +152,7 @@ plugins:
         - locale: zh
           name: 中文
           build: true
-          site_description: "PetroNet System 开源平台内核的技术文档——架构、模块开发、运维与原生客户端。"
+          site_description: "PetroNet System——蒙古国燃料监测一体化平台：需求、开发计划、架构、模块与运维。"
           nav_translations:
             "Танилцуулга": "简介"
             "Платформ": "平台"
@@ -150,6 +160,11 @@ plugins:
             "Ажиллагаа": "运维"
             "Клиент": "客户端"
             "Төслийн журам": "项目规范"
+            "Төсөл": "项目"
+            "Системийн шаардлага": "系统需求"
+            "Хөгжүүлэлтийн төлөвлөгөө": "开发计划"
+            "Дэлхийн жишиг": "国际实践"
+            "Энэ суулгац": "本次部署"
             "Тойм": "概览"
             "Баримтын индекс": "文档索引"
             "Архитектур": "架构"
@@ -168,7 +183,7 @@ plugins:
         - locale: fr
           name: Français
           build: true
-          site_description: "Documentation technique de PetroNet System, le socle de plateforme open source — architecture, modules, exploitation, clients natifs."
+          site_description: "PetroNet System — la plateforme intégrée de surveillance des carburants de Mongolie : exigences, plan de développement, architecture, modules, exploitation."
           nav_translations:
             "Танилцуулга": "Présentation"
             "Платформ": "Plateforme"
@@ -176,6 +191,11 @@ plugins:
             "Ажиллагаа": "Exploitation"
             "Клиент": "Clients"
             "Төслийн журам": "Règles du projet"
+            "Төсөл": "Projet"
+            "Системийн шаардлага": "Exigences système"
+            "Хөгжүүлэлтийн төлөвлөгөө": "Plan de développement"
+            "Дэлхийн жишиг": "Références internationales"
+            "Энэ суулгац": "Ce déploiement"
             "Тойм": "Aperçu"
             "Баримтын индекс": "Index des documents"
             "Архитектур": "Architecture"
@@ -194,7 +214,7 @@ plugins:
         - locale: ru
           name: Русский
           build: true
-          site_description: "Техническая документация PetroNet System — открытого ядра платформы: архитектура, модули, эксплуатация, нативные клиенты."
+          site_description: "PetroNet System — единая платформа мониторинга топлива Монголии: требования, план разработки, архитектура, модули, эксплуатация."
           nav_translations:
             "Танилцуулга": "Введение"
             "Платформ": "Платформа"
@@ -202,6 +222,11 @@ plugins:
             "Ажиллагаа": "Эксплуатация"
             "Клиент": "Клиенты"
             "Төслийн журам": "Правила проекта"
+            "Төсөл": "Проект"
+            "Системийн шаардлага": "Системные требования"
+            "Хөгжүүлэлтийн төлөвлөгөө": "План разработки"
+            "Дэлхийн жишиг": "Мировые практики"
+            "Энэ суулгац": "Эта установка"
             "Тойм": "Обзор"
             "Баримтын индекс": "Указатель документов"
             "Архитектур": "Архитектура"
@@ -220,7 +245,7 @@ plugins:
         - locale: es
           name: Español
           build: true
-          site_description: "Documentación técnica de PetroNet System, el núcleo de plataforma de código abierto — arquitectura, módulos, operación, clientes nativos."
+          site_description: "PetroNet System — la plataforma integrada de vigilancia de combustibles de Mongolia: requisitos, plan de desarrollo, arquitectura, módulos y operación."
           nav_translations:
             "Танилцуулга": "Introducción"
             "Платформ": "Plataforma"
@@ -228,6 +253,11 @@ plugins:
             "Ажиллагаа": "Operación"
             "Клиент": "Clientes"
             "Төслийн журам": "Normas del proyecto"
+            "Төсөл": "Proyecto"
+            "Системийн шаардлага": "Requisitos del sistema"
+            "Хөгжүүлэлтийн төлөвлөгөө": "Plan de desarrollo"
+            "Дэлхийн жишиг": "Referencias internacionales"
+            "Энэ суулгац": "Este despliegue"
             "Тойм": "Resumen"
             "Баримтын индекс": "Índice de documentos"
             "Архитектур": "Arquitectura"

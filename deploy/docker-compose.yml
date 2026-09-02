@@ -1,9 +1,11 @@
 # PetroNet, as a Gerege Nexus distribution.
 #
 # Four services: postgres, the platform's migrations, this product's binary, and
-# the platform's shell. There is no second migration history here — this
-# repository has no schema of its own yet — and no redis: the core runs without
-# one and nothing on this host needs a second thing to keep alive.
+# the platform's shell. There is no second migration service: the petro module
+# carries its own SQL (modules/petro/migrations/) and the platform runs a
+# module's history alongside its own, in the same one-shot job. And no redis:
+# the core runs without one and nothing on this host needs a second thing to
+# keep alive.
 #
 # Required environment (deploy/.env, copied there by deploy.sh):
 #   PETRONET_POSTGRES_PASSWORD  this stack's own database

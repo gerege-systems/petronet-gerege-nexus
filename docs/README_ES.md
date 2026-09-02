@@ -1,21 +1,13 @@
 # PetroNet System
 
-**Plataforma Integrada de Operaciones Digitales**
+**La plataforma integrada de vigilancia y gestión de combustibles de Mongolia**
 
-**PetroNet System** es una plataforma modular de código abierto que conecta
-servicios, operaciones, sistemas y datos de organizaciones públicas y privadas.
-Está diseñada con el **mongol como idioma principal** y se integra directamente
-con la infraestructura digital nacional de Mongolia (DAN, E-ID, XYP / ХУР).
-
-*Nexus* es el punto de conexión: donde confluyen organizaciones, servicios,
-flujos de trabajo, sistemas, usuarios y datos. La plataforma en sí no está
-ligada a ningún sector — son los módulos que se ejecutan sobre ella los que
-definen cada despliegue.
-
-Los módulos se compilan en un único binario de Go, mientras que una tienda de
-aplicaciones respaldada por PostgreSQL decide qué aplicaciones están activas por
-inquilino — separación modular sin los saltos de red ni el coste operativo de
-los microservicios.
+**PetroNet** reúne en un solo flujo de datos la importación, el almacenamiento,
+la distribución y la venta minorista de productos petrolíferos en Mongolia, la
+vigila en tiempo real y ofrece al regulador, a las compañías de combustible y al
+conductor las mismas cifras. El sistema se construye para la Autoridad de
+Recursos Minerales y Petróleo (AMGTG) y sustituye al sistema **mpetro** actual —
+véanse los [requisitos del sistema](system-requirements.md).
 
 <p>
   <a href="../README.md"><img src="assets/icons/flag-mn.png" width="18" height="18" alt=""> Монгол</a>
@@ -36,322 +28,252 @@ los microservicios.
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](../LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.26-00ADD8.svg)](https://go.dev)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black.svg)](https://nextjs.org)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](../CONTRIBUTING.md)
 
 ---
 
 ## Contenido
 
-- [Autores](#autores)
-- [Capacidades principales](#capacidades-principales)
-- [Aplicaciones de negocio](#aplicaciones-de-negocio)
+- [El problema](#el-problema)
+- [Qué hace la plataforma](#qué-hace-la-plataforma)
+- [La decisión de diseño](#la-decisión-de-diseño)
+- [Cadena de custodia](#cadena-de-custodia)
+- [Lo que ya existe](#lo-que-ya-existe)
+- [Cómo está construido](#cómo-está-construido)
 - [Estructura del repositorio](#estructura-del-repositorio)
-- [Primeros pasos](#primeros-pasos)
+- [Puesta en marcha](#puesta-en-marcha)
 - [Configuración](#configuración)
-- [Resumen de la API](#resumen-de-la-api)
-- [Pruebas y controles de calidad](#pruebas-y-controles-de-calidad)
+- [Despliegue](#despliegue)
+- [Pruebas](#pruebas)
 - [Seguridad](#seguridad)
 - [Índice de documentación](#índice-de-documentación)
 
 ---
 
-## Autores
+## El problema
 
-| Colaborador | Función |
-| --- | --- |
-| **Gerege Systems Development Team** ([@gerege-systems](https://github.com/gerege-systems)) | Arquitectura, núcleo de la plataforma |
-| **Gemini AI** | Generación de código, documentación |
-| **Claude AI** | Análisis de código, auditoría de seguridad |
+Mongolia tiene más de 200 compañías de combustible, más de 110 depósitos y más
+de 1.500 estaciones de servicio. Sus datos viven en dos sistemas que no se
+hablan, y la mayor parte se introduce **a mano**, una o dos veces por semana.
 
----
+No hay un solo lugar capaz de responder, ahora mismo, cuántos litros de qué
+grado hay y dónde. Así que la reserva nacional se gestiona por estimación, y
+cuando el suministro se tensa solo quedan instrumentos toscos: matrículas pares
+e impares, un tope único de ₮50.000 por repostaje, colas.
 
-## Capacidades principales
+No es únicamente un problema de suministro. Es un problema de información, y esa
+es exactamente la clase de problema que el software sí sabe resolver.
 
-### 1. Monolito modular de alto rendimiento
+## Qué hace la plataforma
 
-- **Módulos Go compilados** — el núcleo solo incluye `sso_clients`. Las
-  distribuciones de producto registran sus módulos mediante el contrato
-  público `pkg/nexus` en el binario final, donde se invocan en proceso.
-- **Tienda de aplicaciones por inquilino** — los permisos de aplicación, los
-  menús y el RBAC se gobiernan desde PostgreSQL (`app_installations`).
-- **Resolutor de dependencias** — resolución recursiva sobre un grafo dirigido
-  acíclico, con detección de ciclos y verificación de restricciones semver.
-- **Sincronización del catálogo** — producción obtiene un catálogo firmado de
-  `APP_CATALOG_URL`; desarrollo/offline usa `catalog/apps.json` como respaldo y
-  sincroniza los metadatos en `platform.apps`.
+| | | Página pública |
+| --- | --- | --- |
+| 1 | **Cadena de custodia** — contrato de importación → aduana → laboratorio → terminal → transporte → tanque de la estación → surtidor → cliente. Cada litro se rastrea hasta el lote del que procede. | [`/supply`](https://petronet.mn/supply) |
+| 2 | **TPV de estación** — una capa de controladores que habla con surtidores y medidores de nivel de cualquier fabricante, desde un controlador de pista moderno hasta un contador de impulsos, y sigue vendiendo sin red. | [`/stations`](https://petronet.mn/stations) |
+| 3 | **Vales** — derechos generados solo a partir del combustible que ha llegado de verdad, repartidos por cercanía, necesidad y tiempo de espera. | [`/vouchers`](https://petronet.mn/vouchers) |
+| 4 | **Supervisión estatal** — existencias, precio, calidad, impuestos y desviaciones en un único panel, sobre un rastro de auditoría que no puede reescribirse. | [`/oversight`](https://petronet.mn/oversight) |
 
-### 2. Resiliencia cloud-native y múltiples réplicas
+Dos modos sobre una misma infraestructura. En crisis raciona: los límites y las
+cuotas cambian en minutos, las categorías prioritarias conservan su reserva, los
+vales salen con una ventana horaria. El resto del tiempo supervisa: seguimiento
+de impuestos, precios, calidad y existencias, conciliación automática
+importación–almacenamiento–venta, previsión de demanda y alertas sobre la
+reserva estratégica.
 
-| Módulo | Propósito |
-| --- | --- |
-| `internal/kernel/resilience/loadshedder.go` | Descarta carga con `503` + `Retry-After` bajo presión |
-| `internal/kernel/cache/bus.go` | Invalida caché entre réplicas mediante Redis, con respaldo local |
-| `internal/kernel/memo/memo.go` | Caché local de TTL corto, invalidada por prefijo, para decisiones de autorización |
-| `internal/kernel/async/async.go` | Goroutines con nombre, recuperación de panic y registro de pila |
+## La decisión de diseño
 
-### 3. Infraestructura digital nacional
+> **Un vale no es una promesa. Es un litro reservado.**
 
-- **XYP — Intercambio de Información del Estado** (`internal/workspace/identity/gerege/xyp.go`):
-  registro civil de ciudadanos (`WS100101`) y verificación de personas
-  jurídicas (`WS100201`).
-- **E-ID nacional y DAN** ([`developer.gerege.mn`](https://developer.gerege.mn),
-  [`eidmongolia.mn`](https://eidmongolia.mn)) — firma digital PKI, OTP móvil,
-  SSO bancario y verificación facial biométrica.
-- **Proveedor OAuth2 / OIDC integrado**
-  (`/.well-known/openid-configuration`) que emite tokens de tipo
-  client-credentials a sistemas de terceros.
-- **Verificación de correo electrónico** (`internal/workspace/emailverify`) — un único
-  flujo para demostrar una dirección, que cada módulo de aplicación llama en
-  proceso. El correo lo envía el servicio alojado (`enigma.mn`), de modo que la
-  plataforma no guarda credenciales de buzón ni posee dirección de remitente. La
-  verificación se registra cuando la persona vuelve, y ese retorno sirve una
-  sola vez. Visible en Ajustes → Verificación de correo.
+Un vale solo existe una vez que el combustible ha entrado físicamente en el
+tanque de una estación y el medidor automático ha confirmado la subida de nivel.
 
-> **Nota.** El modo simulado (mock) de E-ID, DAN y XYP es únicamente una
-> comodidad de desarrollo. Con `ENVIRONMENT=production` se desactiva
-> automáticamente, de modo que un número de registro inventado nunca puede
-> autenticarse.
+De ahí se siguen dos cosas. El sistema nunca puede prometer más de lo que tiene,
+así que la cola no tiene alrededor de qué formarse. Y una estación que no
+declara sus entregas no genera ningún vale, de modo que no se envía a nadie
+allí: el cumplimiento lo impone el diseño, no un inspector.
 
-### 4. Copiloto de IA y analítica
+## Cadena de custodia
 
-- **Asistente de IA** (`internal/workspace/ai/copilot.go`) — conversación clasificada por
-  intención y conectada a los datos reales del inquilino.
-- **Previsión de inventario** (`internal/workspace/ai/handlers.go`) — delega en la
-  capacidad `stock_forecast` de una distribución habilitada y devuelve `404`
-  cuando ningún módulo la ofrece.
+| Etapa | Qué se registra | Origen |
+| --- | --- | --- |
+| Importación | Contrato, proveedor, grado, tonelaje, Incoterms, precio, fecha prevista | Portal del importador / API |
+| Frontera | Número de declaración, código SA, aranceles, punto de paso | Aduana |
+| Calidad | Octanaje, densidad, azufre, agua, certificado de laboratorio | Laboratorio acreditado |
+| Metrología | Litros observados, temperatura, densidad → **litros a 15 °C** | ASTM D1250 / API MPMS 11.1 |
+| Terminal | Tanque, capacidad, nivel, capacidad libre, traspasos a la reserva estatal | Medidores de nivel |
+| Transporte | Cisterna, conductor, volumen cargado, destino, traza GPS, precinto electrónico | Módulo del transportista |
+| Estación | Volumen recibido, subida de nivel, desviación, personal receptor | Medidor + confirmación |
+| Surtidor | Totalizador, litros e importe por transacción, lecturas de turno | Controlador de pista |
+| Cliente | Derecho, vale, canje, recibo, IVA | PetroNet + e-Barimt |
 
----
+Cada nodo se concilia con el anterior, de modo que una desviación indica cuándo,
+dónde y bajo la custodia de quién apareció.
 
-## Aplicaciones de negocio
+## Lo que ya existe
 
-Este repositorio base solo incluye una aplicación en `catalog/apps.json`.
-Las distribuciones de producto registran sus propios módulos y migraciones
-mediante `pkg/nexus`; sus aplicaciones no son funciones incluidas aquí.
+No es un plan, sino un registro de lo que hay en el repositorio, con pruebas y
+ejecutado contra un PostgreSQL real. La lista completa y lo que viene después
+están en el [plan de desarrollo](PLAN.md).
 
-| # | Aplicación | ID | Ruta | Descripción |
-| --- | --- | --- | --- | --- |
-| 1 | Clientes SSO | `io.gerege.nexus.sso_clients` | `/sso-clients` | Clientes OAuth2 de los sistemas que inician sesión de personas a través de esta plataforma |
+- Registro de depósitos y estaciones, matrículas, estado, verificación por XYP
+- Catálogo de productos con clasificación JODI, siete grados
+- Permisos del regulador, con una política a nivel de fila detrás
+- La política como dato — límites, tolerancias, plazos, modificables sin una nueva versión
+- Inventario técnico de estaciones (clases A–D)
+- Periodos de reporte, presentaciones, líneas y conclusiones
+- Reglas de validación — balance, continuidad, capacidad, desviación, metrología
+- Corrección de volumen a 15 °C (ASTM D1250 / API MPMS 11.1)
+- Versionado de informes y cadena de hash sobre él
+- Exportación e importación de plantillas Excel
+- Flujo de revisión — aprobar, devolver, cuatro ojos
+- Movimientos, con matrícula, estado de cierre y desviación
+- Agregado nacional diario, cobertura, días de existencias restantes
+- Detección de datos no recibidos e informe de huecos de cobertura
+- Conciliación ΔA–ΔE
+- Siete informes en Excel y CSV, programados y enviados por correo
+- Datos abiertos: el agregado nacional diario en `/api/v1/petro/public/daily`
+- La pantalla de reporte de las empresas y la pantalla del regulador
 
-Las rutas solo se abren una vez que la aplicación está instalada y habilitada
-para el inquilino; de lo contrario el control devuelve `403 Forbidden`.
+## Cómo está construido
 
----
+PetroNet es una **distribución de nivel 2** de la plataforma
+[Gerege Nexus](https://github.com/gerege-systems/open-gerege-nexus). En este
+repositorio no hay código del núcleo: una línea de `go.mod` es todo. Lo que vive
+aquí es la lógica de negocio del combustible (`modules/petro/`) y el mapa, las
+pantallas de operación y las páginas públicas construidas para ella
+(`frontend/`).
+
+El módulo registra sus rutas, menús, permisos y migraciones mediante el contrato
+público `pkg/nexus` y se compila en un único binario de Go. Identidad,
+multiinquilino, RBAC, SSO, informes y rastro de auditoría vienen de la
+plataforma y no se reescriben aquí.
+
+El despliegue autentica por sí mismo: su propio inicio de sesión, su propio
+emisor OIDC, su propia base de datos. A los ciudadanos los identifica
+[eID Mongolia](https://eidmongolia.mn), no una contraseña que este sistema
+tendría que custodiar.
 
 ## Estructura del repositorio
 
 ```
-backend/
-  cmd/api/            Servidor de la API HTTP (+ datos de demostración)
-  cmd/migrate/        Ejecutor de migraciones Goose
-  db/migrations/      Migraciones SQL
-  internal/
-    kernel/           Primitivas técnicas comunes
-    tenant/           Trabajo para una organización
-    platform/         Operación de todo el deployment
-    apps/             Módulos incluidos por esta distribución
-  pkg/
-    nexus/            SDK público y contratos de módulos externos
-    platform/         Raíz de composición de ambos planos
-frontend/             Cliente web Next.js 16 (App Router)
-catalog/              Catálogo y manifiestos de la tienda de aplicaciones
-deploy/               Dockerfile de producción, configuración de Nginx
-docs/                 Documentación y traducciones
+main.go                   Registra el módulo petro e inicia el host de la plataforma
+modules/petro/            El módulo de combustible: registro, informes, supervisión, vales
+  migrations/             El SQL de este módulo, una sola historia
+cmd/petro-import/         Importador de los datos existentes de mpetro
+catalog/                  Catálogo de aplicaciones, manifiestos y crónica de versiones
+frontend/                 Cliente web Next.js — sitio público, mapa, pantallas de operación
+deploy/                   Dockerfile, pila compose, monitorización, scripts de copia
+nginx/                    Los seis hosts virtuales de este despliegue
+docs/                     Esta documentación, en siete idiomas
 ```
 
----
+## Puesta en marcha
 
-## Primeros pasos
-
-### Requisitos previos
-
-- Go 1.26+
-- Node.js 20+
-- PostgreSQL 16+ (o Docker Compose)
-
-### 1. Docker Compose
+Requisitos: Go 1.26+, Node.js 20+, PostgreSQL 16+ (o Docker).
 
 ```bash
-docker compose up -d
+# Todo a la vez
+docker compose -f deploy/docker-compose.yml up -d
+
+# O solo la API
+go run .
+
+# Y el cliente web
+cd frontend && npm ci && npm run dev
 ```
 
-Las migraciones se ejecutan en un servicio `migrate` dedicado y de un solo uso
-antes de que arranque la API.
+El cliente web responde en [http://localhost:3000](http://localhost:3000).
 
-### 2. Manualmente
-
-**Backend:**
+Un despliegue sin organización envía a todo visitante a `/setup`. El token que
+pide ese asistente se escribe una vez en el registro de la API al arrancar:
 
 ```bash
-cd backend
-go mod download
-DATABASE_URL="postgres://postgres:postgrespassword@localhost:5432/platform_db?sslmode=disable" \
-  go run ./cmd/migrate up
-go run ./cmd/api
+docker logs gerege_petronet_backend 2>&1 | grep -i "setup token"
 ```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm ci
-npm run dev
-```
-
-Abra [http://localhost:3000](http://localhost:3000).
-
-### Credenciales de demostración
-
-| Campo | Valor |
-| --- | --- |
-| Correo | `admin@example.com` |
-| Contraseña | `Password123!` |
-| Inquilino | `Demo Corporation` (`slug: demo`) |
-
-La cuenta de demostración solo se crea fuera de producción. En producción se
-crea únicamente cuando se establece `SEED_DEMO_DATA=true` de forma explícita.
-
----
-
-## Despliegue automatizado
-
-Cada push a `main` ejecuta [`deploy.yml`](../.github/workflows/deploy.yml):
-
-1. Construir y publicar las imágenes de backend y frontend en GHCR (`:latest` y `:<sha>`).
-2. Copiar `docker-compose.prod.yml` al servidor.
-3. Escribir el `.env` del servidor desde los secretos de GitHub y descargar las imágenes.
-4. Ejecutar las migraciones hasta el final y luego conmutar la API y el frontend.
-5. Sondear `/health` y `/ready`, mostrar los registros de los contenedores y
-   marcar la ejecución como fallida si el despliegue no está sano.
-
-Despliegue manual: Actions → *Deploy to Production* → **Run workflow**, fijando
-opcionalmente una etiqueta de imagen.
-
-Secretos requeridos en el repositorio:
-
-| Secreto | Requerido | Descripción |
-| --- | --- | --- |
-| `DEPLOY_SSH_KEY` | Sí | Clave privada del usuario de despliegue. Sin ella se omite el despliegue |
-| `POSTGRES_PASSWORD` | Sí | Contraseña de la base de datos en el servidor |
-| `SSO_DEFAULT_CLIENT_SECRET` | Sí | Obligatorio para el cliente OAuth2 integrado en producción |
-| `DEPLOY_HOST` / `DEPLOY_USER` / `DEPLOY_PORT` | No | Por defecto `petronet.mn` / `deploy` / `22` |
-| `PUBLIC_ORIGIN` | No | Por defecto `https://petronet.mn` |
-
-> El dominio de producción es `petronet.mn`, que sustituyó a
-> `openerp.gerege.mn` en el cambio de nombre a PetroNet System. `PUBLIC_ORIGIN`
-> define en un mismo lugar el CORS, el emisor OIDC y el callback de eID, de modo
-> que moverlo arrastra consigo el DNS, el certificado TLS y todo cliente que
-> haya fijado el emisor.
-
-El servidor solo necesita Docker — sin código fuente ni cadena de herramientas
-Go/Node. Consulte [`deploy/.env.prod.example`](../deploy/.env.prod.example) para
-los valores.
-
----
 
 ## Configuración
 
-Consulte [`.env.example`](../.env.example) para la lista completa.
+La lista completa está en [`.env.example`](../.env.example). Los valores que
+deciden cómo se comporta un despliegue:
 
-| Variable | Predeterminado | Descripción |
-| --- | --- | --- |
-| `DATABASE_URL` | localhost | Cadena de conexión a PostgreSQL |
-| `PORT` | `8080` | Puerto de escucha de la API |
-| `ENVIRONMENT` | `development` | `production` activa valores endurecidos |
-| `APP_CATALOG_PATH` | `catalog/apps.json` | Ruta del catálogo de la tienda de aplicaciones |
-| `ALLOWED_ORIGINS` | `http://localhost:3000` | Lista de orígenes permitidos (CORS) |
-| `TRUST_PROXY_HEADERS` | `false` | Si se confía en `X-Forwarded-For` |
-| `SEED_DEMO_DATA` | activo fuera de producción | Crear la cuenta de demostración |
-| `SSO_DEFAULT_CLIENT_SECRET` | — | Requerido en producción |
-| `EID_MOCK_MODE` / `DAN_MOCK_MODE` / `XYP_MOCK_MODE` | activo fuera de producción | Simular las integraciones nacionales |
+| Variable | Descripción |
+| --- | --- |
+| `PUBLIC_ORIGIN` | Dónde responde esta instancia. Define en un solo sitio el CORS, el emisor OIDC y la devolución de llamada de eID |
+| `PETRONET_POSTGRES_PASSWORD` | La base de datos propia de esta pila |
+| `SSO_DEFAULT_CLIENT_SECRET` | Sin él la plataforma se niega a arrancar en producción |
+| `BRAND_*` | Nombre, descripción, colores e iconos del despliegue |
+| `SERVICE_URL_*` | Direcciones de la consola, el almacén, las copias, la monitorización y la documentación. En la portada solo se dibujan las configuradas |
+| `EID_RP_UUID` / `EID_RP_SECRET` | El par relying-party de eID. Sin él no hay inicio de sesión con eID |
+| `CONTROL_PLANE_HOST` | El nombre de host en el que responde la consola de operación, y solo ese |
+| `PROMETHEUS_URL` | De dónde lee la consola la salud de la plataforma |
 
----
+## Despliegue
 
-## Resumen de la API
-
-| Método | Ruta | Descripción |
-| --- | --- | --- |
-| `GET` | `/health`, `/ready` | Sondas de vitalidad y disponibilidad |
-| `GET` | `/metrics` | Métricas de Prometheus |
-| `POST` | `/api/v1/auth/login` | Inicio de sesión con correo y contraseña |
-| `POST` | `/api/v1/auth/eid/login` | Inicio de sesión con E-ID nacional |
-| `POST` | `/api/v1/auth/dan/login` | Inicio de sesión mediante la pasarela DAN |
-| `POST` | `/api/v1/auth/logout` | Revocar la sesión |
-| `GET` | `/api/v1/menus` | Menús de las aplicaciones habilitadas del inquilino |
-| `GET` | `/api/v1/store/apps` | Listado de la tienda de aplicaciones |
-| `POST` | `/api/v1/store/apps/{slug}/install` | Instalar una aplicación (admin) |
-| `POST` | `/api/v1/verify/send` | Solicitar un enlace de verificación al servicio alojado |
-| `GET` | `/api/v1/verify/landed` | Recibir a quien ha confirmado — sirve una sola vez |
-| `GET` | `/api/platform/v1/email-verifications` | Registro de verificaciones y estado del servicio (consola) |
-| `POST` | `/oauth2/token` | Token OAuth2 de client credentials |
-
-Los tokens de sesión viajan en la cookie HttpOnly o como
-`Authorization: Bearer <token>`.
-
----
-
-## Pruebas y controles de calidad
+El host de producción lleva `/opt/petronet/` — `src/` (este repositorio), `.env`
+(chmod 600) y `brand/`. Actualizar son dos órdenes:
 
 ```bash
-# Pruebas unitarias del backend con el detector de carreras
-cd backend && go test -race ./...
-
-# Análisis estático
-cd backend && go vet ./... && golangci-lint run
-
-# Análisis de vulnerabilidades
-cd backend && govulncheck ./...
-
-# Compilación del frontend
-cd frontend && npm run build
+cd /opt/petronet/src && git pull && ./deploy.sh
 ```
 
-La CI ejecuta lint, pruebas, la compilación del frontend, la construcción de la
-imagen Docker, govulncheck y gosec en cada push y cada pull request.
+`deploy.sh` construye desde este repositorio las dos imágenes, backend y web, de
+modo que la API, el mapa y las pantallas de operación salen siempre en una misma
+revisión.
 
----
+Seis nombres de host conviven: la plataforma (`petronet.mn`), la consola de
+operación (`admin.`), la monitorización (`monitor.`), el mapa del almacén de
+datos (`dwh.`), esta documentación (`docs.`) y las notas de copias de seguridad
+(`backups.`). Qué es cada uno, y las trampas de la configuración de nginx, están
+en [el documento de este despliegue](DEPLOYMENT.md).
+
+## Pruebas
+
+```bash
+go vet ./... && go test -race ./...     # Go: unitarias e integración con PostgreSQL
+cd frontend && npm test && npm run build
+```
+
+CI ejecuta ambas en cada push y cada pull request, y construye las dos imágenes
+de Docker.
 
 ## Seguridad
 
 - Los tokens de sesión son valores aleatorios de 256 bits; solo se almacena su
   resumen SHA-256.
 - Las contraseñas se cifran con bcrypt y los intentos de inicio de sesión están
-  limitados por IP.
-- Instalar, habilitar o deshabilitar aplicaciones y registrar integraciones
-  requiere derechos de administrador del inquilino.
-- La autenticación de clientes OAuth2 usa comparación en tiempo constante.
+  limitados por frecuencia.
+- Los datos de cada organización se aíslan con un rol de base de datos, un
+  contexto de inquilino y seguridad a nivel de fila en las tablas declaradas. El
+  alcance del regulador es una política en SQL, no una comprobación en un
+  manejador.
+- Las versiones de informe están encadenadas por hash, así que una presentación
+  aprobada no puede editarse sin que la cadena lo diga.
+- La consola de operación tiene su propia identidad, cookie, rastro de auditoría
+  y rol de base de datos, y responde únicamente en `CONTROL_PLANE_HOST`.
 
-Informe de vulnerabilidades según lo descrito en [`SECURITY.md`](../SECURITY.md).
-
----
+Informe de vulnerabilidades según se describe en [`SECURITY.md`](../SECURITY.md).
 
 ## Índice de documentación
 
 | Documento | Descripción |
 | --- | --- |
-| [Centro de documentación](README.md) | Índice de todos los documentos y traducciones |
-| [Arquitectura](ARCHITECTURE.md) | Los dos planos, los tres esquemas, el aislamiento de datos |
-| [Escribir un módulo](MODULES.md) | El contrato `pkg/nexus` y cómo llega una aplicación a un despliegue |
-| [Contribuir](../CONTRIBUTING.md) | Flujo de contribución |
-| [Política de seguridad](../SECURITY.md) | Notificación de vulnerabilidades |
-| [Código de conducta](../CODE_OF_CONDUCT.md) | Normas de la comunidad |
-| [Registro de cambios](../CHANGELOG.md) | Historial de versiones |
-
----
-
-## Créditos e inspiración
-
-1. **[snykk/go-rest-boilerplate](https://github.com/snykk/go-rest-boilerplate)**
-   de **[@snykk](https://github.com/snykk)** — fundamentos de la API REST en Go.
-2. **[Odoo](https://github.com/odoo/odoo)** — tienda de aplicaciones modular y
-   modelo de dependencias.
-3. **[go-zero](https://github.com/zeromicro/go-zero)** — motor de resiliencia
-   cloud-native.
+| [Centro de documentación](README.md) | Todos los documentos y traducciones |
+| [Requisitos del sistema](system-requirements.md) | Qué pidió el cliente |
+| [Plan de desarrollo](PLAN.md) | Qué está hecho, qué viene y los criterios de aceptación |
+| [Referencias internacionales](BENCHMARKS.md) | Cómo lo resolvieron otros países y qué falló |
+| [Este despliegue](DEPLOYMENT.md) | Nombres de host, puertos, copias — solo este host |
+| [Arquitectura](ARCHITECTURE.md) | Los planos, los esquemas, el aislamiento de datos |
+| [Escribir un módulo](MODULES.md) | El contrato `pkg/nexus` |
+| [Operación](OPERATIONS.md) | Despliegue, monitorización, copia y restauración |
+| [Runbooks](RUNBOOKS.md) | Cuando algo se rompe |
+| [Traducción](TRANSLATION.md) | La política lingüística y el generador |
+| [Contribuir](../CONTRIBUTING.md) · [Seguridad](../SECURITY.md) · [Código de conducta](../CODE_OF_CONDUCT.md) | Normas del proyecto |
 
 ---
 
 ## Licencia
 
-Copyright (c) 2026 **Gerege Systems Development Team, Gerege Nomadica Foundation**. Distribuido bajo la Licencia Apache 2.0 — véase
+Copyright (c) 2026 **Gerege Systems Development Team, Gerege Nomadica
+Foundation**. Distribuido bajo la licencia Apache 2.0 — véase
 [`LICENSE`](../LICENSE).
 
 Iconos de banderas por [Flaticon](https://www.flaticon.com/)

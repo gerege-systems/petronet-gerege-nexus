@@ -21,6 +21,12 @@
 }
 .pn-site * { box-sizing: border-box; }
 .pn-site a { color: inherit; }
+/* Гарчиг өнгөө өөрийн хэсгээсээ авна.
+   globals.css-ийн суурь `h1..h4 { color: var(--gerege-fg) }` нь элементийн
+   сонгогч тул өвлөлтөөс хүчтэй: харанхуй hero дээр `color: white` гэж
+   бичсэн ч гарчиг нь бараан хэвээр — «Эх үүсвэрээс хошуу хүртэл» гэсэн
+   /supply-ийн гарчиг navy дээр navy болж уншигдахаа больсон байв. */
+.pn-site h1,.pn-site h2,.pn-site h3,.pn-site h4 { color: inherit; }
 .pn-site h1,.pn-site h2,.pn-site h3,.pn-site p { margin-top: 0; }
 .pn-site h1,.pn-site h2,.pn-site h3,.pn-brand b {
   font-family: "Arial Narrow", "Aptos Display", "Segoe UI", sans-serif;
@@ -44,6 +50,10 @@
 .pn-nav > a:hover,.pn-nav > a.is-active { color: var(--pn-blue); }
 .pn-nav > a:hover::after,.pn-nav > a.is-active::after { transform: scaleX(1); }
 .pn-nav .pn-nav__login { display: none; }
+.pn-header__actions { flex: 0 0 auto; display: flex; align-items: center; gap: 12px; }
+/* Хэлний сонголт нүүрнээс цааш ч хэрэгтэй — сайт долоон хэлтэй бөгөөд түүнийг
+   зөвхөн нэг хуудсан дээр санал болгох нь долоон хэл байхгүйтэй адил. */
+.pn-nav__locale { display: none; }
 .pn-header__login { flex: 0 0 auto; text-decoration: none; padding: 10px 15px; color: white !important; background: var(--pn-ink); border: 1px solid var(--pn-ink); border-radius: 5px; font-size: 12px; font-weight: 800; transition: background .2s, border-color .2s; }
 .pn-header__login:hover { background: var(--pn-blue); border-color: var(--pn-blue); }
 .pn-menu-button { display: none; width: 40px; height: 40px; place-items: center; border: 1px solid var(--pn-line); color: var(--pn-ink); background: white; border-radius: 5px; }
@@ -85,7 +95,6 @@
 .pn-hero__proof span { display: flex; align-items: center; gap: 6px; }
 .pn-hero__proof svg { width: 14px; color: var(--pn-green); stroke-width: 3; }
 .pn-operations { position: relative; overflow: hidden; background: var(--pn-navy); color: white; border: 1px solid #20384a; border-radius: 8px; box-shadow: 0 34px 80px rgb(8 30 46 / 21%); }
-.pn-operations::before { content: "FN / LIVE"; position: absolute; z-index: 4; right: -20px; top: 46%; color: rgb(255 255 255 / 4%); font: 900 80px/1 "Arial Narrow", sans-serif; letter-spacing: -.06em; transform: rotate(-90deg); }
 .pn-operations__top { min-height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid rgb(255 255 255 / 10%); }
 .pn-operations__top > div { display: flex; flex-direction: column; gap: 5px; }
 .pn-operations__top strong { font-size: 16px; }
@@ -93,24 +102,8 @@
 .pn-live { display: flex; align-items: center; gap: 7px; color: #72e6b5; font: 750 8px/1 monospace; letter-spacing: .12em; }
 .pn-live i { width: 7px; height: 7px; background: #39d596; border-radius: 50%; box-shadow: 0 0 0 5px rgb(57 213 150 / 10%); animation: pn-pulse 2s ease infinite; }
 .pn-operations__map { position: relative; height: 310px; overflow: hidden; }
-.pn-map-grid { position: absolute; inset: 0; opacity: .18; background-image: linear-gradient(rgb(255 255 255 / 12%) 1px,transparent 1px),linear-gradient(90deg,rgb(255 255 255 / 12%) 1px,transparent 1px); background-size: 32px 32px; transform: perspective(320px) rotateX(28deg) scale(1.25); }
-.pn-route { position: absolute; z-index: 1; height: 3px; background: linear-gradient(90deg,#12accb,#0072ed); transform-origin: left; box-shadow: 0 0 12px rgb(20 188 221 / 55%); }
-.pn-route::after { content: ""; position: absolute; right: 0; top: -3px; width: 9px; height: 9px; background: white; border: 2px solid #12accb; border-radius: 50%; animation: pn-node 2.3s ease-in-out infinite; }
-.pn-route--one { width: 185px; left: 100px; top: 89px; transform: rotate(25deg); }
-.pn-route--two { width: 180px; left: 279px; top: 167px; transform: rotate(-25deg); }
-.pn-map-node { position: absolute; z-index: 3; display: flex; flex-direction: column; padding-left: 16px; color: white; font-size: 10px; font-weight: 800; }
-.pn-map-node i { position: absolute; width: 10px; height: 10px; left: 0; top: 2px; background: var(--pn-orange); border: 2px solid white; border-radius: 50%; }
-.pn-map-node small { margin-top: 2px; color: rgb(255 255 255 / 51%); font: 500 8px/1.2 monospace; }
-.pn-map-node--border { left: 46px; top: 58px; }
-.pn-map-node--depot { left: 247px; top: 148px; }
-.pn-map-node--depot i { background: var(--pn-cyan); }
-.pn-map-node--station { right: 50px; top: 63px; }
-.pn-map-node--station i { background: var(--pn-green); }
-.pn-tank { position: absolute; z-index: 4; right: 35px; bottom: 23px; width: 62px; height: 100px; overflow: hidden; border: 1px solid rgb(255 255 255 / 35%); border-radius: 22px 22px 8px 8px; text-align: center; }
-.pn-tank > span { position: absolute; inset: auto 0 0; background: linear-gradient(180deg,#08a5c5,#0064df); opacity: .72; }
-.pn-tank b,.pn-tank small { position: relative; z-index: 2; display: block; }
-.pn-tank b { margin-top: 28px; font-size: 10px; }
-.pn-tank small { font: 750 16px/1.4 monospace; }
+/* Хүрээн дотор бодит газрын зураг сууна (app/page.tsx). Урьд нь энд зурсан
+   зам, зангилаа, савны дүрс байсан — «LIVE» шошготой зохиомол самбар. */
 .pn-operations__metrics { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid rgb(255 255 255 / 10%); }
 .pn-operations__metrics > div { display: flex; flex-direction: column; min-height: 86px; padding: 14px; border-right: 1px solid rgb(255 255 255 / 10%); }
 .pn-operations__metrics > div:last-child { border: 0; }
@@ -191,6 +184,13 @@
 .pn-feature-card > span { position: absolute; right: 20px; top: 20px; color: #80919c; font: 700 8px/1 monospace; letter-spacing: .1em; }
 .pn-feature-card h3 { margin-bottom: 10px; font-size: 20px; letter-spacing: -.02em; }
 .pn-feature-card p { margin: 0; color: var(--pn-muted); font-size: 13px; line-height: 1.7; }
+/* Карт нь холбоос болох үед: бүтэн гадаргуу нь дардаг тал байх ёстой тул
+   товч шиг хариу өгнө. Гарчиг доторх сум нь нүд удирдлагыг хаанаас хайхыг
+   хэлнэ. */
+a.pn-feature-card { display: block; color: inherit; text-decoration: none; transition: border-color .2s, box-shadow .2s, transform .2s; }
+a.pn-feature-card:hover { border-color: var(--pn-blue); box-shadow: 0 18px 40px rgb(9 32 48 / 10%); transform: translateY(-2px); }
+a.pn-feature-card h3 { display: flex; align-items: center; gap: 7px; }
+a.pn-feature-card h3 svg { width: 16px; height: 16px; color: var(--pn-blue); }
 .pn-page-cta { padding: 66px 0; color: white; background: var(--pn-blue); }
 .pn-page-cta .pn-container { display: flex; align-items: center; justify-content: space-between; gap: 50px; }
 .pn-page-cta h2 { margin-bottom: 8px; font-size: clamp(27px,3vw,39px); }
@@ -391,7 +391,6 @@
 .pn-footer__bottom svg { width: 12px; }
 
 @keyframes pn-pulse { 50% { box-shadow: 0 0 0 10px rgb(57 213 150 / 0%); } }
-@keyframes pn-node { 50% { transform: scale(1.4); } }
 @keyframes pn-flow { from { left: -30px; } to { left: 100%; } }
 
 @media (max-width: 1100px) {
@@ -411,13 +410,14 @@
 @media (max-width: 900px) {
   .pn-container { width: min(100% - 32px, 720px); }
   .pn-header { height: 68px; }
-  .pn-header__login { display: none; }
   .pn-menu-button { display: grid; margin-left: auto; }
   .pn-nav { position: absolute; display: none; height: auto; inset: 68px 0 auto; padding: 12px 16px 18px; background: white; border-bottom: 1px solid var(--pn-line); box-shadow: 0 16px 30px rgb(9 32 48 / 13%); }
   .pn-nav.is-open { display: grid; }
   .pn-nav > a { min-height: 45px; display: flex; padding: 0 8px; border-bottom: 1px solid var(--pn-line); }
   .pn-nav > a::after { display: none; }
   .pn-nav .pn-nav__login { display: flex; justify-content: center; margin-top: 12px; color: white; background: var(--pn-ink); border: 0; }
+  .pn-header__actions { display: none; }
+  .pn-nav__locale { display: flex; justify-content: center; padding-top: 14px; }
   .pn-hero__grid,.pn-page-hero__inner { grid-template-columns: 1fr; }
   .pn-hero__grid { padding-top: 66px; }
   .pn-page-hero__inner { padding-block: 70px; }
@@ -444,8 +444,6 @@
   .pn-hero__copy h1 { font-size: clamp(48px,15vw,67px); }
   .pn-hero__copy > p,.pn-page-hero__inner > div:first-child > p { font-size: 15px; }
   .pn-operations__map { height: 270px; }
-  .pn-map-node--station { right: 15px; }
-  .pn-route--two { width: 120px; }
   .pn-operations__metrics { grid-template-columns: 1fr; }
   .pn-operations__metrics > div { min-height: 70px; border-right: 0; border-bottom: 1px solid rgb(255 255 255 / 10%); }
   .pn-flow-rail { grid-template-columns: 1fr 1fr; padding: 18px; }
