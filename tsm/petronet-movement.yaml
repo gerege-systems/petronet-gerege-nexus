@@ -62,7 +62,16 @@ steps:
     expect:
       status: [200, 201]
 
-  - name: Тулгалтад зөрүү харагдаж байна уу
-    path: /api/v1/petro/oversight/reconciliation
+  # Тулгалтын дэлгэц нь ЗОХИЦУУЛАГЧИЙНХ — хөдөлгөөн нээсэн ААН түүнийг харахгүй.
+  # Тэр нь зөв: өөрийн зөрүүг өөрөө дүгнэдэг тал байвал тулгалт утгагүй болно.
+  # ААН-ийн зүгээс харагдах зүйл нь өөрийн хөдөлгөөний хаагдсан төлөв.
+  - name: Хөдөлгөөн хаагдсан төлөвтэй болсон эсэх
+    path: /api/v1/petro/movements
     expect:
       status: 200
+      contains: "${movement_id}"
+
+  - name: Тулгалтын дэлгэц ААН-д хаалттай эсэх
+    path: /api/v1/petro/oversight/reconciliation
+    expect:
+      status: 403
