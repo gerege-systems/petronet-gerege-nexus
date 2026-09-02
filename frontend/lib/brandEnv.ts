@@ -16,9 +16,22 @@ export function brandFromEnv(env: NodeJS.ProcessEnv = process.env): Brand {
     themeColor: hexColour(text(env.BRAND_THEME_COLOR)) || DEFAULT_BRAND.themeColor,
     iconUrl: assetURL(text(env.BRAND_ICON_URL)),
     maskableIconUrl: assetURL(text(env.BRAND_MASKABLE_ICON_URL)),
-    // Falls back to the platform's manual rather than to nothing: a menu item
-    // that leads nowhere is worse than one that leads to the general book.
-    docsUrl: assetURL(text(env.BRAND_DOCS_URL)) || DEFAULT_BRAND.docsUrl,
+    // Хоёр нэрийн дараа л платформын гарын авлага руу унана.
+    //
+    // `SERVICE_URL_DOCS` нь энэ жагсаалтад байгаа нь чимэг биш: суулгац
+    // өөрийн баримтын хаягийг аль хэдийн тэнд бичсэн байдаг (нүүр хуудасны
+    // үйлчилгээний картууд түүнийг уншина), харин толгойн «Баримт бичиг» нь
+    // `BRAND_DOCS_URL`-ыг уншиж байв. Нэг хаягийг хоёр нэрээр асуух нь
+    // операторын алдаа биш, тохиргооны алдаа: petronet.mn дээр
+    // `SERVICE_URL_DOCS` тавигдсан хэрнээ толгойн цэс уншигчийг цөмийн
+    // docs.nexus.gerege.mn руу — өөр бүтээгдэхүүний ном руу — явуулж байсан.
+    //
+    // Хамгийн сүүлд платформын гарын авлага руу унана: хаашаа ч хүрдэггүй
+    // цэсний зүйл нь ерөнхий ном руу хүргэдэгээс дор.
+    docsUrl:
+      assetURL(text(env.BRAND_DOCS_URL)) ||
+      assetURL(text(env.SERVICE_URL_DOCS)) ||
+      DEFAULT_BRAND.docsUrl,
   };
 }
 

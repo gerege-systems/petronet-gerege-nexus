@@ -16,16 +16,13 @@
 // хэвээр. Вектор давхаргууд үүний ДЭЭР зурагдана — Улаанбаатар өөрийн
 // нарийн загвараа хадгална, бусад газар жинхэнэ газрын зураг гарна.
 
-import { proxyRasterTile } from "@/lib/petro/tileProxy";
+import { parseTilePath, proxyRasterTile } from "@/lib/petro/tileProxy";
 
 export async function GET(_request: Request, context: { params: Promise<{ tile: string[] }> }) {
   const { tile } = await context.params;
-  // z/x/y-ээс өөр юу ч биш. Тоо биш сегмент нь тайлын хүсэлт биш бөгөөд
-  // түүнийг энд татгалзах нь энэ замыг «дурын хаяг руу явуулагч» болохоос
-  // сэргийлнэ.
-  if (tile.length !== 3 || !tile.every((part) => /^\d+$/.test(part))) {
-    return new Response("expected /basemap/{z}/{x}/{y}", { status: 400 });
+  const parsed = parseTilePath(tile);
+  if (!parsed) {
+    return new Response("expected /basemap/{z}/{x}/{y}[.png]", { status: 400 });
   }
-  const [z, x, y] = tile;
-  return proxyRasterTile(Number(z), Number(x), Number(y));
+  return proxyRasterTile(...parsed);
 }

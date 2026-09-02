@@ -35,6 +35,26 @@
  */
 const DEFAULT_RASTER = "https://tile.openstreetmap.org";
 
+/**
+ * `/basemap/...` доторх сегментүүдээс z/x/y, эсвэл юу ч биш.
+ *
+ * Сүүлийн сегментийн `.png` нь заавал биш. Манай өөрийн style нь өргөтгөлгүй
+ * хаяг асуудаг ч XYZ-ийн жирийн бичлэг нь `{z}/{x}/{y}.png` — түүнийг
+ * татгалзах нь ямар ч стандарт клиентэд энэ проксиг ашиглах боломжгүй
+ * болгодог байв. Дээд урсгал руу ямар ч байсан `.png` нэмэгддэг тул хоёр нь
+ * ижил тайлын хоёр бичлэг, өөр нөөц биш.
+ *
+ * Тоо биш сегментийг эндээс татгалзах нь энэ замыг «дурын хаяг руу
+ * явуулагч» болохоос сэргийлнэ.
+ */
+export function parseTilePath(segments: string[]): [number, number, number] | null {
+  if (segments.length !== 3) return null;
+  const parts = [...segments.slice(0, 2), segments[2].replace(/\.png$/, "")];
+  if (!parts.every((part) => /^\d+$/.test(part))) return null;
+  const [z, x, y] = parts.map(Number);
+  return [z, x, y];
+}
+
 /** Растер тайл сервер талаас хаанаас татагдахыг заана. */
 export function rasterUpstream(): string {
   return (process.env.MAP_RASTER_UPSTREAM || DEFAULT_RASTER).replace(/\/$/, "");
