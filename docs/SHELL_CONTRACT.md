@@ -91,7 +91,7 @@ Let's Encrypt гэрчилгээнд багтана.
 
 Шугам бүр өөрийн host дээрээ `/api/v1`-ээ **мөн** үйлчилнэ; nginx тэдгээрийг
 бүгдийг НЭГ ижил API upstream руу дамжуулна
-(шугамын vhost — цөмийн репогийн [`deploy/nginx/`](https://github.com/gerege-systems/open-gerege-nexus/tree/main/deploy/nginx); PetroNet System дээр шугам хараахан асаагаагүй тул `nginx/`-д тийм файл байхгүй).
+(шугамын vhost — цөмийн репогийн [`deploy/nginx/`](https://github.com/gerege-systems/open-gerege-nexus/tree/main/deploy/nginx); PetroNet Eco System дээр шугам хараахан асаагаагүй тул `nginx/`-д тийм файл байхгүй).
 Шугам нь тусдаа origin өгөхийн тулд байгаа болохоос тусдаа сервис өгөхийн тулд
 биш.
 

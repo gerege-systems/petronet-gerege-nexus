@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# PetroNet System — өгөгдлийн сангийн нөөцлөлт.
+# PetroNet Eco System — өгөгдлийн сангийн нөөцлөлт.
 #
 # Цөмийн `deploy/scripts/backup.sh`-ийн хуулбар (open-gerege-nexus, c6cc566).
 # Хуулсан шалтгаан нь: Go модуль ажиллах кодыг л зөөдөг, ажиллагааны скрипт

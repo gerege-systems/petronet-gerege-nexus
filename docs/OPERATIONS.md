@@ -25,7 +25,7 @@
 
 Платформын нүүр хуудас эдгээрийг карт болгож харуулна. Хаягууд нь кодод биш,
 суулгацын орчинд (`SERVICE_URL_ADMIN`, `_DWH`, `_BACKUPS`, `_MONITOR`,
-`_DOCS`, мөн үндэсний `_EID`): `admin.petronet.mn` бол PetroNet System-ийнх,
+`_DOCS`, мөн үндэсний `_EID`): `admin.petronet.mn` бол PetroNet Eco System-ийнх,
 өөр хэн ч биш. Тохируулаагүй үйлчилгээ зурагдахгүй, нэг ч тохируулаагүй бол
 хэсэг бүхэлдээ зурагдахгүй.
 
@@ -182,7 +182,7 @@ Trace асаалттай үед гистограммын сэмпл бүр `trac
 Alloy Docker-ийн лог цуглуулж Loki руу өгнө. Backend нь `slog`-оор JSON
 бичдэг тул `| json` ажиллана.
 
-Хоёр урхи, хоёулаа PetroNet System дээр бодитоор гарсан:
+Хоёр урхи, хоёулаа PetroNet Eco System дээр бодитоор гарсан:
 
 - **LogQL-ийн шүүлт том жижиг үсэг ялгана.** `|= "audit"` нь юу ч олохгүй —
   бичигдсэн зүйл нь `"msg":"AUDIT_EVENT"`.
@@ -255,7 +255,7 @@ deploy/scripts/setup_monitor_branding.sh
 
 ### Платформын бүртгэлээр Grafana руу нэвтрэх
 
-Grafana нь PetroNet System-ийн өөрийн OIDC provider-оос хэн болохыг асууна:
+Grafana нь PetroNet Eco System-ийн өөрийн OIDC provider-оос хэн болохыг асууна:
 операторууд аль хэдийн байгаа бүртгэлээрээ ордог, платформын админ нь
 Grafana-ийн сервер админ болно (`platform_admin && 'GrafanaAdmin' || 'Viewer'`).
 Бусад нь уншиж чадах ч юуг ч өөрчилж чадахгүй.

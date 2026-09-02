@@ -15,7 +15,7 @@ export const PAGES = [
   {src: "docs/README_RU.md", slug: "overview-ru", title: "Обзор", group: "Танилцуулга", lang: "ru"},
   {src: "docs/README_ES.md", slug: "overview-es", title: "Resumen", group: "Танилцуулга", lang: "es"},
 
-  {src: "docs/DEPLOYMENT.md", slug: "deployment", title: "PetroNet System", group: "Танилцуулга"},
+  {src: "docs/DEPLOYMENT.md", slug: "deployment", title: "PetroNet Eco System", group: "Танилцуулга"},
 
 
   {src: "docs/README.md", slug: "documents", title: "Баримтын индекс", group: "Платформ"},

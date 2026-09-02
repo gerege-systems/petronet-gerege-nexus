@@ -13,9 +13,9 @@
 # nav-ыг stage.mjs бичнэ — pages.mjs дахь PLAN_PAGES-ээс. Энэ файлыг гараар
 # засахдаа nav хэсгийг бүү нэм: тэр нь дараагийн build дээр дарагдана.
 
-site_name: PetroNet System — Төсөл
+site_name: PetroNet Eco System — Төсөл
 site_description: >-
-  PetroNet System-ийн төслийн баримт: захиалагчийн системийн шаардлага,
+  PetroNet Eco System-ийн төслийн баримт: захиалагчийн системийн шаардлага,
   хөгжүүлэлтийн төлөвлөгөө, дэлхийн жишиг.
 site_url: https://plan.petronet.mn/
 repo_url: https://github.com/gerege-systems/petronet-gerege-nexus

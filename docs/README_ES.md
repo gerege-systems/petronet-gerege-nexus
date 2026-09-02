@@ -1,4 +1,4 @@
-# PetroNet System
+# PetroNet Eco System
 
 **La plataforma integrada de vigilancia y gestión de combustibles de Mongolia**
 

@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in contributing to **PetroNet System**
+Thank you for your interest in contributing to **PetroNet Eco System**
 (`open-petronet`). Community contributions are what make a modular,
 high-performance open-source platform possible.
 

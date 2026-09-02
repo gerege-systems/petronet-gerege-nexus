@@ -7,7 +7,7 @@ apiVersion: 1
 providers:
   - name: petronet
     orgId: 1
-    folder: "PetroNet System"
+    folder: "PetroNet Eco System"
     type: file
     disableDeletion: false
     allowUiUpdates: false

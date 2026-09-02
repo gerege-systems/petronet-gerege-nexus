@@ -124,8 +124,8 @@ def esc(text):
 # орчуулгын chunk-ийг дээр нь орлуулна.
 edits = [
     ('name:"Svenska"', 'name:"%s"' % esc("Монгол")),
-    ('AppTitle="Grafana"', 'AppTitle="PetroNet System"'),
-    ('LoginTitle="Welcome to Grafana"', 'LoginTitle="PetroNet System \\u00b7 %s"' % esc("Ажиглалт")),
+    ('AppTitle="Grafana"', 'AppTitle="PetroNet Eco System"'),
+    ('LoginTitle="Welcome to Grafana"', 'LoginTitle="PetroNet Eco System \\u00b7 %s"' % esc("Ажиглалт")),
 ]
 for old, new in edits:
     if s.count(old) != 1:
@@ -133,7 +133,7 @@ for old, new in edits:
     s = s.replace(old, new)
 
 open(path, "w", encoding="utf-8").write(s)
-print("  Монгол, PetroNet System, нэвтрэх гарчиг")
+print("  Монгол, PetroNet Eco System, нэвтрэх гарчиг")
 PY
 
 echo "==> nginx-ийн snippet-ийг бичиж байна ($SNIPPET)"
@@ -185,12 +185,12 @@ check() { # тайлбар, url, олдох ёстой мөр (хоосон бо
 check "landing хуудас"      "https://$MONITOR_DOMAIN/" "$MONITOR_DOMAIN"
 check "хэв маяг холбогдсон" "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/login" "grafana-petronet.css"
 check "скрипт холбогдсон"   "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/login" "grafana-petronet.js"
-check "нэвтрэх гарчиг"      "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/login" "Ажиглалт — PetroNet System"
+check "нэвтрэх гарчиг"      "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/login" "Ажиглалт — PetroNet Eco System"
 # Файл дотор JSON нь мөр болж хадгалагддаг тул кирилл үсэг ХОЁР ташуутай
 # (\\u041d) харагдана — «Нэв». Энэ нь орчуулга бидний файлаас ирж байгаагийн
 # баталгаа: Grafana-ийн жинхэнэ швед chunk-д ийм тэмдэгт байхгүй.
 check "Монгол орчуулга"     "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/public/build/$MN_CHUNK"   '\\u041d\\u044d\\u0432'
-check "PetroNet нэр"        "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/public/build/$LANG_CHUNK" 'AppTitle="PetroNet System"'
+check "PetroNet нэр"        "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/public/build/$LANG_CHUNK" 'AppTitle="PetroNet Eco System"'
 
 icon_type="$(curl -fsS -o /dev/null -w '%{content_type}' --max-time 20 \
   "https://$MONITOR_DOMAIN$GRAFANA_PREFIX/public/build/img/fav32.png" 2>/dev/null || true)"

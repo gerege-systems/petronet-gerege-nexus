@@ -1,4 +1,4 @@
-# PetroNet System
+# PetroNet Eco System
 
 **Mongolia's integrated fuel monitoring and management platform**
 

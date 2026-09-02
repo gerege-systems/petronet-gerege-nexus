@@ -1,4 +1,4 @@
-# PetroNet System — баримт бичгийн сайт.
+# PetroNet Eco System — баримт бичгийн сайт.
 #
 # docs.gerege.mn нь MkDocs + Material for MkDocs дээр байгуулагдсан. Энэ сайт нь
 # яг тэр хэрэгсэл, яг тэр брэндийг ашиглана: хоёулаа нэг экосистемийн баримт
@@ -9,9 +9,9 @@
 # nav-ыг stage.mjs бичнэ — ../site/pages.mjs дахь жагсаалтаас. Энэ файлыг гараар
 # засахдаа nav хэсгийг бүү нэм: тэр нь дараагийн build дээр дарагдана.
 
-site_name: PetroNet System
+site_name: PetroNet Eco System
 site_description: >-
-  PetroNet System — Монгол Улсын шатахууны нэгдсэн хяналтын платформ: системийн
+  PetroNet Eco System — Монгол Улсын шатахууны нэгдсэн хяналтын платформ: системийн
   шаардлага, хөгжүүлэлтийн төлөвлөгөө, архитектур, модуль, ажиллагаа.
 site_url: https://docs.petronet.mn/
 repo_url: https://github.com/gerege-systems/petronet-gerege-nexus
@@ -90,7 +90,7 @@ plugins:
         - locale: en
           name: English
           build: true
-          site_description: "PetroNet System — Mongolia's integrated fuel monitoring platform: requirements, development plan, architecture, modules and operations."
+          site_description: "PetroNet Eco System — Mongolia's integrated fuel monitoring platform: requirements, development plan, architecture, modules and operations."
           nav_translations:
             "Танилцуулга": "Introduction"
             "Платформ": "Platform"
@@ -102,7 +102,7 @@ plugins:
             "Системийн шаардлага": "System requirements"
             "Хөгжүүлэлтийн төлөвлөгөө": "Development plan"
             "Дэлхийн жишиг": "Benchmarks"
-            "PetroNet System": "PetroNet System"
+            "PetroNet Eco System": "PetroNet Eco System"
             "Тойм": "Overview"
             "Баримтын индекс": "Document index"
             "Архитектур": "Architecture"
@@ -121,7 +121,7 @@ plugins:
         - locale: ar
           name: العربية
           build: true
-          site_description: "PetroNet System — منصة متكاملة لمراقبة الوقود في منغوليا: المتطلبات وخطة التطوير والبنية والوحدات والتشغيل."
+          site_description: "PetroNet Eco System — منصة متكاملة لمراقبة الوقود في منغوليا: المتطلبات وخطة التطوير والبنية والوحدات والتشغيل."
           nav_translations:
             "Танилцуулга": "مقدمة"
             "Платформ": "المنصّة"
@@ -133,7 +133,7 @@ plugins:
             "Системийн шаардлага": "متطلبات النظام"
             "Хөгжүүлэлтийн төлөвлөгөө": "خطة التطوير"
             "Дэлхийн жишиг": "المقارنات الدولية"
-            "PetroNet System": "PetroNet System"
+            "PetroNet Eco System": "PetroNet Eco System"
             "Тойм": "نظرة عامة"
             "Баримтын индекс": "فهرس الوثائق"
             "Архитектур": "البنية المعمارية"
@@ -152,7 +152,7 @@ plugins:
         - locale: zh
           name: 中文
           build: true
-          site_description: "PetroNet System——蒙古国燃料监测一体化平台：需求、开发计划、架构、模块与运维。"
+          site_description: "PetroNet Eco System——蒙古国燃料监测一体化平台：需求、开发计划、架构、模块与运维。"
           nav_translations:
             "Танилцуулга": "简介"
             "Платформ": "平台"
@@ -164,7 +164,7 @@ plugins:
             "Системийн шаардлага": "系统需求"
             "Хөгжүүлэлтийн төлөвлөгөө": "开发计划"
             "Дэлхийн жишиг": "国际实践"
-            "PetroNet System": "PetroNet System"
+            "PetroNet Eco System": "PetroNet Eco System"
             "Тойм": "概览"
             "Баримтын индекс": "文档索引"
             "Архитектур": "架构"
@@ -183,7 +183,7 @@ plugins:
         - locale: fr
           name: Français
           build: true
-          site_description: "PetroNet System — la plateforme intégrée de surveillance des carburants de Mongolie : exigences, plan de développement, architecture, modules, exploitation."
+          site_description: "PetroNet Eco System — la plateforme intégrée de surveillance des carburants de Mongolie : exigences, plan de développement, architecture, modules, exploitation."
           nav_translations:
             "Танилцуулга": "Présentation"
             "Платформ": "Plateforme"
@@ -195,7 +195,7 @@ plugins:
             "Системийн шаардлага": "Exigences système"
             "Хөгжүүлэлтийн төлөвлөгөө": "Plan de développement"
             "Дэлхийн жишиг": "Références internationales"
-            "PetroNet System": "PetroNet System"
+            "PetroNet Eco System": "PetroNet Eco System"
             "Тойм": "Aperçu"
             "Баримтын индекс": "Index des documents"
             "Архитектур": "Architecture"
@@ -214,7 +214,7 @@ plugins:
         - locale: ru
           name: Русский
           build: true
-          site_description: "PetroNet System — единая платформа мониторинга топлива Монголии: требования, план разработки, архитектура, модули, эксплуатация."
+          site_description: "PetroNet Eco System — единая платформа мониторинга топлива Монголии: требования, план разработки, архитектура, модули, эксплуатация."
           nav_translations:
             "Танилцуулга": "Введение"
             "Платформ": "Платформа"
@@ -226,7 +226,7 @@ plugins:
             "Системийн шаардлага": "Системные требования"
             "Хөгжүүлэлтийн төлөвлөгөө": "План разработки"
             "Дэлхийн жишиг": "Мировые практики"
-            "PetroNet System": "PetroNet System"
+            "PetroNet Eco System": "PetroNet Eco System"
             "Тойм": "Обзор"
             "Баримтын индекс": "Указатель документов"
             "Архитектур": "Архитектура"
@@ -245,7 +245,7 @@ plugins:
         - locale: es
           name: Español
           build: true
-          site_description: "PetroNet System — la plataforma integrada de vigilancia de combustibles de Mongolia: requisitos, plan de desarrollo, arquitectura, módulos y operación."
+          site_description: "PetroNet Eco System — la plataforma integrada de vigilancia de combustibles de Mongolia: requisitos, plan de desarrollo, arquitectura, módulos y operación."
           nav_translations:
             "Танилцуулга": "Introducción"
             "Платформ": "Plataforma"
@@ -257,7 +257,7 @@ plugins:
             "Системийн шаардлага": "Requisitos del sistema"
             "Хөгжүүлэлтийн төлөвлөгөө": "Plan de desarrollo"
             "Дэлхийн жишиг": "Referencias internacionales"
-            "PetroNet System": "PetroNet System"
+            "PetroNet Eco System": "PetroNet Eco System"
             "Тойм": "Resumen"
             "Баримтын индекс": "Índice de documentos"
             "Архитектур": "Arquitectura"

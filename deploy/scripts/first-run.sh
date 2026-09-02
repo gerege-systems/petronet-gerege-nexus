@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# PetroNet System — шинэ суулгацын анхны тохиргоо.
+# PetroNet Eco System — шинэ суулгацын анхны тохиргоо.
 #
 # Энэ файл байгаагийн шалтгаан: анхны тохиргоо нь shell дээрх нэг удаагийн
 # сесс байсан бөгөөд түүний үр дүн нь хагас дуусдаг байв. Grafana-гийн OAuth
@@ -187,7 +187,7 @@ finish() {
     echo "  /etc/cron.d/petronet-backup бий"
   else
     install -m 644 /dev/stdin /etc/cron.d/petronet-backup <<'CRON'
-# PetroNet System — өдөр бүрийн нөөцлөлт.
+# PetroNet Eco System — өдөр бүрийн нөөцлөлт.
 15 3 * * * root /opt/petronet/src/deploy/scripts/backup.sh >> /var/log/petronet-backup.log 2>&1
 CRON
     echo "  /etc/cron.d/petronet-backup нэмэгдлээ"
