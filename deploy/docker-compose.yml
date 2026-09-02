@@ -161,6 +161,21 @@ services:
       # core.gerege.mn; only the token is a deployment's own.
       GEREGE_CORE_TOKEN: ${GEREGE_CORE_TOKEN:-}
 
+      # Google-ээр нэвтрэх. CLIENT_ID хоосон бол унтраалттай — нэвтрэх дэлгэц
+      # Google товчийг огт зурахгүй.
+      #
+      # Google дээр бүртгэсэн redirect URI яг ${PUBLIC_ORIGIN}/api/v1/auth/google/callback
+      # байх ёстой; зам нь цөмийн тогтмол тул өөрчлөх боломжгүй.
+      #
+      # ALLOWED_DOMAINS хоосон нь «дурын Google данс орно» гэсэн үг БИШ:
+      # TENANT нэрлээгүй бол шинэ бүртгэл үүсэхгүй, зөвхөн аль хэдийн энд
+      # байгаа данс руу л хүрнэ. Хоёуланг нь хамт тохируулж байж домэйн
+      # шүүлтүүр утгатай болно.
+      GOOGLE_LOGIN_CLIENT_ID: ${GOOGLE_LOGIN_CLIENT_ID:-}
+      GOOGLE_LOGIN_CLIENT_SECRET: ${GOOGLE_LOGIN_CLIENT_SECRET:-}
+      GOOGLE_LOGIN_ALLOWED_DOMAINS: ${GOOGLE_LOGIN_ALLOWED_DOMAINS:-}
+      GOOGLE_LOGIN_TENANT: ${GOOGLE_LOGIN_TENANT:-}
+
       # Fuel network policy and optional demo routing. Demo movement is off in
       # production unless an operator deliberately enables it.
       FUEL_DAILY_GRANT_MNT: ${FUEL_DAILY_GRANT_MNT:-}
