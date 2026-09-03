@@ -13,13 +13,16 @@
 #                               production — see config.ValidateProduction
 #   PUBLIC_ORIGIN               where this instance answers
 #
-# THE PORTS ARE NOT FREE CHOICES AND ARE NOT THE CORE'S DEFAULTS. This stack
-# shares a host with fuelnet.gerege.mn, whose backend already holds
-# 127.0.0.1:8082 — the port the core's `snippets/nexus-oauth.conf` hardcodes —
-# and 3008 / 5434. So this deployment publishes 5440 / 8098 / 3018 and its vhost
-# writes the OIDC locations out itself instead of including that snippet.
-# Including it would have quietly served the neighbour's discovery document
-# from this product's domain.
+# THE PORTS ARE NOT THE CORE'S DEFAULTS. A neighbouring product used to share
+# this host and already held 127.0.0.1:8082 — the port the core's
+# `snippets/nexus-oauth.conf` hardcodes — along with 3008 and 5434. That
+# neighbour went away on 2026-09-03 and those ports are free again, but this
+# stack stays where it is: renumbering a running deployment touches compose, the
+# vhost, the certificates and every runbook, and buys nothing.
+#
+# The vhost still writes the OIDC locations out itself rather than including
+# that snippet, for a reason the neighbour's departure does not change: the
+# snippet names a port this stack's backend does not listen on.
 
 name: petronet
 

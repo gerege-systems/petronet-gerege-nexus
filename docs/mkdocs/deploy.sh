@@ -1,8 +1,8 @@
 #!/bin/sh
 # Угсраад байршуулна. Эхний аргумент нь ssh-ийн alias, хоёр дахь нь сайт.
 #
-#   sh deploy.sh fuelnet-gerege          → /var/www/docs
-#   sh deploy.sh fuelnet-gerege plan     → /var/www/plan
+#   sh deploy.sh <ssh-host>          → /var/www/docs
+#   sh deploy.sh <ssh-host> plan     → /var/www/plan
 #
 # Угсралт нь алсын хост дээр явагдана: тэнд Docker байгаа, мөн macOS дээрх
 # Docker Desktop-ийн хавтас хуваалцах зан төлөвөөс хамаарахгүй.
