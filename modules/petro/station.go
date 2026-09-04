@@ -181,6 +181,11 @@ func (m *Module) handleUpdateStation(w http.ResponseWriter, r *http.Request) {
 		nexus.Error(w, http.StatusBadRequest, "ШТС-ын нэр хоосон байж болохгүй")
 		return
 	}
+	stationID := chi.URLParam(r, "id")
+	if !isUUID(stationID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var station Station
 	err = m.db.QueryRow(r.Context(), `
@@ -206,7 +211,7 @@ func (m *Module) handleUpdateStation(w http.ResponseWriter, r *http.Request) {
 		          current_queue_count, status, is_voucher_enabled,
 		          (SELECT COUNT(*)::int FROM petro_station_inventory i
 		            WHERE i.station_id = petro_stations.id)`,
-		chi.URLParam(r, "id"), patch.Name, patch.Brand, patch.BrandLabel, patch.Aimag,
+		stationID, patch.Name, patch.Brand, patch.BrandLabel, patch.Aimag,
 		patch.District, patch.Address, patch.Phone, patch.OpeningHours, patch.Lat, patch.Lon,
 		patch.TotalPumps, patch.ActivePumps, patch.Status, patch.VoucherOpen).
 		Scan(&station.ID, &station.Name, &station.Brand, &station.BrandLabel,
@@ -249,6 +254,10 @@ func (m *Module) handleDeleteStation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stationID := chi.URLParam(r, "id")
+	if !isUUID(stationID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var receipts, trips int
 	if err := m.db.QueryRow(r.Context(), `
@@ -338,6 +347,10 @@ func (m *Module) handleSetStationGrade(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stationID := chi.URLParam(r, "id")
+	if !isUUID(stationID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	// The station has to be one this organisation may write to. The policy
 	// already says so for the insert, but the foreign key would answer with a
@@ -399,6 +412,10 @@ func (m *Module) handleDeleteStationGrade(w http.ResponseWriter, r *http.Request
 		return
 	}
 	stationID, fuelType := chi.URLParam(r, "id"), chi.URLParam(r, "fuelType")
+	if !isUUID(stationID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	tag, err := m.db.Exec(r.Context(),
 		`DELETE FROM petro_station_inventory WHERE station_id = $1 AND fuel_type = $2`,

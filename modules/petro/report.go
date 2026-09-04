@@ -223,6 +223,10 @@ func (m *Module) handlePrefill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	periodID := chi.URLParam(r, "id")
+	if !isUUID(periodID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	period, err := m.readPeriod(r.Context(), periodID)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -305,6 +309,12 @@ func (m *Module) submitDraft(w http.ResponseWriter, r *http.Request, periodID st
 	}
 	tenantID, ok := nexus.RequireWorkspace(w, r)
 	if !ok {
+		return
+	}
+	// Both doors reach here — the form and the workbook — so the shape of the
+	// period id is checked once, before a 16 MB upload has been parsed.
+	if !isUUID(periodID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
 		return
 	}
 
@@ -556,6 +566,10 @@ func (m *Module) handleReadSubmission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := chi.URLParam(r, "id")
+	if !isUUID(id) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var s Submission
 	err := m.db.QueryRow(r.Context(), `

@@ -278,21 +278,35 @@ func (m *Module) handleRecordSale(w http.ResponseWriter, r *http.Request) {
 	// by id or by the QR the citizen presents, and only while it is active —
 	// the WHERE clause is what makes a second scan of the same code fail
 	// rather than dispense twice.
+	//
+	// Through petro_redeem_voucher rather than an UPDATE here, and the reason
+	// is that the UPDATE could never touch the row it was written for. A
+	// citizen belongs to the eID organisation and a forecourt to its operator,
+	// so `tenant_isolation` narrowed the statement to a table with none of that
+	// citizen's vouchers in it: zero rows, no error, and the 409 below —
+	// indistinguishable, in production, from a code that really had been spent.
+	// The function is SECURITY DEFINER and checks the one thing that matters
+	// instead: that the forecourt dispensing the fuel is the caller's own
+	// (migration 00014).
 	if draft.VoucherID != "" || draft.QRToken != "" {
 		var amount float64
 		var fuelType string
 		err = tx.QueryRow(r.Context(), `
-			UPDATE petro_vouchers
-			   SET status = 'redeemed', redeemed_at = NOW(),
-			       redeemed_station_id = $2::uuid, redeemed_liters = $3
-			 WHERE (id = NULLIF($1, '')::uuid OR qr_token = NULLIF($4, ''))
-			   AND status = 'active' AND expires_at > NOW()
-			RETURNING id::text, amount_mnt::float8, fuel_type`,
+			SELECT voucher_id::text, voucher_amount::float8, voucher_fuel
+			  FROM petro_redeem_voucher(
+			           NULLIF($1, '')::uuid, NULLIF($4, ''), $2::uuid, $3)`,
 			draft.VoucherID, stationID, draft.Liters, draft.QRToken).
 			Scan(&sale.VoucherID, &amount, &fuelType)
 		if errors.Is(err, pgx.ErrNoRows) {
 			nexus.Error(w, http.StatusConflict,
 				"ваучер идэвхгүй, хугацаа дууссан, эсвэл аль хэдийн ашиглагдсан байна")
+			return
+		}
+		if isInsufficientPrivilege(err) {
+			// The same answer the inventory statement below gives for a
+			// forecourt this organisation cannot see: which of "not yours" and
+			// "not there" it is, is not the caller's to learn.
+			nexus.Error(w, http.StatusNotFound, "ШТС олдсонгүй")
 			return
 		}
 		if err != nil {

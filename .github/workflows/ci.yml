@@ -20,6 +20,33 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+
+    # Модулийн интеграцийн тестүүд бодит Postgres шаарддаг бөгөөд байхгүй бол
+    # ЧИМЭЭГҮЙ skip болдог: `go test` ногоон, гэтэл мөрийн түвшний тусгаарлалт,
+    # дөрвөн нүд, хэш гинж, CHECK хязгаарууд — өөрөөр хэлбэл кодын салааг
+    # харж шалгах боломжгүй яг тэр дүрмүүд — огт ажиллаагүй байна. Ваучерын
+    # cross-tenant алдаа (00014) яг ийм байдлаар main дээр амьдарсан.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: platform_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          # Прод кластер Улаанбаатарын цагаар ажилладаг (deploy/docker-compose.yml).
+          # CURRENT_DATE-ийг долоон газар хэрэглэдэг тул тест ч мөн адил байх ёстой.
+          TZ: Asia/Ulaanbaatar
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d platform_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/platform_db?sslmode=disable
+
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -28,10 +55,39 @@ jobs:
           # code is written against.
           go-version-file: go.mod
           cache-dependency-path: go.sum
+
+      # Схемийг байрлуулах нь хоёр алхам, яг байрлуулалт дээрхтэй адил:
+      # цөмийн түүх өөрийн хүснэгтэд, модулийн түүх `goose_db_version_petro`-д
+      # (appinstall-ийн нэрлэх дүрэм: апп id-гийн сүүлийн хэсэг). Хоёр дуудлага
+      # тусдаа холболт үүсгэдэг нь бас чухал: цөмийн 00080 нь өгөгдлийн сангийн
+      # `search_path`-ийг `tenant, platform` болгодог ба модулийн угтваргүй
+      # хүснэгтүүд түүний ачаар зөв plane-д унана.
+      - name: Миграцын хөтлөгч
+        run: |
+          go build -o /tmp/migrate github.com/gerege-systems/open-gerege-nexus/backend/cmd/migrate
+          echo "CORE_DIR=$(go list -m -f '{{.Dir}}' github.com/gerege-systems/open-gerege-nexus/backend)" >> "$GITHUB_ENV"
+      - name: Платформын схем
+        run: MIGRATIONS_DIR="$CORE_DIR/db/migrations" /tmp/migrate up
+      - name: Модулийн схем
+        run: |
+          MIGRATIONS_DIR=modules/petro/migrations \
+          MIGRATIONS_TABLE=goose_db_version_petro \
+          /tmp/migrate up
+
       - name: go vet
         run: go vet ./...
       - name: go test
         run: go test -race -count=1 ./...
+
+      # Тест DB-тэй болсны дараа skip нь ногоон CI-гийн доор нуугдаж чадна.
+      # Хамгийн хямд хамгаалалт: интеграцийн тестүүд үнэхээр ажилласан эсэхийг
+      # нэрээр нь асуух.
+      - name: Интеграцийн тест ажилласан эсэх
+        run: |
+          go test -count=1 -run TestOnlyASupervisoryBodySeesAnotherCompanysReport \
+            -v ./modules/petro/ | tee /tmp/rls.log
+          grep -q -- "--- PASS: TestOnlyASupervisoryBodySeesAnotherCompanysReport" /tmp/rls.log \
+            || { echo "RLS тест ажиллаагүй — DATABASE_URL хүрсэнгүй юү?"; exit 1; }
 
   image:
     name: Image

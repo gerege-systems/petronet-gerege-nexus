@@ -690,3 +690,18 @@ func isCheckViolation(err error) bool {
 	var pgErr interface{ SQLState() string }
 	return errors.As(err, &pgErr) && pgErr.SQLState() == "23514"
 }
+
+// isInsufficientPrivilege reports whether one of this module's named actions
+// refused its caller.
+//
+// The SECURITY DEFINER functions raise 42501 when the caller is not who the
+// action is for — not an oversight body, or not the forecourt's operator. It is
+// a decision the function took deliberately, so it must not reach the caller as
+// a 500 alongside the faults nobody planned for.
+func isInsufficientPrivilege(err error) bool {
+	if err == nil {
+		return false
+	}
+	var pgErr interface{ SQLState() string }
+	return errors.As(err, &pgErr) && pgErr.SQLState() == "42501"
+}

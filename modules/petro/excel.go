@@ -80,6 +80,10 @@ func (m *Module) handleTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	periodID := chi.URLParam(r, "id")
+	if !isUUID(periodID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	period, err := m.readPeriod(r.Context(), periodID)
 	if errors.Is(err, pgx.ErrNoRows) {

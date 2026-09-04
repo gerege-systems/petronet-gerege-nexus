@@ -47,6 +47,10 @@ func (m *Module) handleTripTelemetry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tripID := chi.URLParam(r, "id")
+	if !isUUID(tripID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var report TelemetryReport
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&report); err != nil {

@@ -140,6 +140,10 @@ func (m *Module) handleReview(decision string) http.HandlerFunc {
 			return
 		}
 		id := chi.URLParam(r, "id")
+		if !isUUID(id) {
+			nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+			return
+		}
 
 		var verdict Verdict
 		if r.ContentLength > 0 {

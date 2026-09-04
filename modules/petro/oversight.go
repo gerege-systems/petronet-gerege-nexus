@@ -326,7 +326,11 @@ func (m *Module) handleReconciliation(w http.ResponseWriter, r *http.Request) {
 	pol := m.LoadPolicy(r.Context())
 
 	days := 7
-	from := time.Now().AddDate(0, 0, -days).Format("2006-01-02")
+	// nexus.Now(), not time.Now(): the window is a run of calendar days in
+	// Ulaanbaatar, and the container's clock is UTC. Between midnight and eight
+	// in the morning the two disagree by a day, which is exactly when a night
+	// shift's figures are being looked at.
+	from := nexus.Now().AddDate(0, 0, -days).Format("2006-01-02")
 
 	// ΔB — what left a depot against what a forecourt signed for, from the
 	// movements closed in the window.
@@ -403,7 +407,9 @@ func (m *Module) handleRefreshDaily(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	day := time.Now()
+	// The same calendar the scheduled refresh uses (jobs.go); on UTC, time.Now()
+	// would recompute yesterday for anybody pressing the button before 08:00.
+	day := nexus.Now()
 	if v := r.URL.Query().Get("day"); v != "" {
 		parsed, err := time.Parse("2006-01-02", v)
 		if err != nil {
