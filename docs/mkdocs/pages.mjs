@@ -30,6 +30,7 @@ export const PAGES = [
   {src: "docs/RUNBOOKS.md", slug: "runbooks", title: "Гарын авлага", group: "Ажиллагаа"},
 
   {src: "docs/SHELL_CONTRACT.md", slug: "shell-contract", title: "Bridge гэрээ", group: "Клиент"},
+  {src: "docs/NATIVE-APPS.md", slug: "native-apps", title: "Native клиентүүд", group: "Клиент"},
   {src: "docs/TRANSLATION.md", slug: "translation", title: "Орчуулга", group: "Клиент"},
 
   {src: "CONTRIBUTING.md", slug: "contributing", title: "Хувь нэмэр оруулах", group: "Төслийн журам"},
