@@ -1,10 +1,38 @@
 /petronet-gerege-nexus
+
+# Deployment secrets and credentials.  The example files are contracts; the
+# values that satisfy them belong in the secret store or on the host.
 *.env
 !.env.example
+deploy/secrets/
+
+# Private keys, signing credentials and platform-specific service accounts.
+# PetroNet is an eID relying party and must never acquire a committed copy of
+# the identity system's key material while the two repositories are compared.
+*.pem
+*.key
+*.p8
+*.pfx
+*.p12
+*.jks
+*.keystore
+*-admin.json
+*-signer.json
+google-services.json
+GoogleService-Info.plist
+
 brand/
 *.pdf
 .DS_Store
+*.log
+
+# Ad-hoc backups often contain a copy of an env or credential file.
+*.bak
 
 # MkDocs-ийн угсралт: гаралт нь артефакт, эх сурвалж нь docs/*.md ба plan/*.md
 docs/mkdocs/build/
 docs/mkdocs/build-plan/
+
+# Playwright-ийн гаралт: сүүлийн ажиллалтын төлөв, ул мөр, дэлгэцийн зураг.
+frontend/test-results/
+frontend/playwright-report/

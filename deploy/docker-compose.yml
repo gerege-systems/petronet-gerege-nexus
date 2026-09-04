@@ -26,8 +26,16 @@
 
 name: petronet
 
+# Shared container hardening, adapted from eid-gerege-mn.  Images that need to
+# start as root (Postgres, Grafana, nginx) may still initialise normally, but a
+# setuid binary cannot grant a process more privilege than it started with.
+x-hardening: &hardening
+  security_opt:
+    - no-new-privileges:true
+
 services:
   postgres:
+    <<: *hardening
     image: postgres:16-alpine
     container_name: gerege_petronet_postgres
     restart: unless-stopped
@@ -57,6 +65,7 @@ services:
       retries: 5
 
   migrate:
+    <<: *hardening
     image: ${IMAGE:-petronet:latest}
     container_name: gerege_petronet_migrate
     # The platform's migrations, from the core version this product's go.mod
@@ -71,6 +80,7 @@ services:
     restart: "no"
 
   backend:
+    <<: *hardening
     image: ${IMAGE:-petronet:latest}
     container_name: gerege_petronet_backend
     restart: unless-stopped
@@ -204,6 +214,7 @@ services:
   # information pages. deploy.sh builds this image from frontend/ together with
   # the backend so the two halves are rolled out as one revision.
   web:
+    <<: *hardening
     image: petronet-web:latest
     container_name: gerege_petronet_web
     restart: unless-stopped
@@ -252,6 +263,12 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
   # The console's metrics, and nothing else.
   #
@@ -260,6 +277,7 @@ services:
   # products' traffic under this deployment's name. Small retention to match
   # the job: 15 days is longer than any question this screen answers.
   prometheus:
+    <<: *hardening
     image: prom/prometheus:v3.1.0
     container_name: gerege_petronet_prometheus
     restart: unless-stopped
@@ -286,6 +304,7 @@ services:
   # хостын ижил тоог хоёр удаа хэмжинэ — тэр давхардлын үнэ нь энэ стек
   # хөршөөсөө хамааралгүй байх явдал.
   node-exporter:
+    <<: *hardening
     image: prom/node-exporter:v1.9.0
     container_name: gerege_petronet_node_exporter
     restart: unless-stopped
@@ -308,6 +327,7 @@ services:
   # заана. Хостын порт (5440) руу заасан бол хөршийн сан руу заах алдаа нэг
   # тэмдэгтийн зайд байх байв.
   postgres-exporter:
+    <<: *hardening
     image: prometheuscommunity/postgres-exporter:v0.17.1
     container_name: gerege_petronet_postgres_exporter
     restart: unless-stopped
@@ -325,6 +345,7 @@ services:
   # байхгүй тул `GF_SERVER_SERVE_FROM_SUB_PATH` хэрэггүй — тэр нь холбоос
   # бүрийг эвддэг тохиргоо бөгөөд шаардлагагүй үед асаах нь дэмий эрсдэл.
   grafana:
+    <<: *hardening
     image: grafana/grafana:13.2.0
     container_name: gerege_petronet_grafana
     restart: unless-stopped
@@ -423,6 +444,7 @@ services:
   # гараар хуулах алхам байхгүй. Гурвуулаа read-only, эрх нэмэгдэхгүй, зөвхөн
   # loopback: TLS ба толгойнууд хостын nginx дээр.
   dwh: &static-site
+    <<: *hardening
     image: nginx:1.29-alpine
     container_name: gerege_petronet_dwh
     restart: unless-stopped
@@ -434,8 +456,6 @@ services:
     tmpfs:
       - /var/cache/nginx
       - /var/run
-    security_opt:
-      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
       interval: 30s

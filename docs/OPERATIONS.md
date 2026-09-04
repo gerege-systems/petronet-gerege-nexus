@@ -351,7 +351,11 @@ psql restore_check -c "select count(*) from information_schema.tables
 нэмсэн нь server түвшний дөрвөн толгойг — CSP, HSTS, X-Frame-Options,
 X-Content-Type-Options — чимээгүй унтраасан. Хуудас зөв харагдсаар, хариу
 200 хэвээр; зөвхөн толгойг нь уншиж байж мэдэгдэнэ. Шийдэл нь бүх
-`add_header`-ийг нэг түвшинд байлгах.
+тогтвортой `add_header`-ийг server түвшинд байлгах. Одоо nginx upstream-ийн
+давхар хуулбарыг `proxy_hide_header`-ээр хасаад HSTS, frame, MIME, permission
+толгойг нэг удаа өөрөө гаргана. CSP бол тогтвортой утга биш: Next.js хүсэлт
+бүрд nonce үүсгэж HTML-ийн script-т суулгадаг тул зөвхөн тэр толгойг nginx
+өөрчлөлгүй нэвтрүүлнэ.
 
 **Certbot HTTP/2 бичдэггүй.** Тэр нь `listen 443 ssl` мөрийг өөрөө бичдэг ба
 протоколыг нэмдэггүй. Үр дүнд нь 2026-08-28-ны HTTP/2 шилжилтийн дараа
