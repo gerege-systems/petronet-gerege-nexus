@@ -459,6 +459,31 @@ curl -s -o /dev/null -w "http/%{http_version} %{http_code}\n" https://<нэр>/
 curl -sI https://<нэр>/ | grep -iE 'content-security|strict-transport|x-frame'
 ```
 
+## Баримтын сайтыг шинэчлэх
+
+`docs.petronet.mn` ба `plan.petronet.mn` хоёр нь **өөрийн nginx контейнертэй**
+бөгөөд тэдгээр нь репо доторх `docs/mkdocs/build/site`,
+`docs/mkdocs/build-plan/site`-ыг bind mount-оор үйлчилдэг. Хостын nginx нь
+зөвхөн 3021 / 3023 руу дамжуулна.
+
+```bash
+sh docs/mkdocs/deploy.sh fuelnet-gerege        # docs.petronet.mn
+sh docs/mkdocs/deploy.sh fuelnet-gerege plan   # plan.petronet.mn
+```
+
+Хоёр урхи, хоёулаа **200 хариу өгсөөр** ажилладаг тул анзаарагдахгүй өнгөрнө:
+
+**`/var/www/docs` руу хуулах нь ямар ч нөлөөгүй.** Цөмийн `deploy.sh` тэгж
+хийдэг — тэнд nginx статик хавтаснаас уншдаг. Энд уншдаггүй. Файлууд очих ч
+хэн ч уншихгүй, скрипт «published» гэж хэлээд хуудас 404 хэвээр үлдэнэ.
+
+**Дахин угсарсны дараа контейнерыг ДАХИН АСААНА.** `mkdocs build` нь гаралтын
+хавтсыг устгаад дахин үүсгэдэг («Cleaning site directory») тул inode нь
+солигдоно. Контейнерийн mount хуучин inode дээр үлдэж, доторх nginx устсан
+модыг үйлчилсээр байна: шинэ хуудас 404, хуучин хуудас хуучин агуулгаараа
+200. `docker ps` эрүүл, `nginx -t` цэвэр, лог чимээгүй. `deploy.sh` үүнийг
+өөрөө хийдэг болов.
+
 ## Гараар хийгддэг зүйлс
 
 Байршуулалт автомат, гэхдээ эдгээр нь биш. Шинэ хост дээр мартагддаг зүйлс:
