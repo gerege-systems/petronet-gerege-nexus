@@ -1,0 +1,114 @@
+{
+  "$comment": [
+    "Төхөөрөмжийн domain шугамуудын цорын ганц эх сурвалж.",
+    "",
+    "Дүрэм: backend ЦОР ГАНЦ. Шугам бүр өөрийн host-той ч /api/v1 нь бүгд",
+    "нэг ижил API upstream руу очно (nginx/device-lines.petronet.mn.conf).",
+    "Тиймээс webview доторх дуудлага үргэлж SAME-ORIGIN — session cookie нь",
+    "SameSite=Strict хэвээр ажиллаж, CORS preflight огт үүсэхгүй.",
+    "",
+    "ХАЯГ НЬ FORM FACTOR-ЫГ НЭРЛЭНЭ, ПЛАТФОРМЫГ БИШ. Ширээн дээрх Mac ба",
+    "ширээн дээрх Windows хоёр нэг шугам: хүн тэр хоёртой ижил байдлаар",
+    "харьцдаг. Бүрхүүл өөрийгөө юу гэж хэлж байгаа нь тусдаа зүйл бөгөөд",
+    "window.GeregeShell.platform дээр хэвээр байна.",
+    "",
+    "kiosk ба pos нь desktop/mobile дотор ОРООГҮЙ: нэг Windows машин дээр",
+    "ажлын ширээний клиент ба киоск зэрэг ажиллаж болох тул тэдний хооронд",
+    "host-only cookie-гийн тусгаарлалт хэрэгтэй хэвээр. macOS ба Windows хоёр",
+    "нэг машин дээр хэзээ ч зэрэг ажиллахгүй тул тэдэнд хэрэггүй.",
+    "",
+    "Хөтчийн шугам (browserLine) хэвээр үлдэнэ — тэнд web app өөрөө бүрэн апп.",
+    "Төхөөрөмжийн шугам дээр web нь зөвхөн native хүрээн доторх ажлын муж.",
+    "",
+    "",
+    "АППЫН НЭР НЬ ШУГАМАА ДАГАНА: шугам бүрийн `app` талбар нь Xcode-ийн",
+    "target/scheme, Gradle-ийн rootProject, .NET-ийн solution/namespace-ийн нэр.",
+    "Тиймээс `desktop` шугамын macOS ба Windows хоёр НЭГ нэртэй",
+    "(PetroNetDesktop) — хүн тэр хоёртой ижил байдлаар харьцдагтай адил.",
+    "`kiosk`, `pos` хоёрын нэр нь ЗАХИАЛГАТАЙ: клиент нь хараахан байхгүй."
+  ],
+  "$provisioning": [
+    "Шугамууд ХАРААХАН АСААГҮЙ. Дөрвүүлэнг асаах дараалал (энэ дараалал нь дүрэм):",
+    "  1. DNS   desktop/mobile/kiosk/pos.petronet.mn → 38.180.120.144",
+    "           (petronet.mn дээр wildcard БАЙХГҮЙ — энэ IP дээр өөр домэйнууд",
+    "            сууж байгаа тул A бичлэг тус бүрээр нэмнэ.)",
+    "  2. nginx nginx/device-lines.petronet.mn.conf → sites-available/-enabled",
+    "  3. TLS   certbot --nginx -d desktop.petronet.mn -d mobile.petronet.mn \\",
+    "                          -d kiosk.petronet.mn -d pos.petronet.mn",
+    "  4. API   DEVICE_LINE_ORIGINS → ALLOWED_ORIGINS (.env)",
+    "  5. ХАМГИЙН СҮҮЛД клиентийн 'client' талбарт заасан мөр.",
+    "Эсрэг дараалал нь аппыг байхгүй host руу чиглүүлж унагаана.",
+    "",
+    "Upstream портууд нь энэ стекийнх: 3018 бүрхүүл, 8098 API — цөмийн анхдагч",
+    "3000/8080 БИШ (nginx/petronet.mn.conf-д шалтгааныг бичсэн)."
+  ],
+  "browserLine": {
+    "platform": "browser",
+    "prodOrigin": "https://petronet.mn",
+    "devOrigin": "http://localhost:3000"
+  },
+  "deviceLines": {
+    "desktop": {
+      "line": "https://desktop.petronet.mn",
+      "app": "PetroNetDesktop",
+      "platforms": [
+        "macos",
+        "windows"
+      ],
+      "provisioned": false,
+      "devOrigin": "http://localhost:3000",
+      "startRoute": "/",
+      "client": [
+        "native-apps/desktop/macos/Core/Network/AppConfig.swift → apiBaseURL (#else салаа)",
+        "native-apps/desktop/windows/src/PetroNetDesktop.Client/appsettings.json → Api.BaseUrl"
+      ],
+      "home": "/line/desktop",
+      "$note": "Клиент бэлэн, ШУГАМ хараахан асаагүй — $provisioning-ийн дарааллыг дага."
+    },
+    "mobile": {
+      "line": "https://mobile.petronet.mn",
+      "app": "PetroNetMobile",
+      "platforms": [
+        "ios",
+        "android"
+      ],
+      "provisioned": false,
+      "devOrigin": "http://localhost:3000 (Android эмулятор дээр http://10.0.2.2:3000)",
+      "startRoute": "/",
+      "client": [
+        "native-apps/desktop/macos/Core/Network/AppConfig.swift → apiBaseURL (#if os(iOS) салаа; iOS нь мак-тай эх кодоо хуваалцана)",
+        "native-apps/mobile/android/app/src/main/kotlin/mn/petronet/app/AppConfig.kt → DEFAULT_BASE_URL"
+      ],
+      "home": "/line/mobile",
+      "$note": "Клиент бэлэн, ШУГАМ хараахан асаагүй — $provisioning-ийн дарааллыг дага."
+    },
+    "kiosk": {
+      "line": "https://kiosk.petronet.mn",
+      "app": "PetroNetKiosk",
+      "platforms": [
+        "windows",
+        "android"
+      ],
+      "provisioned": false,
+      "devOrigin": "http://localhost:3000",
+      "startRoute": "/",
+      "client": [],
+      "home": "/line/kiosk",
+      "$note": "Шугам хараахан асаагүй, КЛИЕНТ ч байхгүй. Нэр нь захиалгатай."
+    },
+    "pos": {
+      "line": "https://pos.petronet.mn",
+      "app": "PetroNetPos",
+      "platforms": [
+        "windows",
+        "android"
+      ],
+      "provisioned": false,
+      "devOrigin": "http://localhost:3000",
+      "startRoute": "/",
+      "client": [],
+      "home": "/line/pos",
+      "$note": "Шугам хараахан асаагүй, КЛИЕНТ ч байхгүй. Нэр нь захиалгатай."
+    }
+  }
+}

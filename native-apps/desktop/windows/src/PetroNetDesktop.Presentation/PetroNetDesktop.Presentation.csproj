@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>PetroNetDesktop.Presentation</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PetroNetDesktop.Application\PetroNetDesktop.Application.csproj" />
+    <ProjectReference Include="..\PetroNetDesktop.Domain\PetroNetDesktop.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="QRCoder" />
+  </ItemGroup>
+
+</Project>

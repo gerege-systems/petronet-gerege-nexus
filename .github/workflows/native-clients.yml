@@ -1,0 +1,93 @@
+# Энэ репогийн native клиентүүд компайл хийгдэж байгаа эсэх.
+#
+# Гурван клиент, нэг гэр бүл: macOS (SwiftUI), iOS/iPadOS (мак-тай эх кодоо
+# ХУВААЛЦДАГ), Android (Compose, өнгө/орчуулгаа мак-аас ҮҮСГЭДЭГ). Тиймээс
+# ширээний нэг файл эвдэрвэл утасны build ч улаан болно — тэр нь зөв дохио.
+#
+# Windows клиент гурван distribution хэлбэрээр ижил solution-ийг компайлдана.
+# Job нэрүүд (`macos`, `windows (…)`, `android`) нь main branch protection-д
+# required check болсон тул нэрийг нь workflow-оос салгаж өөрчилж болохгүй.
+#
+# Windows нь ӨӨРИЙН ТӨМӨР дээр ажиллана (`petronet-win`, 38.180.136.249) —
+# GitHub-ийн `windows-latest` дээр биш. Шалтгаан нь мөнгө биш: тэр машин дээр
+# WinUI-ийн XamlCompiler ажиллуулж чадах Windows SDK ба Build Tools суусан
+# бөгөөд бид тэдгээрийн хувилбарыг өөрсдөө барина. Мөн ижил машин дээр
+# `eid-platform-mn`-ий runner зэрэгцэн ажиллаж байгаа тул шошго нь
+# `petronet-win` — хоёр репогийн ажил хольж явахгүй.
+#
+# pull_request дээр path шүүлтгүй ажиллаж байгаа нь санаатай. Шаардлагатай
+# шалгалт (required check) нь path-аар шүүгдсэн бол шүүлтэд таараагүй PR дээр
+# ХЭЗЭЭ Ч мэдээлдэггүй, тэгээд backend-ийн PR бүр хэзээ ч ажиллахгүй job-ыг
+# хүлээнэ. Энэ репод яг тэр болж, main нь Android дээр эвдэрсэн хэвээр үлдсэн.
+name: Native clients
+
+on:
+  push:
+    branches: [main]
+    paths: ["native-apps/**", ".github/workflows/native-clients.yml"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: brew install xcodegen
+      # Ширээний бүрхүүл ба түүний токен сан.
+      - run: swift test
+        working-directory: native-apps/desktop/gerege-token-kit
+      - run: ./build.sh
+        working-directory: native-apps/desktop/macos
+      # Утасны клиент — ижил эх файлуудыг iOS дээр компайл хийж байгааг шалгана.
+      - run: ./build.sh
+        working-directory: native-apps/mobile/ios
+
+  windows:
+    strategy:
+      matrix:
+        form_factor: [Desktop, Kiosk, POS]
+    runs-on: [self-hosted, windows, petronet-win]
+    # Энэ репо НИЙТИЙН бөгөөд self-hosted runner нь хуваалцсан төмөр.
+    # Fork-оос ирсэн PR-ийн код тэр машин дээр ажиллах ЁСГҮЙ: workflow-г
+    # солиод дурын тушаал ажиллуулах нь fork-д хэдхэн мөрийн ажил бөгөөд
+    # хажууд нь өөр бүтээгдэхүүний runner сууж байна. Тиймээс энэ job зөвхөн
+    # энэ репогийн өөрийн салбарууд дээр ажиллана; fork-ийн PR дээр
+    # алгасагдана (GitHub-ийн «шаардлагатай шалгалт» нь алгассаныг амжилт
+    # гэж уншина, харин main руу push хийхэд бүрэн ажиллана).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v7
+      # `setup-dotnet` энд БАЙХГҮЙ: өөрийн машин дээр .NET SDK нь машины
+      # тохиргооны нэг хэсэг (C:\dotnet, 8.0.422) бөгөөд ажил бүрд SDK
+      # татаж, тэр машины хувилбарыг чимээгүй сольж байх шаардлагагүй.
+      - run: dotnet --version
+      - run: dotnet build PetroNetDesktop.sln --configuration Release -p:FormFactor=${{ matrix.form_factor }} -p:RestoreLockedMode=false
+        working-directory: native-apps/desktop/windows
+      # Ажлын хавтас нь машин дээр үлддэг тул build гаралтыг цэвэрлэнэ —
+      # 40 ГБ дискний хагасыг гурван form factor хэдхэн долоо хоногт иднэ.
+      - if: always()
+        run: git clean -xdf native-apps/desktop/windows
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v6
+      - uses: android-actions/setup-android@v4
+      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      # Үүсгэсэн өнгө/орчуулга нь эх сурвалжтайгаа ТААРЧ байгаа эсэх: скриптийг
+      # дахин ажиллуулаад ялгаа гарвал хэн нэгэн гаралтыг гараар зассан эсвэл
+      # ширээний токен өөрчлөгдөөд энд дагаагүй гэсэн үг.
+      - run: python3 scripts/gen_from_swift.py
+        working-directory: native-apps/mobile/android
+      - run: git diff --exit-code -- native-apps/mobile/android
+      - run: ./gradlew test assembleDebug
+        working-directory: native-apps/mobile/android

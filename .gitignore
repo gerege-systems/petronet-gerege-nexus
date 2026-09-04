@@ -36,3 +36,21 @@ docs/mkdocs/build-plan/
 # Playwright-ийн гаралт: сүүлийн ажиллалтын төлөв, ул мөр, дэлгэцийн зураг.
 frontend/test-results/
 frontend/playwright-report/
+
+# ------------------------------------------------------- native клиентүүд
+# Xcode-ийн хэрэглэгчийн төлөв — машин бүрт өөр, түүхэнд хэрэггүй.
+xcuserdata/
+*.xcuserstate
+native-apps/desktop/macos/build/
+native-apps/desktop/macos/PetroNetDesktop
+# .xcodeproj нь project.yml-ээс ҮҮСГЭГДДЭГ артефакт — build.sh бүрд шинэчлэгдэнэ.
+native-apps/desktop/macos/PetroNetDesktop.xcodeproj/
+native-apps/mobile/ios/PetroNetMobile.xcodeproj/
+native-apps/desktop/gerege-token-kit/.build/
+native-apps/mobile/android/**/build/
+native-apps/mobile/android/.gradle/
+native-apps/mobile/android/local.properties
+native-apps/mobile/ios/.build/
+native-apps/mobile/ios/.swiftpm/
+native-apps/desktop/windows/**/bin/
+native-apps/desktop/windows/**/obj/

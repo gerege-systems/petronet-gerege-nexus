@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PetroNetDesktop.Client (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PetroNetDesktop.Client (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

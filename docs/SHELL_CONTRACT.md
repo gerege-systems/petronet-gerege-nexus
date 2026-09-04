@@ -71,22 +71,32 @@ Android дээр нэг scene. Нэвтрэлт, ажлын муж, тохирг
 | Шугам | Хэн ашиглах | Төлөв |
 | --- | --- | --- |
 | `petronet.mn` | Хөтөч / PWA — web app өөрөө бүрэн апп | ✅ ажиллаж байна |
-| `mac.petronet.mn` | macOS | ✅ ажиллаж байна |
-| `win.petronet.mn` | Windows Desktop | ✅ ажиллаж байна |
-| `ios.petronet.mn` | iOS / iPadOS | ✅ ажиллаж байна |
-| `android.petronet.mn` | Android mobile / tablet | ✅ ажиллаж байна |
-| `kiosk.petronet.mn` | Kiosk (Windows, Android) | ✅ ажиллаж байна |
-| `pos.petronet.mn` | POS (Windows, Android) | ✅ ажиллаж байна |
+| `desktop.petronet.mn` | macOS, Windows — `PetroNetDesktop` | ⛔ хараахан асаагүй |
+| `mobile.petronet.mn` | iOS/iPadOS, Android — `PetroNetMobile` | ⛔ хараахан асаагүй |
+| `kiosk.petronet.mn` | Kiosk (Windows, Android) | ⛔ хараахан асаагүй |
+| `pos.petronet.mn` | POS (Windows, Android) | ⛔ хараахан асаагүй |
 
-Бүх нэр `*.petronet.mn` wildcard-аар нэг IP руу очиж, зургуулаа нэг
-Let's Encrypt гэрчилгээнд багтана.
+**Хаяг нь FORM FACTOR-ыг нэрлэнэ, платформыг биш.** Ширээн дээрх Mac ба ширээн
+дээрх Windows хоёр НЭГ шугам: хүн тэр хоёртой ижил байдлаар — сандал дээр
+суугаад, гар талдаа байлгаж — харьцдаг тул дэлгэцийн нягтрал, товчны хэмжээ,
+юуг эхэнд тавих нь ижил. Бүрхүүл өөрийгөө юу гэж хэлж байгаа нь ТУСДАА зүйл
+бөгөөд `window.GeregeShell.platform` дээр хэвээр байна — шаардлагатай бол нэг
+шугамын дэлгэц дотроос платформоор салаалж болно.
+
+`kiosk` ба `pos` нь `desktop`/`mobile` дотор ОРООГҮЙ: нэг Windows машин дээр
+ажлын ширээний клиент ба киоск зэрэг ажиллаж болох тул тэдэнд host-only
+cookie-гийн тусгаарлалт хэрэгтэй хэвээр.
+
+`*.petronet.mn` wildcard БАЙХГҮЙ — энэ IP дээр өөр бүтээгдэхүүний домэйнууд
+сууж байгаа тул шугам бүр өөрийн A бичлэгтэй, дөрвүүлэн нэг Let's Encrypt
+гэрчилгээнд нэрлэгдэнэ (`nginx/device-lines.petronet.mn.conf`).
 
 > **ШИНЭ шугам нэмэхдээ клиентийг урьдчилж чиглүүлж БОЛОХГҮЙ.** DNS, nginx,
 > TLS, `DEVICE_LINE_ORIGINS` дөрвүүлэн бэлэн болохоос өмнө клиентийг зааж
 > өгвөл апп `A server with the specified hostname could not be found` гэж
 > унаж, нэвтрэх боломжгүй болно — энэ нь нэг удаа тохиолдсон. Дараалал ба
 > тухайн платформын яг аль мөрийг солихыг
-> [`native-apps/shared/device_lines.json`](https://github.com/gerege-systems/open-gerege-nexus/blob/main/native-apps/shared/device_lines.json)-ы
+> [`native-apps/shared/device_lines.json`](../native-apps/shared/device_lines.json)-ы
 > `$provisioning` заана.
 
 Шугам бүр өөрийн host дээрээ `/api/v1`-ээ **мөн** үйлчилнэ; nginx тэдгээрийг
@@ -502,13 +512,13 @@ f.contentWindow.webkit?.messageHandlers?.geregeShell; // undefined байх ёс
 
 **H. Төхөөрөмжийн domain шугам зөв эсэх** (§1b)
 
-1. Ажлын мужийн console дээр `location.host` — тухайн платформын шугам байна
-   (`mac.`, `win.`, `ios.`, `android.`, `kiosk.`, `pos.`).
+1. Ажлын мужийн console дээр `location.host` — тухайн ШУГАМ байна
+   (`desktop.`, `mobile.`, `kiosk.`, `pos.`), платформын нэр БИШ.
 2. Network таб: `/api/v1/...` дуудлагууд **ижил host** руу явж байна; `OPTIONS`
    preflight огт байхгүй.
 3. `document.cookie`-д `session_token` харагдахгүй (HttpOnly) ч API дуудлага
    200 буцааж байна — cookie same-origin-оор явж байгаагийн шинж.
-4. Хөтчөөр `https://mac.petronet.mn/login` руу орвол `/apps` руу
+4. Хөтчөөр `https://desktop.petronet.mn/login` руу орвол `/apps` руу
    шилжинэ — тэр шугам дээр нэвтрэлт нь native UI.
 5. `https://petronet.mn` хэвээр бүрэн web app: толгой хэсэг, хажуугийн цэс,
    `/login` бүгд урьдын адил.

@@ -23,6 +23,11 @@
 Хоёр урсгал өөр origin дээр байгаа нь гоо зүйн биш: cookie нь hostname-аар
 хязгаарлагддаг тул тусдаа нэр нь тусдаа ambient authority гэсэн үг.
 
+Эдгээрээс гадна native клиентүүдийн дөрвөн **төхөөрөмжийн шугам**
+(`desktop.` / `mobile.` / `kiosk.` / `pos.petronet.mn`) байна — тэдгээр нь өөр
+үйлчилгээ БИШ, ижил frontend ба API зөвхөн өөр origin дээр. Бүртгэл ба асаах
+дараалал: [Байрлуулалт § Төхөөрөмжийн шугамууд](DEPLOYMENT.md#төхөөрөмжийн-шугамууд).
+
 Платформын нүүр хуудас эдгээрийг карт болгож харуулна. Хаягууд нь кодод биш,
 системийн орчинд (`SERVICE_URL_ADMIN`, `_DWH`, `_BACKUPS`, `_MONITOR`,
 `_DOCS`, мөн үндэсний `_EID`): `admin.petronet.mn` бол PetroNet System-ийнх,
@@ -129,6 +134,81 @@ GitHub-д үлдэнэ: тэдгээр нь хост руу хүрэх зам б
 ажиглалтын түлхүүрүүд — ялангуяа age-ийн хувийн түлхүүр — нь deploy-гоор
 дамждаггүй. Тэдгээрийн хувьд сан нь цорын ганц хуулбар: хост алдвал
 сэргээх эх сурвалж өөр байхгүй.
+
+## CI-ийн Windows worker
+
+macOS, iOS, Android гурвыг GitHub-ийн үүлэн runner барина. **Windows нь өөр**:
+WinUI-ийн XamlCompiler ажиллуулахад Windows SDK ба Visual Studio Build Tools
+хэрэгтэй бөгөөд тэдгээрийн хувилбарыг өөрсдөө барихын тулд өөрийн төмөр дээр
+барина.
+
+| | |
+| --- | --- |
+| Хост | `38.180.136.249` (Windows 11 Pro, 4 цөм, 16 ГБ) |
+| Хандалт | SSH (OpenSSH), `administrator` |
+| Runner | `petronet-win11`, шошго `petronet-win` |
+| Байрлал | `C:\actions-runner-petronet`, сервис нь `actions.runner.gerege-systems-petronet-gerege-nexus.petronet-win11` |
+| Сервисийн данс | `NT AUTHORITY\NETWORK SERVICE` — build хийхэд хангалттай, админ эрх хэрэггүй |
+| Toolchain | .NET SDK 8.0.422 (`C:\dotnet`), git, VS Build Tools 2022: MSBuildTools + ManagedDesktopBuildTools + **VCTools** + Windows 11 SDK 26100 |
+
+**VCTools (MSVC) нь заавал.** WinUI-ийн `Microsoft.UI.Xaml.Markup.Compiler.interop.targets`
+нь `VC\Tools\MSVC`-г уншиж хамгийн сүүлийн хувилбарыг олдог — байхгүй бол
+`DirectoryNotFoundException` шидэж build унана. `dotnet` SDK ганцаараа
+хангалтгүй.
+
+Тэр машин дээр **хоёр дахь runner** — `eid-platform-mn`-ийнх — зэрэгцэн
+ажиллаж байгаа. Тиймээс job нь `runs-on: [self-hosted, windows, petronet-win]`
+гэж ШОШГООР сонгоно: `self-hosted` дангаараа хоёр репогийн ажлыг хольж
+явуулна.
+
+**Энэ репо нийтийн, runner нь хуваалцсан төмөр.** Fork-оос ирсэн PR workflow-г
+солиод тэр машин дээр дурын тушаал ажиллуулж чадах тул хамгаалалт хоёр
+давхар:
+
+1. `native-clients.yml`-ийн windows job нь `if:`-ээр fork-ийн PR дээр огт
+   ажиллахгүй (зөвхөн энэ репогийн салбарууд).
+2. Репогийн Actions тохиргоо `all_external_contributors` — гаднын хүний PR
+   бүр workflow ажиллахын өмнө зөвшөөрөл хүснэ.
+
+Хоёуланг нь сулруулах нь тэр машиныг гаднын хүнд нээж өгнө. Хэрэв Windows-ийн
+шалгалт fork-ийн PR дээр ч хэрэгтэй болвол зөв зам нь `windows-latest` руу
+буцаах, runner-ийг нээх БИШ.
+
+### Runner дахин бүртгэх
+
+Token хугацаа дуусах, эсвэл машин солигдох үед:
+
+```bash
+gh api -X POST repos/gerege-systems/petronet-gerege-nexus/actions/runners/registration-token --jq .token
+# дараа нь тэр машин дээр:
+#   C:\actions-runner-petronet\config.cmd --unattended --replace \
+#     --url https://github.com/gerege-systems/petronet-gerege-nexus \
+#     --token <TOKEN> --name petronet-win11 --labels petronet-win --runasservice
+```
+
+Ажлын хавтас (`_work`) машин дээр үлддэг тул job бүрийн төгсгөлд
+`git clean -xdf` хийнэ — үгүй бол гурван form factor-ийн build гаралт дискийг
+хэдхэн долоо хоногт дүүргэнэ.
+
+### XAML-ийн алдааг хэрхэн УНШИХ вэ
+
+`dotnet build` дээр WinUI-ийн XamlCompiler нь алдаатай XAML тулгарвал
+**чимээгүй 1 буцаана**: stdout хоосон, `output.json` үүсэхгүй, MSBuild зөвхөн
+`MSB3073 ... exited with code 1` гэж хэлнэ. Жинхэнэ мессежийг харах цорын ганц
+зам нь компайлерыг MSBuild дотор ажиллуулах:
+
+```powershell
+& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\amd64\MSBuild.exe" `
+    PetroNetDesktop.sln -p:Configuration=Release -p:FormFactor=Desktop -p:RestoreLockedMode=false -v:m
+```
+
+**amd64** хувилбарыг заавал: 32 битийн MSBuild нь RID-ыг `win-x86` гэж
+таамаглаад `PlatformTarget=x64`-тэй зөрж NETSDK1032 өгнө. Мөн `-p:Platform`
+БҮҮ дамжуул — solution нь зөвхөн `Any CPU` тохиргоотой.
+
+Энэ замаар олдсон нэг жишээ: XML коммент дотор давхар зураас (`--`) байж
+болохгүй, тиймээс CSS-ийн `--pn-blue` мэтийн нэрийг `.xaml` комментод шууд
+бичих нь бүх Windows build-ийг унагаана (`WMC9999`).
 
 ## Ажиглалт
 

@@ -89,7 +89,10 @@ services:
       DATABASE_URL: postgres://postgres:${PETRONET_POSTGRES_PASSWORD}@postgres:5432/platform_db?sslmode=disable
       ENVIRONMENT: production
       PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-https://petronet.mn}
-      ALLOWED_ORIGINS: ${PUBLIC_ORIGIN:-https://petronet.mn}
+      # Хөтчийн шугам + төхөөрөмжийн дөрвөн шугам. Native клиент бүр өөрийн
+      # host-оор ханддаг тул тэдгээр origin энд байхгүй бол cookie-той бичих
+      # дуудлага бүр CSRF шалгалт дээр унана (`native-apps/shared/device_lines.json`).
+      ALLOWED_ORIGINS: ${PUBLIC_ORIGIN:-https://petronet.mn},${DEVICE_LINE_ORIGINS:-https://desktop.petronet.mn,https://mobile.petronet.mn,https://kiosk.petronet.mn,https://pos.petronet.mn}
       # nginx terminates TLS in front of this, so the forwarded client address
       # can be trusted — and the login rate limiter counts on it being real.
       TRUST_PROXY_HEADERS: "true"

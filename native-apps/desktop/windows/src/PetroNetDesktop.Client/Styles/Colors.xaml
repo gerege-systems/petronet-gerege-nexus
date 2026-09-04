@@ -1,0 +1,55 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Brand palette mirrored from frontend/app/petronet.css: the pn-blue
+        through pn-navy custom properties. (Their CSS spelling carries a
+        double dash, which XML comments cannot hold, so they are named
+        plainly here.)
+        Primary brand blue: #0064df (Brand500).
+        Keep these in lockstep with the web app so headers, accents,
+        and status badges match across surfaces.
+    -->
+    <Color x:Key="Brand50">#FFEEF5FF</Color>
+    <Color x:Key="Brand100">#FFD6E8FF</Color>
+    <Color x:Key="Brand200">#FFADCFFF</Color>
+    <Color x:Key="Brand300">#FF7BB0FF</Color>
+    <Color x:Key="Brand400">#FF3D8CF7</Color>
+    <Color x:Key="Brand500">#FF0064DF</Color>
+    <Color x:Key="Brand600">#FF0053BB</Color>
+    <Color x:Key="Brand700">#FF004296</Color>
+    <Color x:Key="Brand800">#FF083470</Color>
+    <Color x:Key="Brand900">#FF06214C</Color>
+    <Color x:Key="Brand950">#FF061827</Color>
+
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="EidAccentBrush"        Color="{StaticResource Brand500}" />
+            <SolidColorBrush x:Key="EidAccentStrongBrush"  Color="{StaticResource Brand700}" />
+            <SolidColorBrush x:Key="EidAccentSubtleBrush"  Color="{StaticResource Brand100}" />
+            <SolidColorBrush x:Key="EidAccentMutedBrush"   Color="{StaticResource Brand50}" />
+            <SolidColorBrush x:Key="EidSuccessBrush"       Color="#FF107C10" />
+            <SolidColorBrush x:Key="EidWarningBrush"       Color="#FF9D5D00" />
+            <SolidColorBrush x:Key="EidDangerBrush"        Color="#FFBA1A1A" />
+            <SolidColorBrush x:Key="EidCardBackground"     Color="#FFFFFFFF" />
+            <SolidColorBrush x:Key="EidCardStroke"         Color="#FFE5E7EB" />
+            <SolidColorBrush x:Key="EidSurfaceBrush"       Color="#FFF4F7F8" />
+            <SolidColorBrush x:Key="EidMutedForeground"    Color="#FF6B7280" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="EidAccentBrush"        Color="{StaticResource Brand300}" />
+            <SolidColorBrush x:Key="EidAccentStrongBrush"  Color="{StaticResource Brand200}" />
+            <SolidColorBrush x:Key="EidAccentSubtleBrush"  Color="{StaticResource Brand900}" />
+            <SolidColorBrush x:Key="EidAccentMutedBrush"   Color="{StaticResource Brand950}" />
+            <SolidColorBrush x:Key="EidSuccessBrush"       Color="#FF6FCF6F" />
+            <SolidColorBrush x:Key="EidWarningBrush"       Color="#FFE8B66A" />
+            <SolidColorBrush x:Key="EidDangerBrush"        Color="#FFFFB4AB" />
+            <SolidColorBrush x:Key="EidCardBackground"     Color="#FF1F1F23" />
+            <SolidColorBrush x:Key="EidCardStroke"         Color="#FF34343A" />
+            <SolidColorBrush x:Key="EidSurfaceBrush"       Color="#FF0B0E12" />
+            <SolidColorBrush x:Key="EidMutedForeground"    Color="#FF9CA3AF" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+</ResourceDictionary>
