@@ -35,9 +35,19 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: `node node_modules/next/dist/bin/next start -p ${PORT}`,
+    // Production uses the same standalone server. Testing `next start` here
+    // would exercise a deployment mode this image no longer ships.
+    command:
+      "mkdir -p .next/standalone/.next/static .next/standalone/public && " +
+      "cp -R .next/static/. .next/standalone/.next/static/ && " +
+      "cp -R public/. .next/standalone/public/ && " +
+      "node .next/standalone/server.js",
     url: `http://nexus.localhost:${PORT}/login`,
-    env: { CONTROL_PLANE_HOST: "admin.localhost" },
+    env: {
+      CONTROL_PLANE_HOST: "admin.localhost",
+      HOSTNAME: "0.0.0.0",
+      PORT: String(PORT),
+    },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

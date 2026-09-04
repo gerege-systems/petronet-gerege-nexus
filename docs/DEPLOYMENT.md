@@ -26,6 +26,35 @@
 Хаягууд кодод биш, `.env`-ийн `SERVICE_URL_*`-д. Нүүр хуудас тохируулсныг нь л
 карт болгож зурна — хаяггүй үйлчилгээ зурагдахгүй.
 
+## Төхөөрөмжийн шугамууд
+
+Дээрх долоо нь ӨӨР ӨӨР үйлчилгээ. Доорх дөрөв нь тийм биш: яг ижил frontend
+ба API, зөвхөн өөр origin дээр. Native клиент бүр өөрийн host-оор ханддаг тул
+webview доторх дуудлага same-origin болж, session cookie нь `SameSite=Strict`
+хэвээр ажиллаж, CORS preflight огт үүсэхгүй.
+
+| Шугам | Аппын нэр | Клиент |
+| --- | --- | --- |
+| `desktop.petronet.mn` | `PetroNetDesktop` | macOS, Windows |
+| `mobile.petronet.mn` | `PetroNetMobile` | iOS/iPadOS, Android |
+| `kiosk.petronet.mn` | `PetroNetKiosk` | ЗАХИАЛГАТАЙ — клиент хараахан байхгүй |
+| `pos.petronet.mn` | `PetroNetPos` | ЗАХИАЛГАТАЙ — клиент хараахан байхгүй |
+
+Хаяг нь хүн төхөөрөмжийг ХЭРХЭН БАРЬДГИЙГ нэрлэнэ, үйлдлийн системийг биш:
+нэг ширээн дээрх Mac ба Windows хоёр нэг шугам. vhost нь
+`nginx/device-lines.petronet.mn.conf`, эх сурвалж нь
+`native-apps/shared/device_lines.json`.
+
+**Дөрвүүлэн хараахан асаагүй.** Асаах дараалал нь ДҮРЭМ бөгөөд эсрэгээр явбал
+апп байхгүй host руу чиглэж унана:
+
+1. DNS — дөрвөн A бичлэг → `38.180.120.144` (энэ IP дээр өөр домэйн сууж
+   байгаа тул wildcard БИШ)
+2. `nginx/device-lines.petronet.mn.conf` → `sites-available/`, `-enabled/`
+3. `certbot --nginx -d desktop.petronet.mn -d mobile.petronet.mn -d kiosk.petronet.mn -d pos.petronet.mn`
+4. `.env`-ийн `DEVICE_LINE_ORIGINS` → `ALLOWED_ORIGINS`
+5. ХАМГИЙН СҮҮЛД клиентийн доторх хаяг (`device_lines.json` → `client`)
+
 ## Портууд
 
 Цөмийн анхдагч портуудыг энэ хост дээр урьд нь хөрш систем эзэлж байсан.

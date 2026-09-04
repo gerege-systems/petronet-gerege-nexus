@@ -1,15 +1,19 @@
-FROM node:22-alpine AS builder
+# Digest inherited from eid-gerege-mn's reproducible web build.  The tag keeps
+# the human-readable runtime while the digest prevents an upstream tag move
+# from changing a PetroNet image without a repository change.
+FROM node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2 AS builder
 WORKDIR /app
 
 # Playwright's postinstall would otherwise fetch three browsers into a layer
 # that only ever runs `next build`. The end-to-end suite is CI's and the
 # developer's; the image does not run it.
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+    NEXT_TELEMETRY_DISABLED=1
 
 # package-lock.json must be copied too, otherwise `npm ci` is impossible and
 # `npm install` silently resolves different dependency versions per build.
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --no-audit --no-fund
 
 COPY . .
 
@@ -38,15 +42,20 @@ ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
 
 RUN npm run build
 
-FROM node:22-alpine AS runner
+FROM node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2 AS runner
 WORKDIR /app
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    HOSTNAME=0.0.0.0 \
+    PORT=3000
 
-COPY --from=builder /app/package.json /app/package-lock.json ./
-RUN npm ci --omit=dev
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+RUN addgroup -g 10001 -S nextjs && adduser -u 10001 -S nextjs -G nextjs
+COPY --from=builder --chown=nextjs:nextjs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nextjs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nextjs /app/public ./public
 
-USER node
+USER 10001:10001
 EXPOSE 3000
-CMD ["npm", "start"]
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1
+CMD ["node", "server.js"]

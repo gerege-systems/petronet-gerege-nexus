@@ -127,6 +127,32 @@ revision-оор гарна; тусдаа `WEB_IMAGE` эсвэл registry login �
 compose-д, тиймээс шинэчлэх нь `git pull && docker compose restart`. Хостын
 файлын систем рүү гараар хуулах алхам байхгүй.
 
+Эдгээрээс гадна **төхөөрөмжийн дөрвөн шугам** байна —
+`desktop.` / `mobile.` / `kiosk.` / `pos.petronet.mn`. Тэдгээр нь өөр
+үйлчилгээ БИШ: яг ижил frontend ба API, зөвхөн өөр origin дээр, native
+клиент бүрийн webview доторх дуудлага same-origin байхын тулд. Дөрвүүлэн
+хараахан асаагүй — [Байрлуулалт § Төхөөрөмжийн
+шугамууд](docs/DEPLOYMENT.md#төхөөрөмжийн-шугамууд).
+
+## Native клиентүүд
+
+`native-apps/` дотор дөрвөн клиент, хоёр шугам: **macOS** ба **Windows** нь
+`PetroNetDesktop` (`desktop.petronet.mn`), **iOS/iPadOS** ба **Android** нь
+`PetroNetMobile` (`mobile.petronet.mn`). Аппын нэр нь платформыг биш
+ТӨХӨӨРӨМЖИЙН ШУГАМЫГ нэрлэдэг: хүн ширээн дээрх Mac, Windows хоёртой ижил
+байдлаар харьцдаг тул тэд нэг апп.
+
+Гурван зарчим: клиентэд secret байхгүй (бүх дуудлага өөрийн web backend-ийн
+нийтийн `/api/…` route-уудаар — хөтөчтэй яг ижил зам); identity нь session
+биш snapshot (Keychain / Android Keystore); харагдах нэр нь **PetroNet**.
+Өнгө нь `frontend/app/petronet.css`-ээс — хөтөч дээрх PetroNet ба гар дээрх
+PetroNet нэг бүтээгдэхүүн шиг уншигдана.
+
+Эх нь [Gerege Nexus](https://github.com/gerege-systems/open-gerege-nexus)-ийн
+`native-apps/`; энд ирэхдээ нэр, bundle ID, шугамын хаяг, палитр солигдсон ч
+бүтэц, гэрээ, урсгал нь ЭХ ХЭВЭЭР — цөмийн засварыг буулгах нь механик ажил
+хэвээр байхын тулд. Дэлгэрэнгүй: [`native-apps/README.md`](native-apps/README.md).
+
 ## Операторын консол
 
 `admin.petronet.mn` — тенантын лавлах биш, платформын өөрийн консол: тусдаа
