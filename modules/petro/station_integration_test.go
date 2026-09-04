@@ -166,3 +166,41 @@ func TestAStationWithoutCoordinatesIsRefused(t *testing.T) {
 		t.Fatalf("expected 400 at (0, 0), got %d %s", rec.Code, rec.Body.String())
 	}
 }
+
+// A path parameter that is not a uuid is the caller's mistake, not the
+// server's.
+//
+// Half the handlers checked the shape and half passed the string to a `$1::uuid`
+// cast, where Postgres answered 22P02 and the module turned that into a 500 —
+// the status that means "something here is broken", logged as if it were.
+func TestAMalformedIdIsRefused(t *testing.T) {
+	pool := openFuelPool(t)
+	company := newCompany(t, pool, "malformed")
+
+	for _, probe := range []struct {
+		name    string
+		handler http.HandlerFunc
+		method  string
+		params  map[string]string
+	}{
+		{"update a station", company.module.handleUpdateStation, http.MethodPatch,
+			map[string]string{"id": "not-a-uuid"}},
+		{"delete a station", company.module.handleDeleteStation, http.MethodDelete,
+			map[string]string{"id": "not-a-uuid"}},
+		{"set a grade", company.module.handleSetStationGrade, http.MethodPut,
+			map[string]string{"id": "not-a-uuid"}},
+		{"read a submission", company.module.handleReadSubmission, http.MethodGet,
+			map[string]string{"id": "not-a-uuid"}},
+		{"a station's receipts", company.module.handleListReceipts, http.MethodGet,
+			map[string]string{"id": "not-a-uuid"}},
+	} {
+		body := any(nil)
+		if probe.method == http.MethodPut {
+			body = GradeDraft{FuelType: "ai92"}
+		}
+		rec := company.call(t, probe.handler, probe.method, "/x", body, probe.params)
+		if rec.Code != http.StatusBadRequest {
+			t.Errorf("%s: %d %s, want 400", probe.name, rec.Code, rec.Body.String())
+		}
+	}
+}

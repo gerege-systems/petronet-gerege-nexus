@@ -508,14 +508,16 @@ func TestASaleDrawsDownTheForecourtAndClosesTheVoucher(t *testing.T) {
 		t.Fatalf("seed the tank: %v", err)
 	}
 
-	var voucherID string
-	if err := pool.QueryRow(context.Background(), `
-		INSERT INTO petro_vouchers
-		       (citizen_id, tenant_id, for_date, amount_mnt, fuel_type, qr_token, expires_at)
-		VALUES (gen_random_uuid(), $1::uuid, CURRENT_DATE, 50000, 'ai92', $2, NOW() + INTERVAL '3 hours')
-		RETURNING id::text`, company.tenantID, uuid.NewString()).Scan(&voucherID); err != nil {
-		t.Fatalf("create a voucher: %v", err)
-	}
+	// The voucher belongs to the citizens' organisation, not to the operator.
+	//
+	// That is the only shape production ever has — eID just-in-time
+	// provisioning puts every citizen in one organisation of its own — and the
+	// shape this test used to get wrong: it minted the voucher against
+	// `company.tenantID`, so the redemption happened inside one tenant and the
+	// row-level policy was never asked. In production it was asked, answered
+	// with zero rows, and every scan came back "already spent".
+	citizens := newCompany(t, pool, "citizens")
+	voucherID := issueVoucher(t, pool, citizens.tenantID)
 
 	rec := company.call(t, company.module.handleRecordSale, http.MethodPost, "/stations/x/sales",
 		SaleDraft{FuelType: "ai92", Liters: 15, VoucherID: voucherID},
@@ -544,6 +546,60 @@ func TestASaleDrawsDownTheForecourtAndClosesTheVoucher(t *testing.T) {
 		map[string]string{"id": stationID})
 	if rec.Code != http.StatusConflict {
 		t.Fatalf("a spent voucher was accepted again: %d %s", rec.Code, rec.Body.String())
+	}
+}
+
+// issueVoucher mints an active voucher held by the given organisation.
+//
+// Straight into the table on the login role rather than through the citizen's
+// endpoint: what is being tested is who may close it, and the issuing side has
+// its own tenant, its own session and nothing to do with the forecourt.
+func issueVoucher(t *testing.T, pool *pgxpool.Pool, tenantID string) string {
+	t.Helper()
+	var id string
+	if err := pool.QueryRow(context.Background(), `
+		INSERT INTO petro_vouchers
+		       (citizen_id, tenant_id, for_date, amount_mnt, fuel_type, qr_token, expires_at)
+		VALUES (gen_random_uuid(), $1::uuid, CURRENT_DATE, 50000, 'ai92', $2, NOW() + INTERVAL '3 hours')
+		RETURNING id::text`, tenantID, uuid.NewString()).Scan(&id); err != nil {
+		t.Fatalf("create a voucher: %v", err)
+	}
+	return id
+}
+
+// A voucher is spendable at any pump, so the function that closes it cannot ask
+// who owns the voucher. What it must ask is whether the forecourt handing over
+// the fuel belongs to the caller — otherwise one operator could close vouchers
+// against a competitor's site and leave the litres on their books.
+func TestOnlyTheOperatorOfTheForecourtCanCloseAVoucher(t *testing.T) {
+	pool := openFuelPool(t)
+	seller := newCompany(t, pool, "seller")
+	stationID := seller.sells(t, "Ваучер авдаг ШТС", 40000, 3190)
+	if _, err := pool.Exec(context.Background(), `
+		UPDATE petro_station_inventory SET current_stock_liters = 5000
+		 WHERE station_id = $1::uuid AND fuel_type = 'ai92'`, stationID); err != nil {
+		t.Fatalf("seed the tank: %v", err)
+	}
+
+	citizens := newCompany(t, pool, "citizens2")
+	voucherID := issueVoucher(t, pool, citizens.tenantID)
+
+	stranger := newCompany(t, pool, "stranger")
+	rec := stranger.call(t, stranger.module.handleRecordSale, http.MethodPost, "/stations/x/sales",
+		SaleDraft{FuelType: "ai92", Liters: 15, VoucherID: voucherID},
+		map[string]string{"id": stationID})
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("another operator closed a voucher on a site that is not theirs: %d %s",
+			rec.Code, rec.Body.String())
+	}
+
+	var status string
+	if err := pool.QueryRow(context.Background(),
+		`SELECT status FROM petro_vouchers WHERE id = $1::uuid`, voucherID).Scan(&status); err != nil {
+		t.Fatalf("read the voucher: %v", err)
+	}
+	if status != "active" {
+		t.Fatalf("the voucher is %q after a refused sale, want active", status)
 	}
 }
 

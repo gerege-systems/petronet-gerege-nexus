@@ -190,6 +190,10 @@ func (m *Module) handleAdvanceShipment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	shipmentID := chi.URLParam(r, "id")
+	if !isUUID(shipmentID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var request ClearRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&request); err != nil {

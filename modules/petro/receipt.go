@@ -96,6 +96,10 @@ func (m *Module) handleReceiveDelivery(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tripID := chi.URLParam(r, "id")
+	if !isUUID(tripID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	var request ReceiveRequest
 	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&request); err != nil {
@@ -249,6 +253,10 @@ func (m *Module) handleListReceipts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	stationID := chi.URLParam(r, "id")
+	if !isUUID(stationID) {
+		nexus.Error(w, http.StatusBadRequest, "id буруу хэлбэртэй байна")
+		return
+	}
 
 	rows, err := m.db.Query(r.Context(), `
 		SELECT rc.id::text, rc.station_id::text, COALESCE(s.name, ''),
