@@ -125,6 +125,14 @@ jobs:
   scenarios:
     name: Тест сценари
     runs-on: ubuntu-latest
+    # Тохиргоог ЖОБЫН env рүү нэг удаа буулгана. Шалтгаан нь GitHub-ийн дүрэм:
+    # `secrets` контекстийг алхмын `if`-д ашиглаж БОЛДОГГҮЙ — workflow нь
+    # ажил эхлэхээс өмнө «workflow file issue» гэж унана. `env` бол зөвшөөрөгдөнө,
+    # тиймээс нөхцөлүүд доор `env.…` уншина.
+    env:
+      TSM_URL: ${{ vars.TSM_URL }}
+      TSM_PASSWORD: ${{ secrets.TSM_PASSWORD }}
+      TSM_GH_TOKEN: ${{ secrets.TSM_GH_TOKEN }}
     steps:
       - uses: actions/checkout@v7
 
@@ -153,14 +161,12 @@ jobs:
       # гэж унадаг: fork-ийн PR-д нууц олгогддоггүй тул энэ нөхцөл тэнд
       # хэзээ ч үнэн болохгүй, тэр нь зөв.
       - uses: actions/setup-go@v7
-        if: ${{ github.ref == 'refs/heads/main' && vars.TSM_URL != '' && secrets.TSM_GH_TOKEN != '' }}
+        if: ${{ github.ref == 'refs/heads/main' && env.TSM_URL != '' && env.TSM_GH_TOKEN != '' }}
         with:
           go-version: "1.26"
 
       - name: tsm суулгах
-        if: ${{ github.ref == 'refs/heads/main' && vars.TSM_URL != '' && secrets.TSM_GH_TOKEN != '' }}
-        env:
-          TSM_GH_TOKEN: ${{ secrets.TSM_GH_TOKEN }}
+        if: ${{ github.ref == 'refs/heads/main' && env.TSM_URL != '' && env.TSM_GH_TOKEN != '' }}
         run: |
           git config --global \
             url."https://x-access-token:$TSM_GH_TOKEN@github.com/".insteadOf "https://github.com/"
@@ -171,18 +177,12 @@ jobs:
       # тэдгээр TSM руу гараар биш, кодтойгоо хамт очно: шинэ API зам нэмсэн
       # PR merge болмогц түүний сценари ажиллах байрандаа очсон байна.
       - name: TSM руу түлхэх
-        if: ${{ github.ref == 'refs/heads/main' && vars.TSM_URL != '' && secrets.TSM_GH_TOKEN != '' }}
-        env:
-          TSM_URL: ${{ vars.TSM_URL }}
-          TSM_PASSWORD: ${{ secrets.TSM_PASSWORD }}
+        if: ${{ github.ref == 'refs/heads/main' && env.TSM_URL != '' && env.TSM_GH_TOKEN != '' }}
         run: tsm push tsm/
 
       # Утааны сценари нь юу ч үүсгэдэггүй тул байрлуулалт бүрийн дараа
       # ажиллуулах нь аюулгүй. Өгөгдөл үүсгэдэг сценариудыг CI ажиллуулахгүй:
       # тэдгээр нь продакшн дээр бичдэг бөгөөд тэр шийдвэр хүнийх.
       - name: Утааны сценари
-        if: ${{ github.ref == 'refs/heads/main' && vars.TSM_URL != '' && secrets.TSM_GH_TOKEN != '' }}
-        env:
-          TSM_URL: ${{ vars.TSM_URL }}
-          TSM_PASSWORD: ${{ secrets.TSM_PASSWORD }}
+        if: ${{ github.ref == 'refs/heads/main' && env.TSM_URL != '' && env.TSM_GH_TOKEN != '' }}
         run: tsm run petronet-smoke petronet
