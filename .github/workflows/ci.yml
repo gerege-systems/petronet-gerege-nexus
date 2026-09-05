@@ -172,10 +172,18 @@ jobs:
             url."https://x-access-token:$TSM_GH_TOKEN@github.com/".insteadOf "https://github.com/"
           GOPRIVATE='github.com/gerege-systems/*' \
             go install github.com/gerege-systems/tsm-gerege-mn@latest
-          # `go install` нь бинарийг GOPATH/bin-д тавьдаг ба `setup-go` түүнийг
-          # PATH-д НЭМДЭГГҮЙ. Үүнгүйгээр дараагийн алхам `tsm: command not found`
-          # (exit 127) гэж унана — суулгалт нь амжилттай харагдсаар.
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+          bin="$(go env GOPATH)/bin"
+          # `go install` нь бинарийг МОДУЛИЙН нэрээр тавьдаг: `tsm-gerege-mn`.
+          # Баримт бичиг ба доорх алхмууд бүгд `tsm` гэж дууддаг — хүн локал
+          # дээр өөрөө alias хийдэг. CI-д тэр нэрийг энд өгнө.
+          ln -sf "$bin/tsm-gerege-mn" "$bin/tsm"
+          # `setup-go` нь GOPATH/bin-ийг PATH-д НЭМДЭГГҮЙ.
+          echo "$bin" >> "$GITHUB_PATH"
+          # Суулгалт бүтсэн эсэхийг ЭНД хэлнэ. Үгүй бол дараагийн алхам
+          # `tsm: command not found` (exit 127) гэж унах бөгөөд тэр мессеж нь
+          # юу болсныг хэлдэггүй — суулгах алхам ногоон харагдсаар байдаг.
+          test -x "$bin/tsm" || { echo "tsm суулгагдсангүй:" >&2; ls -l "$bin" >&2; exit 1; }
 
       # main дээр, нууц тавигдсан үед л түлхэнэ. Сценари бол аппын өмч тул
       # тэдгээр TSM руу гараар биш, кодтойгоо хамт очно: шинэ API зам нэмсэн
