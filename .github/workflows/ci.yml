@@ -172,6 +172,10 @@ jobs:
             url."https://x-access-token:$TSM_GH_TOKEN@github.com/".insteadOf "https://github.com/"
           GOPRIVATE='github.com/gerege-systems/*' \
             go install github.com/gerege-systems/tsm-gerege-mn@latest
+          # `go install` нь бинарийг GOPATH/bin-д тавьдаг ба `setup-go` түүнийг
+          # PATH-д НЭМДЭГГҮЙ. Үүнгүйгээр дараагийн алхам `tsm: command not found`
+          # (exit 127) гэж унана — суулгалт нь амжилттай харагдсаар.
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       # main дээр, нууц тавигдсан үед л түлхэнэ. Сценари бол аппын өмч тул
       # тэдгээр TSM руу гараар биш, кодтойгоо хамт очно: шинэ API зам нэмсэн
