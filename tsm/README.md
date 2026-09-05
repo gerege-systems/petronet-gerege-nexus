@@ -11,12 +11,19 @@
 ## Түлхэх ба ажиллуулах
 
 ```sh
+go install github.com/gerege-systems/tsm-gerege-mn@latest
+ln -sf "$(go env GOPATH)/bin/tsm-gerege-mn" "$(go env GOPATH)/bin/tsm"
+
 export TSM_URL=https://tsm.gerege.mn
 export TSM_PASSWORD=...
 
 tsm push tsm/                        # бүх сценарийг TSM руу
 tsm run petronet-smoke petronet      # нэгийг ажиллуулж, дуустал хүлээнэ
 ```
+
+`go install` нь бинарийг **модулийн нэрээр** — `tsm-gerege-mn` — тавьдаг.
+Доорх бүх тушаал, TSM-ийн өөрийн баримт `tsm` гэж дууддаг тул холбоос хэрэгтэй;
+CI мөн адил хийдэг.
 
 `tsm run` нь сценари унавал тэг бус кодоор гардаг тул CI-д шууд тавьж болно.
 
