@@ -28,16 +28,19 @@
     "`kiosk`, `pos` хоёрын нэр нь ЗАХИАЛГАТАЙ: клиент нь хараахан байхгүй."
   ],
   "$provisioning": [
-    "Шугамууд ХАРААХАН АСААГҮЙ. Дөрвүүлэнг асаах дараалал (энэ дараалал нь дүрэм):",
-    "  1. DNS   desktop/mobile/kiosk/pos.petronet.mn → 38.180.120.144",
-    "           (petronet.mn дээр wildcard БАЙХГҮЙ — энэ IP дээр өөр домэйнууд",
-    "            сууж байгаа тул A бичлэг тус бүрээр нэмнэ.)",
+    "Дөрвүүлэн 2026-09-05-нд АСАВ. Одоогийн байдал:",
+    "  1. DNS   *.petronet.mn → 38.180.120.144 (wildcard, аль хэдийн байсан)",
     "  2. nginx nginx/device-lines.petronet.mn.conf → sites-available/-enabled",
-    "  3. TLS   certbot --nginx -d desktop.petronet.mn -d mobile.petronet.mn \\",
-    "                          -d kiosk.petronet.mn -d pos.petronet.mn",
-    "  4. API   DEVICE_LINE_ORIGINS → ALLOWED_ORIGINS (.env)",
-    "  5. ХАМГИЙН СҮҮЛД клиентийн 'client' талбарт заасан мөр.",
-    "Эсрэг дараалал нь аппыг байхгүй host руу чиглүүлж унагаана.",
+    "  3. TLS   /etc/letsencrypt/live/desktop.petronet.mn (дөрвөн нэр, 2026-12-04 хүртэл)",
+    "  4. API   DEVICE_LINE_ORIGINS → ALLOWED_ORIGINS (deploy/docker-compose.yml)",
+    "  5. Клиентийн доторх хаяг — доорх 'client' мөрүүд",
+    "",
+    "ШИНЭ шугам нэмэх дараалал (нэг шугамд):",
+    "  nginx server_name → certbot → DEVICE_LINE_ORIGINS → хамгийн СҮҮЛД клиент.",
+    "Эсрэг дараалал нь аппыг байхгүй host руу чиглүүлж унагаана. DNS нь wildcard",
+    "тул шинэ нэрэнд A бичлэг нэмэх шаардлагагүй — гэхдээ nginx-ийн server_name-д",
+    "нэрийг ЗААВАЛ бичнэ: wildcard server_name нь ирээдүйн өөр бүтээгдэхүүний",
+    "дэд домэйныг чимээгүй залгих байсан.",
     "",
     "Upstream портууд нь энэ стекийнх: 3018 бүрхүүл, 8098 API — цөмийн анхдагч",
     "3000/8080 БИШ (nginx/petronet.mn.conf-д шалтгааныг бичсэн)."
@@ -55,7 +58,7 @@
         "macos",
         "windows"
       ],
-      "provisioned": false,
+      "provisioned": true,
       "devOrigin": "http://localhost:3000",
       "startRoute": "/",
       "client": [
@@ -63,7 +66,7 @@
         "native-apps/desktop/windows/src/PetroNetDesktop.Client/appsettings.json → Api.BaseUrl"
       ],
       "home": "/line/desktop",
-      "$note": "Клиент бэлэн, ШУГАМ хараахан асаагүй — $provisioning-ийн дарааллыг дага."
+      "$note": "Шугам асаалттай, клиент бэлэн."
     },
     "mobile": {
       "line": "https://mobile.petronet.mn",
@@ -72,7 +75,7 @@
         "ios",
         "android"
       ],
-      "provisioned": false,
+      "provisioned": true,
       "devOrigin": "http://localhost:3000 (Android эмулятор дээр http://10.0.2.2:3000)",
       "startRoute": "/",
       "client": [
@@ -80,7 +83,7 @@
         "native-apps/mobile/android/app/src/main/kotlin/mn/petronet/app/AppConfig.kt → DEFAULT_BASE_URL"
       ],
       "home": "/line/mobile",
-      "$note": "Клиент бэлэн, ШУГАМ хараахан асаагүй — $provisioning-ийн дарааллыг дага."
+      "$note": "Шугам асаалттай, клиент бэлэн."
     },
     "kiosk": {
       "line": "https://kiosk.petronet.mn",
@@ -89,12 +92,12 @@
         "windows",
         "android"
       ],
-      "provisioned": false,
+      "provisioned": true,
       "devOrigin": "http://localhost:3000",
       "startRoute": "/",
       "client": [],
       "home": "/line/kiosk",
-      "$note": "Шугам хараахан асаагүй, КЛИЕНТ ч байхгүй. Нэр нь захиалгатай."
+      "$note": "Шугам асаалттай, КЛИЕНТ нь хараахан байхгүй. Нэр нь захиалгатай."
     },
     "pos": {
       "line": "https://pos.petronet.mn",
@@ -103,12 +106,12 @@
         "windows",
         "android"
       ],
-      "provisioned": false,
+      "provisioned": true,
       "devOrigin": "http://localhost:3000",
       "startRoute": "/",
       "client": [],
       "home": "/line/pos",
-      "$note": "Шугам хараахан асаагүй, КЛИЕНТ ч байхгүй. Нэр нь захиалгатай."
+      "$note": "Шугам асаалттай, КЛИЕНТ нь хараахан байхгүй. Нэр нь захиалгатай."
     }
   }
 }

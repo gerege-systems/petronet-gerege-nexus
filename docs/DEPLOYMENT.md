@@ -45,15 +45,17 @@ webview доторх дуудлага same-origin болж, session cookie нь 
 `nginx/device-lines.petronet.mn.conf`, эх сурвалж нь
 `native-apps/shared/device_lines.json`.
 
-**Дөрвүүлэн хараахан асаагүй.** Асаах дараалал нь ДҮРЭМ бөгөөд эсрэгээр явбал
-апп байхгүй host руу чиглэж унана:
+**Дөрвүүлэн 2026-09-05-нд асав.** DNS дээр `*.petronet.mn` wildcard байсан тул
+A бичлэг нэмэх алхам хэрэггүй байв; үлдсэнийг дарааллаар нь хийв:
 
-1. DNS — дөрвөн A бичлэг → `38.180.120.144` (энэ IP дээр өөр домэйн сууж
-   байгаа тул wildcard БИШ)
-2. `nginx/device-lines.petronet.mn.conf` → `sites-available/`, `-enabled/`
-3. `certbot --nginx -d desktop.petronet.mn -d mobile.petronet.mn -d kiosk.petronet.mn -d pos.petronet.mn`
-4. `.env`-ийн `DEVICE_LINE_ORIGINS` → `ALLOWED_ORIGINS`
-5. ХАМГИЙН СҮҮЛД клиентийн доторх хаяг (`device_lines.json` → `client`)
+1. `nginx/device-lines.petronet.mn.conf` → `sites-available/`, `-enabled/`
+2. `certbot --nginx -d desktop.petronet.mn -d mobile.petronet.mn -d kiosk.petronet.mn -d pos.petronet.mn`
+3. `.env`-ийн `DEVICE_LINE_ORIGINS` → `ALLOWED_ORIGINS`
+4. ХАМГИЙН СҮҮЛД клиентийн доторх хаяг (`device_lines.json` → `client`)
+
+Дараалал нь ДҮРЭМ: эсрэгээр явбал апп байхгүй host руу чиглэж унана. Шинэ
+шугам нэмэхэд ч мөн адил — DNS нь wildcard тул нэр өөрөө хүрч ирнэ, харин
+nginx-ийн `server_name`-д бичих хүртэл 404 хариулна.
 
 ## Портууд
 

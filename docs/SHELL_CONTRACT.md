@@ -71,10 +71,10 @@ Android дээр нэг scene. Нэвтрэлт, ажлын муж, тохирг
 | Шугам | Хэн ашиглах | Төлөв |
 | --- | --- | --- |
 | `petronet.mn` | Хөтөч / PWA — web app өөрөө бүрэн апп | ✅ ажиллаж байна |
-| `desktop.petronet.mn` | macOS, Windows — `PetroNetDesktop` | ⛔ хараахан асаагүй |
-| `mobile.petronet.mn` | iOS/iPadOS, Android — `PetroNetMobile` | ⛔ хараахан асаагүй |
-| `kiosk.petronet.mn` | Kiosk (Windows, Android) | ⛔ хараахан асаагүй |
-| `pos.petronet.mn` | POS (Windows, Android) | ⛔ хараахан асаагүй |
+| `desktop.petronet.mn` | macOS, Windows — `PetroNetDesktop` | ✅ ажиллаж байна |
+| `mobile.petronet.mn` | iOS/iPadOS, Android — `PetroNetMobile` | ✅ ажиллаж байна |
+| `kiosk.petronet.mn` | Kiosk (Windows, Android) | ✅ шугам асаалттай, клиент байхгүй |
+| `pos.petronet.mn` | POS (Windows, Android) | ✅ шугам асаалттай, клиент байхгүй |
 
 **Хаяг нь FORM FACTOR-ыг нэрлэнэ, платформыг биш.** Ширээн дээрх Mac ба ширээн
 дээрх Windows хоёр НЭГ шугам: хүн тэр хоёртой ижил байдлаар — сандал дээр
@@ -87,9 +87,11 @@ Android дээр нэг scene. Нэвтрэлт, ажлын муж, тохирг
 ажлын ширээний клиент ба киоск зэрэг ажиллаж болох тул тэдэнд host-only
 cookie-гийн тусгаарлалт хэрэгтэй хэвээр.
 
-`*.petronet.mn` wildcard БАЙХГҮЙ — энэ IP дээр өөр бүтээгдэхүүний домэйнууд
-сууж байгаа тул шугам бүр өөрийн A бичлэгтэй, дөрвүүлэн нэг Let's Encrypt
-гэрчилгээнд нэрлэгдэнэ (`nginx/device-lines.petronet.mn.conf`).
+DNS дээр `*.petronet.mn` wildcard байгаа тул нэр өөрөө энэ хост руу хүрнэ.
+Гэхдээ nginx-ийн `server_name` нь дөрвөн нэрийг ЖАГСААНА, wildcard биш: энэ IP
+дээр өөр бүтээгдэхүүний домэйнууд сууж байгаа бөгөөд wildcard server_name нь
+ирээдүйн өөр дэд домэйныг чимээгүй залгих байсан. Дөрвүүлэн нэг Let's Encrypt
+гэрчилгээнд (`nginx/device-lines.petronet.mn.conf`).
 
 > **ШИНЭ шугам нэмэхдээ клиентийг урьдчилж чиглүүлж БОЛОХГҮЙ.** DNS, nginx,
 > TLS, `DEVICE_LINE_ORIGINS` дөрвүүлэн бэлэн болохоос өмнө клиентийг зааж
