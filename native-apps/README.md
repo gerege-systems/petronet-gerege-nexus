@@ -136,13 +136,12 @@ macOS, iOS, Android гурав GitHub-ийн үүлэн runner дээр; **Windo
 
 | Клиент | Шугам | Төлөв |
 |---|---|---|
-| macOS, Windows | `desktop.petronet.mn` | ⛔ DNS/nginx/TLS хараахан үүсээгүй |
-| iOS, Android | `mobile.petronet.mn` | ⛔ DNS/nginx/TLS хараахан үүсээгүй |
+| macOS, Windows | `desktop.petronet.mn` | ✅ 2026-09-05-нд асав |
+| iOS, Android | `mobile.petronet.mn` | ✅ 2026-09-05-нд асав |
 
-vhost нь [`nginx/device-lines.petronet.mn.conf`](../nginx/device-lines.petronet.mn.conf)
-— суулгаж, certbot ажиллуулах хүртэл дөрвөн хаяг ямар ч хариу өгөхгүй тул
-клиентүүд `AppConfig`-ийн анхдагч хаяг дээрээ унана. Тэр нь зөв бүтэлгүйтэл:
-буруу host руу чиглэснээс дээр.
+vhost нь [`nginx/device-lines.petronet.mn.conf`](../nginx/device-lines.petronet.mn.conf),
+гэрчилгээ нь дөрвөн нэрийг хамарна. Клиентүүд `AppConfig`-ийн анхдагч хаягаараа
+шууд ажиллана — `API_BASE_URL` override хэрэггүй.
 
 Бүртгэл ба асаах дараалал: [`shared/device_lines.json`](shared/device_lines.json)
 → `$provisioning`. Клиентийн доторх хаягийг ХАМГИЙН СҮҮЛД солино — эсрэгээр
